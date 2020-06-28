@@ -11,7 +11,7 @@ export default function DefaultLayout({ children }) {
       <Wrapper>
         <WindowSizeListener
           onResize={(windowSize) => {
-            setAltura(windowSize.windowHeight - 67);
+            setAltura(windowSize.windowHeight - 80);
           }}
         />
         <Header />

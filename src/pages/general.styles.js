@@ -10,9 +10,9 @@ export const Scroll = styled(PerfectScrollbar)`
 
 export const ScrollGrid = styled(PerfectScrollbar)`
   width: 100%;
-  max-height: 99%;
-  padding-bottom: 15px;
-  padding-right: ${(props) => (props.pding ? 15 : 2)}px;
+  height: 100%;
+  padding-bottom: 10px;
+  padding-right: ${(props) => props.pding || 3}px;
 
   button {
     border: 0;

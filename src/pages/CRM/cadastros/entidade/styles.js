@@ -26,7 +26,7 @@ export const ToolBar = styled.div`
   width: ${(props) => props.wd};
   height: ${(props) => props.hg};
   margin-left: ${(props) => props.mleft || -10}px;
-  margin-top: 1px;
+  margin-top: 0px;
   background: #244448;
   border-top: solid 1px #244448;
   box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.2);

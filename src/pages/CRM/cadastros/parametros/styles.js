@@ -15,7 +15,7 @@ export const ToolBar = styled.div`
   width: 45px;
   height: 100%;
   margin-left: -10px;
-  margin-top: 1px;
+  margin-top: 0px;
   background: #244448;
   border-top: solid 1px #244448;
   box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.2);
@@ -32,11 +32,11 @@ export const ToolBar = styled.div`
 
 export const Container = styled.div`
   width: calc(100% - 55px);
-  height: 98%;
+  height: 99%;
   border-radius: 4px;
   margin-left: 5px;
 
-  background: #fff;
+  background: #fafafa;
   box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.2);
 `;
 

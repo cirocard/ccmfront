@@ -17,7 +17,7 @@ export const ToolBar = styled.div`
   width: 45px;
   height: 100%;
   margin-left: -5px;
-  margin-top: 1px;
+  margin-top: 0px;
   background: #244448;
   border-top: solid 1px #244448;
   box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.2);
@@ -33,7 +33,7 @@ export const ToolBar = styled.div`
 `;
 
 export const Container = styled.div`
-  width: calc(100% - 55px);
+  width: calc(100% - 50px);
   height: 98%;
   border-radius: 4px;
   margin-left: 5px;
@@ -43,8 +43,8 @@ export const Container = styled.div`
 
 export const Content = styled.div`
   width: 100%;
-  height: 95%;
-  padding: 7px 10px 10px 10px;
+  height: 98%;
+  padding: 5px 10px 5px 10px;
 
   h1 {
     font-size: 15px;
@@ -76,7 +76,7 @@ export const Content = styled.div`
 export const BoxRaia = styled.div`
   display: flex;
   width: 100%;
-  height: 100%;
+  height: 99%;
 `;
 export const Raia = styled.div`
   display: flex;
@@ -84,7 +84,7 @@ export const Raia = styled.div`
 
   width: ${(props) => props.wd || '300px'};
   flex-shrink: 0; /* para manter a largura informar zero */
-  height: 100%;
+  height: 99%;
   padding: 0px 5px 5px 5px;
   border-right: solid 2px #fff;
   background: #f5f7f8;
@@ -156,9 +156,7 @@ export const Oportunidade = styled.div`
 export const Atividade = styled.div`
   display: flex;
   flex-direction: column;
-  first-child {
-    margin: 0px;
-  }
+
   margin: 5px 0px;
   width: 100%;
   height: 380px;
@@ -191,11 +189,10 @@ export const Atividade = styled.div`
   span {
     margin: 0px;
     text-align: left;
-    width: 100%;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: bold;
     color: #ce6503;
-    padding: 5px 0px 3px;
+    padding: 3px 0px 3px;
   }
 `;
 

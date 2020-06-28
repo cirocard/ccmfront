@@ -388,7 +388,7 @@ export default function Crm5() {
             </div>
           </FiltroNeg>
           <Scroll>
-            <BoxRaia hg="98%">
+            <BoxRaia hg="97%">
               {sitNegocio.map((sit) => (
                 <>
                   {limpaRaia()}

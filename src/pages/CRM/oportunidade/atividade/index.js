@@ -85,7 +85,8 @@ export default function Crm6() {
     toolbarButtonSize: 'small',
     buttons:
       'bold,strikethrough,underline,eraser,brush,ul,ol,outdent,indent,font,fontsize,,image,video,table,link,align,undo,redo,selectall,hr,fullsize',
-    height: 300,
+    height: 285,
+    allowResizeY: false,
     uploader: {
       insertImageAsBase64URI: true,
     },
@@ -526,13 +527,14 @@ export default function Crm6() {
             </button>
           </BootstrapTooltip>
         </TitleBar>
+
         <Content>
           <Scroll>
             <BoxRaia>
               <Raia wd="250px">
                 <h1>LISTA DE CONTATOS</h1>
                 {pessoa.map((p) => (
-                  <Oportunidade id={p.pes_id}>
+                  <Oportunidade id={p.pes_id} key={p.pes_id}>
                     <button
                       type="button"
                       onClick={() => handleContato(p.pes_id)}
@@ -557,7 +559,8 @@ export default function Crm6() {
                   </Oportunidade>
                 ))}
               </Raia>
-              <Raia wd="calc(100% - 255px)">
+
+              <Raia wd="calc(100% - 240px)">
                 <h1>ATIVIDADES CADASTRADAS</h1>
                 <BtnFiltroAtv>
                   <button type="button" onClick={() => listaAtividade(0)}>
@@ -578,100 +581,98 @@ export default function Crm6() {
                 </BtnFiltroAtv>
                 <Scroll>
                   {atividade.map((at) => (
-                    <>
-                      <Atividade>
-                        <ToolbarAtv>
-                          <h1>{at.tipo_atv}</h1>
-                          <BootstrapTooltip
-                            title="Editar Atividae"
-                            placement="bottom"
+                    <Atividade key={at.atv_id}>
+                      <ToolbarAtv>
+                        <h1>{at.tipo_atv}</h1>
+                        <BootstrapTooltip
+                          title="Editar Atividae"
+                          placement="bottom"
+                        >
+                          <button
+                            type="button"
+                            onClick={() => handleEditAtv(at.atv_id)}
                           >
-                            <button
-                              type="button"
-                              onClick={() => handleEditAtv(at.atv_id)}
-                            >
-                              <FaEdit size={20} color="#325797" />
-                            </button>
-                          </BootstrapTooltip>
-                          <BootstrapTooltip
-                            title="Finalizar Atividade"
-                            placement="bottom"
+                            <FaEdit size={20} color="#325797" />
+                          </button>
+                        </BootstrapTooltip>
+                        <BootstrapTooltip
+                          title="Finalizar Atividade"
+                          placement="bottom"
+                        >
+                          <button
+                            type="button"
+                            onClick={() => handleFinishAtv(at.atv_id)}
                           >
-                            <button
-                              type="button"
-                              onClick={() => handleFinishAtv(at.atv_id)}
-                            >
-                              <FaCheckCircle size={20} color="#325797" />
-                            </button>
-                          </BootstrapTooltip>
-                        </ToolbarAtv>
+                            <FaCheckCircle size={20} color="#325797" />
+                          </button>
+                        </BootstrapTooltip>
+                      </ToolbarAtv>
 
-                        <Linha />
-                        <BoxItemCad fr="1fr 3fr">
-                          <ColunaAtv>
-                            <AreaComp wd="100">
-                              <span>Descrição da Atividade:</span>
-                              <label>{at.atv_descricao}</label>
-                            </AreaComp>
-                            <AreaComp wd="100">
-                              <span>Responsável</span>
-                              <label>{at.responsavel}</label>
-                            </AreaComp>
-                            <AreaComp wd="100">
-                              <span>Data Início</span>
-                              <label>
-                                {format(
-                                  Date.parse(at.atv_inicio),
-                                  'dd/MM/yyy HH:mm:ss'
-                                )}
-                              </label>
-                            </AreaComp>
-                            <AreaComp wd="100">
-                              <span>Previsão Término</span>
-                              <label>
-                                {format(
-                                  Date.parse(at.atv_fim),
-                                  'dd/MM/yyy HH:mm:ss'
-                                )}
-                              </label>
-                            </AreaComp>
+                      <Linha />
 
-                            <AreaComp wd="100" fontcor="#007EF5">
-                              <span>Status Atividade</span>
-                              <h2>{at.indicador}</h2>
-                            </AreaComp>
-                            <AreaComp wd="100">
-                              <span>Data de Conclusão</span>
-                              <label>
-                                {at.atv_data_conclusao
-                                  ? format(
-                                      Date.parse(at.atv_data_conclusao),
-                                      'dd/MM/yyy HH:mm:ss'
-                                    )
-                                  : ''}
-                              </label>
-                            </AreaComp>
-                          </ColunaAtv>
-                          <ColunaAtv bleft="solid 1px #80583B">
-                            <AreaComp wd="100">
-                              <span>REGISTROS DA ATIVIDADE</span>
-                              <JoditEditor
-                                ref={editor}
-                                value={
-                                  at.atv_registros ||
-                                  'Nenhum evento registrado!!'
-                                }
-                                config={configEditor}
-                                onBlur={(newContent) =>
-                                  handleEditor(newContent, at.atv_id)
-                                } // preferred to use only this option to update the content for performance reasons
-                              />
-                            </AreaComp>
-                          </ColunaAtv>
-                        </BoxItemCad>
-                      </Atividade>
-                      <Fluxoatv hg="20px" bkg="transparent" />
-                    </>
+                      <BoxItemCad fr="1fr 3fr">
+                        <ColunaAtv>
+                          <AreaComp wd="100">
+                            <span>Descrição da Atividade:</span>
+                            <label>{at.atv_descricao}</label>
+                          </AreaComp>
+                          <AreaComp wd="100">
+                            <span>Responsável</span>
+                            <label>{at.responsavel}</label>
+                          </AreaComp>
+                          <AreaComp wd="100">
+                            <span>Data Início</span>
+                            <label>
+                              {format(
+                                Date.parse(at.atv_inicio),
+                                'dd/MM/yyy HH:mm:ss'
+                              )}
+                            </label>
+                          </AreaComp>
+                          <AreaComp wd="100">
+                            <span>Previsão Término</span>
+                            <label>
+                              {format(
+                                Date.parse(at.atv_fim),
+                                'dd/MM/yyy HH:mm:ss'
+                              )}
+                            </label>
+                          </AreaComp>
+
+                          <AreaComp wd="100" fontcor="#007EF5">
+                            <span>Status Atividade</span>
+                            <h2>{at.indicador}</h2>
+                          </AreaComp>
+                          <AreaComp wd="100">
+                            <span>Data de Conclusão</span>
+                            <label>
+                              {at.atv_data_conclusao
+                                ? format(
+                                    Date.parse(at.atv_data_conclusao),
+                                    'dd/MM/yyy HH:mm:ss'
+                                  )
+                                : ''}
+                            </label>
+                          </AreaComp>
+                        </ColunaAtv>
+
+                        <ColunaAtv bleft="solid 1px #80583B">
+                          <AreaComp wd="100">
+                            <span>REGISTROS DA ATIVIDADE</span>
+                            <JoditEditor
+                              ref={editor}
+                              value={
+                                at.atv_registros || 'Nenhum evento registrado!!'
+                              }
+                              config={configEditor}
+                              onBlur={(newContent) =>
+                                handleEditor(newContent, at.atv_id)
+                              }
+                            />
+                          </AreaComp>
+                        </ColunaAtv>
+                      </BoxItemCad>
+                    </Atividade>
                   ))}
                 </Scroll>
               </Raia>

@@ -592,7 +592,7 @@ export default function Crm4() {
                 <div
                   className="ag-theme-balham"
                   style={{
-                    height: '70vh',
+                    height: '65vh',
                     width: '100%',
                     position: 'relative',
                   }}

@@ -17,7 +17,7 @@ export const ToolBar = styled.div`
   width: 45px;
   height: 100%;
   margin-left: -5px;
-  margin-top: 1px;
+  margin-top: 0px;
   background: #244448;
   border-top: solid 1px #244448;
   box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.2);
@@ -53,8 +53,8 @@ export const Container = styled.div`
 
 export const Content = styled.div`
   width: 100%;
-  height: 95%;
-  padding: 7px 10px 10px 10px;
+  height: 94%;
+  padding: 5px 10px 7px 10px;
 
   h1 {
     font-size: 15px;
