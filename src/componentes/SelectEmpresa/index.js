@@ -15,14 +15,21 @@ export function BotaoEmpresa() {
 
   useEffect(() => {
     const opt = [];
-    optionsEmp.map((op) => {
+    optionsEmp.forEach((op) => {
       opt.push({ value: op.emp_id, label: op.emp_nome });
     });
     setOptions(opt);
   }, []);
 
   const handleEmpresa = (event) => {
-    dispatch(selectEmpRequest(profile.usr_email, profile.usr_id, event.value));
+    dispatch(
+      selectEmpRequest(
+        profile.usr_email,
+        profile.usr_id,
+        profile.usr_tipo,
+        event.value
+      )
+    );
     toast.success(`Empresa selecionada: ${event.label}`);
     history.push('/');
   };

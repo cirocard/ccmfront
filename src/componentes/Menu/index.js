@@ -210,7 +210,7 @@ export function Menu() {
     },
   ];
 
-  const { menu } = useSelector((state) => state.auth);
+  const { menu, usr_tipo, emp_id } = useSelector((state) => state.auth);
 
   const dispatch = useDispatch();
 
@@ -221,7 +221,15 @@ export function Menu() {
   };
 
   const getSubMenu = async (item) => {
-    const response = await api.get(`/v1/accounts/listar_itens_nivel/${item}`);
+    let response;
+    if (usr_tipo === '1') {
+      response = await api.get(`/v1/accounts/listar_itens_nivel/${item}`);
+    } else {
+      response = await api.get(
+        `/v1/accounts/listar_itens_nivel/${emp_id}/${item}`
+      );
+    }
+
     if (response.data.success) {
       const { retorno } = response.data;
       const subNivel = [];
@@ -297,7 +305,12 @@ export function Menu() {
         if (menu.length > 0) {
           setMenuGerado(menu);
         } else {
-          const response = await api.get('/v1/accounts/listar_modulos_full');
+          let response;
+          if (usr_tipo === '1') {
+            response = await api.get('/v1/accounts/listar_modulos_full');
+          } else {
+            response = await api.get('/v1/accounts/menu_empresa');
+          }
           const dados = response.data.retorno;
           if (dados) {
             await montaTreeMenu(dados);

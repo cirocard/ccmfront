@@ -99,10 +99,10 @@ export const AreaComp = styled.div`
   flex-direction: column;
   justify-content: center;
   justify-items: left;
-  align-self: center;
+  align-self: ${(props) => props.alself || 'center'};
   padding-left: ${(props) => props.pleft};
   padding-top: ${(props) => props.ptop};
-  padding-right: 5px;
+  padding-right: ${(props) => props.pright || '5px'};
   padding-bottom: 5px;
   width: ${(props) => props.wd}%;
   height: ${(props) => props.hg}px;
@@ -249,7 +249,7 @@ export const BoxItemCadNoQuery = styled.div`
   grid-gap: 1px;
   justify-content: stretch;
   justify-items: ${(props) => props.just};
-  vertical-align: center;
+
   padding-top: ${(props) => props.ptop || 0};
   padding-bottom: ${(props) => props.pbotton || 0};
   @media (max-width: 600px) {

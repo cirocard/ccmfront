@@ -34,6 +34,7 @@ export function* signIn({ payload }) {
       emp_id,
       emp_razao_social,
       usr_id,
+      usr_tipo,
     } = responselogin.data.retorno;
 
     if (successlogin) {
@@ -49,6 +50,7 @@ export function* signIn({ payload }) {
           emp_id,
           emp_razao_social,
           usr_id,
+          usr_tipo,
           username,
           optionsEmp
         )
@@ -84,7 +86,7 @@ export function* setToken({ payload }) {
 
 export function* setNewEmp({ payload }) {
   try {
-    const { username, usr_id, emp_id } = payload;
+    const { username, usr_id, usr_tipo, emp_id } = payload;
 
     const response = yield call(api.post, 'v1/accounts/changeEmp', {
       username,
@@ -107,7 +109,15 @@ export function* setNewEmp({ payload }) {
       api.defaults.headers.Authorization = `Bearer ${token}`;
 
       yield put(
-        signInSuccess(token, emp_id, emp_razao_social, usr_id, username, '')
+        signInSuccess(
+          token,
+          emp_id,
+          emp_razao_social,
+          usr_id,
+          usr_tipo,
+          username,
+          ''
+        )
       );
 
       history.push('/');

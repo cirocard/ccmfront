@@ -239,6 +239,14 @@ export default function Crm6() {
         abortEarly: false,
       });
 
+      if (formData.atv_data_conclusao) {
+        toast.error(
+          `Atividade concluída... Não pode mais ser alterada`,
+          toastOptions
+        );
+        return;
+      }
+
       setLoading(true);
       let objAtividade;
       if (formData.atv_id) {

@@ -226,8 +226,9 @@ export const ToolbarAtv = styled.div`
     padding: 4px 5px 3px 10px;
     border-radius: 3px;
     text-align: center;
-    color: #3a3d4b;
-    background: #dadbdf;
+    color: #012ca2;
+    font-weight: bold;
+    background: #e6eaf5;
     width: calc(100% - 100px);
   }
 `;

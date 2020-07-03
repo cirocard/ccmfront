@@ -8,7 +8,7 @@ export const Scroll = styled(PerfectScrollbar)`
 `;
 
 export const Container = styled.div`
-  width: 99%;
+  width: calc(100% - 55px);
   height: 98%;
   border-radius: 4px;
   margin: 0 auto;
@@ -45,5 +45,27 @@ export const Content = styled.div`
       margin: 0 0 10px;
       font-weight: bold;
     }
+  }
+`;
+
+export const ToolBar = styled.div`
+  display: flex;
+  flex-direction: column;
+  padding-top: 50px;
+  width: ${(props) => props.wd};
+  height: ${(props) => props.hg};
+  margin-left: ${(props) => props.mleft || -10}px;
+  margin-top: 0px;
+  background: #244448;
+  border-top: solid 1px #244448;
+  box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.2);
+
+  button {
+    border: 0;
+    background: none;
+  }
+  button:hover {
+    background: #01293e;
+    border-radius: 5px;
   }
 `;

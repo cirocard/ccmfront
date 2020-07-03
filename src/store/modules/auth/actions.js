@@ -10,6 +10,7 @@ export function signInSuccess(
   emp_id,
   emp_razao_social,
   usr_id,
+  usr_tipo,
   usr_email,
   optionsEmp,
   menu
@@ -21,6 +22,7 @@ export function signInSuccess(
       emp_id,
       emp_razao_social,
       usr_id,
+      usr_tipo,
       usr_email,
       optionsEmp,
       menu,
@@ -35,10 +37,10 @@ export function loadMenu(menu) {
   };
 }
 
-export function selectEmpRequest(username, usr_id, emp_id) {
+export function selectEmpRequest(username, usr_id, usr_tipo, emp_id) {
   return {
     type: '@auth/SELECT_EMP_REQUEST',
-    payload: { username, usr_id, emp_id },
+    payload: { username, usr_id, usr_tipo, emp_id },
   };
 }
 

@@ -79,7 +79,7 @@ export default function Parametros() {
   // carregar parametros do sistema
   async function loadParameters(obj) {
     try {
-      setPreview(`${process.env.REACT_APP_URL_API_SB}/${obj.par_logo_danfe}`);
+      setPreview(`$${obj.par_logo_danfe}`);
 
       document.getElementsByName('proxNumNfe')[0].value = obj.par_prox_numero;
       document.getElementsByName('serieNfe')[0].value = obj.par_serie_nf;
@@ -211,7 +211,7 @@ export default function Parametros() {
         const datalogo = new FormData();
         datalogo.append('logomarca', e.target.files[0]);
         const response = await api.post('v1/cadastros/logomarca', datalogo);
-        const papthImage = `${process.env.REACT_APP_URL_API_SB}/${response.data}`;
+        const papthImage = `${response.data}`;
         setPreview(papthImage);
         label.querySelector('span').innerHTML =
           'Logomarca Configurada no sistema!!!';

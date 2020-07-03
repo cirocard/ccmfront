@@ -20,7 +20,7 @@ import { BootstrapTooltip } from '~/componentes/ToolTip';
 import api from '~/services/api';
 
 export default function Adm1() {
-  const [altura, setAltura] = React.useState(0);
+  // const [altura, setAltura] = React.useState(0);
   const [checked, setChecked] = useState([]);
   const [expanded, setExpanded] = useState([]);
   const [clicked, setClicked] = useState({});
@@ -51,7 +51,6 @@ export default function Adm1() {
   const getMenu = async (m) => {
     let auxNivel = {};
     const arr = [];
-
     // gerar um novo array sem os itens de submenu q virao da api depois
     m.forEach((i) => {
       if (!i.codigo_pai) {
@@ -183,7 +182,7 @@ export default function Adm1() {
           icone: document.getElementsByName('iconItem')[0].value,
           identificador: document.getElementsByName('nomeTag')[0].value,
           rota: document.getElementsByName('rotaItem')[0].value,
-          codigo_pai: document.getElementsByName('codigoPai')[0].value,
+          codigo_pai: document.getElementsByName('codigoPai')[0].value || null,
         };
       } else {
         itens = {
@@ -192,7 +191,7 @@ export default function Adm1() {
           icone: document.getElementsByName('iconItem')[0].value,
           identificador: document.getElementsByName('nomeTag')[0].value,
           rota: document.getElementsByName('rotaItem')[0].value,
-          codigo_pai: document.getElementsByName('codigoPai')[0].value,
+          codigo_pai: document.getElementsByName('codigoPai')[0].value || null,
         };
       }
 
@@ -233,11 +232,6 @@ export default function Adm1() {
   return (
     <>
       <Container id="pgCadMenu">
-        <WindowSizeListener
-          onResize={(windowSize) => {
-            setAltura(windowSize.windowHeight - 6);
-          }}
-        />
         <TitleBar wd="100%">
           <BootstrapTooltip title="Voltar para Dashboard" placement="top">
             <button type="button">
@@ -379,12 +373,40 @@ export default function Adm1() {
                 nodes={menuGerado}
                 checked={checked}
                 expanded={expanded}
-                checkModel="leaf"
                 expandOnClick
                 iconsClass="fa5"
                 onClick={(ck) => onClick(ck)}
                 onCheck={(chk) => onCheck(chk)}
                 onExpand={(exp) => onExpand(exp)}
+                showExpandAll
+                noCascade
+                showNodeIcon={false}
+                icons={{
+                  expandClose: (
+                    <span
+                      className="fas fa-chevron-circle-right"
+                      style={{ color: '#244448', fontSize: '16px' }}
+                    />
+                  ),
+                  expandOpen: (
+                    <span
+                      className="fas fa-chevron-circle-down"
+                      style={{ color: '#244448', fontSize: '16px' }}
+                    />
+                  ),
+                  expandAll: (
+                    <span
+                      className="fas fa-plus-circle"
+                      style={{ color: '#244448', fontSize: '16px' }}
+                    />
+                  ),
+                  collapseAll: (
+                    <span
+                      className="fas fa-minus-circle"
+                      style={{ color: '#244448', fontSize: '16px' }}
+                    />
+                  ),
+                }}
               />
             </BoxItemCadNoQuery>
           </Scroll>
