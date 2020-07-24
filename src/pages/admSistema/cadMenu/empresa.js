@@ -5,20 +5,19 @@ import CheckboxTree from 'react-checkbox-tree';
 import 'react-checkbox-tree/lib/react-checkbox-tree.css';
 import { toast } from 'react-toastify';
 import Select from 'react-select';
-import { Container, Content, ToolBar } from './styles';
+import { Container, Content, ToolBar, ListaUser } from './styles';
 import {
   TitleBar,
   AreaComp,
-  CCheck,
-  BoxItemCad,
   BoxItemCadNoQuery,
   Linha,
   DivLimitador,
-  DivLimitadorRow,
   Scroll,
 } from '~/pages/general.styles';
 import { BootstrapTooltip } from '~/componentes/ToolTip';
+import DialogInfo from '~/componentes/DialogInfo';
 import api from '~/services/api';
+import history from '~/services/history';
 
 export default function Adm6() {
   // const [altura, setAltura] = React.useState(0);
@@ -31,6 +30,10 @@ export default function Adm6() {
   const [menuEmp, setMenuEmp] = useState([]);
   const [optEmpresa, setOptEmpresa] = useState([]);
   const [selectedEmp, setSelectedEmp] = useState(0);
+  const [optUsers, setOptUsers] = useState([]); // usuarios de uma empresa
+  const [optUserGroup, setOptUserGroup] = useState([]); // usuarios de um grupo
+  const [selectedUser, setSelectedUser] = useState(0);
+  const [grupoAdmId, setGrupoAdmId] = useState('');
 
   const toastOptions = {
     autoClose: 4000,
@@ -46,6 +49,46 @@ export default function Adm6() {
       }
     } catch (error) {
       toast.error(`Erro ao carregar combo empresas \n${error}`);
+    }
+  }
+
+  async function getComboUsers(emp_id) {
+    try {
+      const response = await api.get(`v1/combos/user_empresa/${emp_id}`);
+      const dados = response.data.retorno;
+      if (dados) {
+        setOptUsers(dados);
+      }
+    } catch (error) {
+      toast.error(`Erro ao carregar combo usuarios \n${error}`);
+    }
+  }
+
+  async function getUserGroup(grupo_id) {
+    try {
+      const response = await api.get(`v1/combos/user_by_group/${grupo_id}`);
+      const dados = response.data.retorno;
+      if (dados) {
+        setOptUserGroup(dados);
+      }
+    } catch (error) {
+      toast.error(`Erro ao carregar Usuarios do grupo \n${error}`);
+    }
+  }
+
+  async function getGrupoAdmin(emp_id) {
+    try {
+      const response = await api.get(`v1/combos/grupo_user_admin/${emp_id}`);
+      const dados = response.data.retorno;
+      if (dados.length > 0) {
+        setGrupoAdmId(dados[0].value);
+      } else {
+        // cria o grupo se nao existir
+        const grpAdm = await api.get(`v1/users/get_grupo_admin/${emp_id}`);
+        setGrupoAdmId(grpAdm.data[0].value);
+      }
+    } catch (error) {
+      toast.error(`Erro ao carregar grupo admin \n${error}`, toastOptions);
     }
   }
 
@@ -125,18 +168,21 @@ export default function Adm6() {
 
   async function getFullMenu(tpEmpresa) {
     try {
+      setLoading(true);
       let response;
       if (tpEmpresa > 0) {
-        response = await api.get('/v1/accounts/menu_empresa');
+        response = await api.get(`/v1/accounts/menu_empresa/${tpEmpresa}`);
       } else {
         response = await api.get('/v1/accounts/listar_modulos_full');
       }
 
       const dados = response.data.retorno;
       if (dados) {
-        montaTreeMenu(dados, tpEmpresa);
+        await montaTreeMenu(dados, tpEmpresa);
       }
+      setLoading(false);
     } catch (error) {
+      setLoading(false);
       toast.error(`Houve um erro ao carregar menu \n${error}`);
     }
   }
@@ -156,10 +202,28 @@ export default function Adm6() {
     setExpandedEmp(exp);
   }
 
+  function handleDashboard() {
+    history.push('/', '_blank');
+  }
+
   const handleEmpresa = async (e) => {
     if (e) {
-      setSelectedEmp(e.value);
+      await getGrupoAdmin(e.value);
+      await setSelectedEmp(e.value);
+      await getComboUsers(e.value);
       await getFullMenu(parseInt(e.value));
+    }
+  };
+
+  const handleUsers = async (e) => {
+    if (e) {
+      setSelectedUser(e);
+      // vincular usuario ao grupo
+      const grpusr = await api.put(
+        `v1/users/update_user_group/${e.value}/${grupoAdmId}`
+      );
+
+      setOptUserGroup(grpusr.data.retorno);
     }
   };
 
@@ -175,7 +239,14 @@ export default function Adm6() {
         });
         const retorno = await api.post('v1/accounts/menu_empresa', menuGravar);
         if (retorno.data.success) {
-          montaTreeMenu(retorno.data.retorno);
+          await montaTreeMenu(retorno.data.retorno, selectedEmp);
+
+          const grpAdm = await api.get(
+            `v1/users/get_grupo_admin/${selectedEmp}`
+          );
+
+          setGrupoAdmId(grpAdm.data[0].value);
+
           toast.info('Menu salvo com sucesso!!!', toastOptions);
         }
         setLoading(false);
@@ -192,11 +263,75 @@ export default function Adm6() {
     }
   }
 
+  async function handleExcluir() {
+    try {
+      if (selectedEmp > 0 && checkedEmp.length > 0) {
+        setLoading(true);
+        const menuExcluir = [];
+
+        checkedEmp.forEach((c) => {
+          menuExcluir.push({ emp_id: selectedEmp, item_id: c });
+        });
+
+        const retorno = await api.post(
+          'v1/accounts/delete_menu_empresa',
+          menuExcluir
+        );
+
+        if (retorno.data.success) {
+          await montaTreeMenu(retorno.data.retorno, selectedEmp);
+
+          const grpAdm = await api.get(
+            `v1/users/get_grupo_admin/${selectedEmp}`
+          );
+          setGrupoAdmId(grpAdm.data[0].value);
+
+          toast.info('Menu excluído com sucesso!!!', toastOptions);
+        }
+        setLoading(false);
+      } else {
+        setLoading(false);
+        toast.warn(
+          'INFORME A EMPRESA, E SELECIONE OS ITENS PARA CONTINUAR...',
+          toastOptions
+        );
+      }
+    } catch (error) {
+      setLoading(false);
+      toast.error(`Erro ao excluir menu: ${error}`, toastOptions);
+    }
+  }
+
+  async function handleExcluirUserGrpoup(g) {
+    try {
+      setLoading(true);
+      const updt = await api.put(`v1/users/update_user_group/${g.value}/null`);
+      if (updt.data.success) {
+        await getUserGroup(grupoAdmId);
+      } else {
+        toast.error(
+          `Erro ao excluir usuario \n${updt.data.message}`,
+          toastOptions
+        );
+      }
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      toast.error(`Erro ao excluir usuario \n${error}`, toastOptions);
+    }
+  }
+
   useEffect(() => {
     window.loadMenu();
     getComboEmrpesa();
     getFullMenu(false);
   }, []);
+
+  useEffect(() => {
+    if (grupoAdmId) {
+      getUserGroup(grupoAdmId);
+    }
+  }, [grupoAdmId]);
 
   return (
     <>
@@ -209,26 +344,24 @@ export default function Adm6() {
         <DivLimitador wd="100%" hd="10px">
           <BootstrapTooltip title="Excluir Menu" placement="right">
             <button type="button">
-              <MdDelete size={30} color="#fff" />
+              <MdDelete size={30} color="#fff" onClick={handleExcluir} />
             </button>
           </BootstrapTooltip>
         </DivLimitador>
       </ToolBar>
       <Container id="pgCadMenuEmpresa">
-        <TitleBar wd="100%">
+        <TitleBar wd="100%" bckgnd="#dae2e5">
+          <h1>CADASTRO ESTRUTURA DO MENU - EMPRESA</h1>
           <BootstrapTooltip title="Voltar para Dashboard" placement="top">
-            <button type="button">
+            <button type="button" onClick={handleDashboard}>
               <MdClose size={30} color="#244448" />
             </button>
           </BootstrapTooltip>
         </TitleBar>
         <Content>
           <Scroll>
-            <Linha />
-            <h1>CADASTRO ESTRUTURA DO MENU - EMPRESA</h1>
             <BoxItemCadNoQuery fr="1fr">
               <AreaComp wd="100">
-                <label>Empresa</label>
                 <Select
                   id="empresa"
                   options={optEmpresa}
@@ -242,12 +375,12 @@ export default function Adm6() {
 
             <Linha />
             <BoxItemCadNoQuery
-              fr="1fr 1fr"
+              fr="1fr 1fr 1fr"
               just="center"
               ptop="15px"
               pbotton="20px"
             >
-              <AreaComp wd="100">
+              <AreaComp wd="100" alself="start">
                 <h1>MENU DO SISTEMA</h1>
                 <CheckboxTree
                   nodes={menuGerado}
@@ -291,9 +424,10 @@ export default function Adm6() {
                 <CheckboxTree
                   nodes={menuEmp}
                   expanded={expandedEmp}
+                  checked={checkedEmp}
                   iconsClass="fa5"
                   showExpandAll
-                  noCascade
+                  // noCascade
                   showNodeIcon={false}
                   onCheck={(chk) => onCheckEmp(chk)}
                   onExpand={(exp) => onExpandEmp(exp)}
@@ -325,10 +459,55 @@ export default function Adm6() {
                   }}
                 />
               </AreaComp>
+              <AreaComp wd="100" alself="start">
+                <h1>USUÁRIOS DO GRUPO ADMINISTRADOR</h1>
+                <Select
+                  id="users"
+                  options={optUsers}
+                  isClearable
+                  placeholder="INFORME O USUÁRIO"
+                  onChange={handleUsers}
+                />
+                {optUserGroup.map((g) =>
+                  g.value ? (
+                    <ListaUser>
+                      <ul>
+                        <li key={g.value}>
+                          {g.label}
+                          <BootstrapTooltip
+                            title="Excluir do grupo"
+                            placement="top"
+                          >
+                            <button type="button">
+                              <MdDelete
+                                size={20}
+                                color="#244448"
+                                onClick={() => handleExcluirUserGrpoup(g)}
+                              />
+                            </button>
+                          </BootstrapTooltip>
+                        </li>
+                      </ul>
+                    </ListaUser>
+                  ) : (
+                    <ListaUser />
+                  )
+                )}
+              </AreaComp>
             </BoxItemCadNoQuery>
           </Scroll>
         </Content>
       </Container>
+
+      {/* popup para aguarde... */}
+      <DialogInfo
+        isOpen={loading}
+        closeDialogFn={() => {
+          setLoading(false);
+        }}
+        title="PERMISSÃO DE ACESSO"
+        message="Aguarde Processamento..."
+      />
     </>
   );
 }

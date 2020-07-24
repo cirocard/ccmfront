@@ -210,8 +210,9 @@ export function Menu() {
     },
   ];
 
-  const { menu, usr_tipo, emp_id } = useSelector((state) => state.auth);
-
+  const { menu, usr_tipo, emp_id, usr_grupo_id } = useSelector(
+    (state) => state.auth
+  );
   const dispatch = useDispatch();
 
   const [menuGerado, setMenuGerado] = useState([]);
@@ -309,7 +310,7 @@ export function Menu() {
           if (usr_tipo === '1') {
             response = await api.get('/v1/accounts/listar_modulos_full');
           } else {
-            response = await api.get('/v1/accounts/menu_empresa');
+            response = await api.get(`/v1/users/grupo_user/${usr_grupo_id}`);
           }
           const dados = response.data.retorno;
           if (dados) {

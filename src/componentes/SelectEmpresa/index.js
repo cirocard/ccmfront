@@ -27,7 +27,8 @@ export function BotaoEmpresa() {
         profile.usr_email,
         profile.usr_id,
         profile.usr_tipo,
-        event.value
+        event.value,
+        optionsEmp
       )
     );
     toast.success(`Empresa selecionada: ${event.label}`);

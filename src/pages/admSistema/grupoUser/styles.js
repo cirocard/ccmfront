@@ -69,29 +69,3 @@ export const ToolBar = styled.div`
     border-radius: 5px;
   }
 `;
-
-export const ListaUser = styled.div`
-  display: flex;
-  flex-direction: column;
-  padding: 7px 5px 5px 7px;
-  border-left: solid 1px #ccc;
-
-  ul {
-    padding: 1px 0;
-    border-bottom: 1px solid #244448;
-  }
-
-  li {
-    display: flex;
-    align-content: center;
-    justify-content: space-between;
-    padding: 3px;
-    color: #244448;
-    background: #fafafa;
-  }
-
-  button {
-    border: 0;
-    background: none;
-  }
-`;

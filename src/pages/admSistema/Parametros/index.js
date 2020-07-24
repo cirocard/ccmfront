@@ -79,7 +79,7 @@ export default function Parametros() {
   // carregar parametros do sistema
   async function loadParameters(obj) {
     try {
-      setPreview(`$${obj.par_logo_danfe}`);
+      setPreview(`${obj.par_logo_danfe}`);
 
       document.getElementsByName('proxNumNfe')[0].value = obj.par_prox_numero;
       document.getElementsByName('serieNfe')[0].value = obj.par_serie_nf;

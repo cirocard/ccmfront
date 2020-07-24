@@ -7,19 +7,58 @@ export const Scroll = styled(PerfectScrollbar)`
   padding-right: 15px;
 `;
 
+export const ToolBar = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: top;
+  justify-items: center;
+  align-items: center;
+  padding-top: 50px;
+  width: 45px;
+  height: 100%;
+  margin-left: -10px;
+  margin-top: 0px;
+  background: #244448;
+  border-top: solid 1px #244448;
+  box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.2);
+
+  button {
+    border: 0;
+    background: none;
+    width: 100%;
+    padding: 3px 1px 3px 1px;
+  }
+  button:hover {
+    background: #01293e;
+    border-radius: 5px;
+  }
+`;
+
+export const ToolBarGrid = styled.div`
+  display: flex;
+  justify-content: space-around;
+  justify-items: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  margin-left: 1px;
+  margin-top: 0px;
+`;
+
 export const Container = styled.div`
   width: calc(100% - 55px);
   height: 98%;
   border-radius: 4px;
-  margin: 0 auto;
+  margin-left: 5px;
+
   background: #fff;
   box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.2);
 `;
 
 export const Content = styled.div`
   width: 100%;
-  height: 95%;
-  padding: 7px 10px 10px 10px;
+  height: 98%;
+  padding: 0px 10px 5px 10px;
 
   h1 {
     font-size: 15px;
@@ -48,46 +87,26 @@ export const Content = styled.div`
   }
 `;
 
-export const ToolBar = styled.div`
+export const ListaEmpresa = styled.div`
   display: flex;
   flex-direction: column;
-  padding-top: 50px;
-  width: ${(props) => props.wd};
-  height: ${(props) => props.hg};
-  margin-left: ${(props) => props.mleft || -10}px;
-  margin-top: 0px;
-  background: #244448;
-  border-top: solid 1px #244448;
-  box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.2);
-
-  button {
-    border: 0;
-    background: none;
-  }
-  button:hover {
-    background: #01293e;
-    border-radius: 5px;
-  }
-`;
-
-export const ListaUser = styled.div`
-  display: flex;
-  flex-direction: column;
-  padding: 7px 5px 5px 7px;
+  padding: 5px 5px 7px 5px;
   border-left: solid 1px #ccc;
 
   ul {
     padding: 1px 0;
-    border-bottom: 1px solid #244448;
+    margin: 1px;
   }
 
   li {
     display: flex;
     align-content: center;
+    align-items: center;
     justify-content: space-between;
     padding: 3px;
-    color: #244448;
-    background: #fafafa;
+    font-weight: 500;
+    color: #253739;
+    background: #e8eff1;
   }
 
   button {

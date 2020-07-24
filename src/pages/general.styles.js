@@ -197,10 +197,13 @@ export const DivLimitadorRow = styled.div`
 `;
 
 export const DivLimitador = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-content: center;
+  justify-content: center;
+  align-items: center;
   width: ${(props) => props.wd};
   height: ${(props) => props.hg};
-  padding: 3px 0 5px 0;
-  margin-left: 3px;
 `;
 
 export const AreaConsult = styled.div`

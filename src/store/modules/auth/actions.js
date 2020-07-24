@@ -11,6 +11,7 @@ export function signInSuccess(
   emp_razao_social,
   usr_id,
   usr_tipo,
+  usr_grupo_id,
   usr_email,
   optionsEmp,
   menu
@@ -23,6 +24,7 @@ export function signInSuccess(
       emp_razao_social,
       usr_id,
       usr_tipo,
+      usr_grupo_id,
       usr_email,
       optionsEmp,
       menu,
@@ -37,10 +39,16 @@ export function loadMenu(menu) {
   };
 }
 
-export function selectEmpRequest(username, usr_id, usr_tipo, emp_id) {
+export function selectEmpRequest(
+  username,
+  usr_id,
+  usr_tipo,
+  emp_id,
+  optionsEmp
+) {
   return {
     type: '@auth/SELECT_EMP_REQUEST',
-    payload: { username, usr_id, usr_tipo, emp_id },
+    payload: { username, usr_id, usr_tipo, emp_id, optionsEmp },
   };
 }
 

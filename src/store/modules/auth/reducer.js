@@ -6,6 +6,7 @@ const INITIAL_STATE = {
   loading: false,
   usr_id: '',
   usr_tipo: '',
+  usr_grupo: '',
   usr_email: '',
   emp_id: '',
   emp_razao_social: '',
@@ -28,6 +29,7 @@ export default function auth(state = INITIAL_STATE, action) {
         draft.emp_razao_social = action.payload.emp_razao_social;
         draft.usr_id = action.payload.usr_id;
         draft.usr_tipo = action.payload.usr_tipo;
+        draft.usr_grupo_id = action.payload.usr_grupo_id;
         draft.usr_email = action.payload.usr_email;
         if (action.payload.optionsEmp) {
           draft.optionsEmp = action.payload.optionsEmp;
