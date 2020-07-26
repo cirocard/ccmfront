@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import { Container } from './styles';
 import logo from '~/assets/logo.png';
 import api from '~/services/api';
-import { loadMenu } from '~/store/modules/auth/actions';
+import { loadMenu, logOut } from '~/store/modules/auth/actions';
 
 export function Menu() {
   const menuModelo = [
@@ -312,9 +312,17 @@ export function Menu() {
           } else {
             response = await api.get(`/v1/users/grupo_user/${usr_grupo_id}`);
           }
-          const dados = response.data.retorno;
-          if (dados) {
-            await montaTreeMenu(dados);
+          if (response.data.success) {
+            const dados = response.data.retorno;
+            if (dados) {
+              await montaTreeMenu(dados);
+            }
+          } else {
+            toast.error(
+              `Usuário sem acesso configurado. Procure o administrador do sistema`,
+              toastOptions
+            );
+            dispatch(logOut());
           }
         }
       } catch (error) {

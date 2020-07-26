@@ -58,12 +58,21 @@ export default function auth(state = INITIAL_STATE, action) {
         draft.loading = false;
         draft.token = null;
         draft.signed = false;
+        draft.menu = [];
+        draft.usr_id = '';
+        draft.usr_tipo = '';
+        draft.usr_grupo = '';
+        draft.usr_email = '';
         break;
       }
       case '@auth/SIGN_OUT': {
         draft.token = null;
         draft.signed = false;
         draft.menu = [];
+        draft.usr_id = '';
+        draft.usr_tipo = '';
+        draft.usr_grupo = '';
+        draft.usr_email = '';
         break;
       }
       default:

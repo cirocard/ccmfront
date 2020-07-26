@@ -9,7 +9,7 @@ export default function Main() {
 
   return (
     <div>
-      <h1>pagina main</h1>
+      <h1 />
     </div>
   );
 }
