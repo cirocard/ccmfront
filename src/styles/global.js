@@ -66,10 +66,10 @@ export default createGlobalStyle`
     background: #EEF3F5;
       border: solid 1px #ccc;
       border-radius: 4px;
-      height: 35px;
-      padding: 0 15px;
+      height: 30px;
+      padding: 5px 10px 5px 10px;
       color: #101b1d;
-      font-size: 15px;
+      font-size: 12px;
       font-weight: 700;
      
       width:100%;
@@ -83,7 +83,6 @@ export default createGlobalStyle`
         background: ${darken(0.1, '#EEF3F5')};
       }
   }
-
   .btnGeral {
       margin: 5px 0 0;
       height: 40px;
@@ -94,6 +93,49 @@ export default createGlobalStyle`
       border: 0;
       border-radius: 4px;
       font-size: 16px;
+      transition: background 0.2s;
+
+      &:hover {
+        background: ${lighten(0.2, '#3b535f')};
+      }
+    }
+
+    .btnGeralCenter {
+      display: flex;
+      justify-content: center;
+      justify-items: center;
+      align-items: center;
+      height: 40px;
+      background: #3b535f;;
+      text-align:center;
+      font-weight: bold;
+      color: #fff;
+      border: 0;
+      border-radius: 4px;
+      font-size: 16px;
+      transition: background 0.2s;
+
+      &:hover {
+        background: ${lighten(0.2, '#3b535f')};
+      }
+
+      label{
+        color: #EEEFF8;
+        font-size: 16px;
+        padding-right: 15px;
+      }
+    }
+
+    .btnGeralForm {
+      margin: 5px 0 0;
+      height: 32px;
+      background: #3b535f;;
+      text-align:center;
+      font-weight: bold;
+      color: #fff;
+      border: 0;
+      border-radius: 4px;
+      font-size: 14px;
       transition: background 0.2s;
 
       &:hover {
@@ -145,7 +187,43 @@ export default createGlobalStyle`
   }
   }
 
+  /*==== padrao para tab bar =========*/
+  .MuiPaper-elevation4, .MuiTabs-root {
+    box-shadow: none !important;
+    background: #fafafa;
+    border-bottom: solid 1px #176C02;
+  }
 
+  .MuiTabs-indicator {
+    background-color: #176C02;
+  }
 
+  .MuiTab-textColorPrry {
+    color: #176C02;
+  }
+
+  .MuiTab-textColorPrimary.Mui-selected {
+    color: #154908;
+  }
+
+/*==== box geral tab bar =========*/
+  .MuiBox-root, .MuiBox-root-14, .MuiBox-root-14{
+    padding: 15px !important;
+  }
+
+/*==== altura dos seletores de aba tab bar =========*/
+.MuiTabs-root{
+  height: 62px;
+  padding: 0px;
+  margin-top: 1px !important;
+}
+  .MuiTabs-flexContainer{
+    height: 60px;
+  }
+
+  .MuiTab-wrapper{
+    height: 53px;
+    margin-top: -12px !important;
+  }
 
 `;

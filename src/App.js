@@ -11,6 +11,9 @@ import { store, persistor } from './store';
 import GlobalStyle from './styles/global';
 import 'ag-grid-community/dist/styles/ag-grid.css';
 import 'ag-grid-community/dist/styles/ag-theme-balham.css';
+import 'ag-grid-community/dist/styles/ag-theme-material.css';
+import 'ag-grid-community/dist/styles/ag-theme-blue.css';
+import 'ag-grid-community/dist/styles/ag-theme-fresh.css';
 
 function App() {
   return (

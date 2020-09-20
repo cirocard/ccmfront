@@ -29,7 +29,6 @@ import {
   BoxRaia,
   Oportunidade,
   Atividade,
-  Fluxoatv,
   ToolbarAtv,
   ColunaAtv,
   BtnFiltroAtv,
@@ -49,7 +48,7 @@ import {
 } from '~/pages/general.styles';
 import { BootstrapTooltip } from '~/componentes/ToolTip';
 import history from '~/services/history';
-import api from '~/services/api';
+import { ApiService, ApiTypes } from '~/services/api';
 
 registerLocale('pt', pt);
 
@@ -60,6 +59,7 @@ export default function Crm6() {
   const query = useQuery();
   const neg_id = query.get('neg_id');
   const neg_nome = query.get('neg_nome');
+  const api = ApiService.getInstance(ApiTypes.API1);
   const [loading, setLoading] = useState(false);
   const [openCadPessoa, setOpenCadPessoa] = useState(false);
   const [openCadAtv, setOpenCadAtv] = useState(false);

@@ -19,7 +19,7 @@ export const Container = styled.div`
       margin-right: 5px;
       padding-right: 10px;
       height: 68px;
-      width: 130px;
+      width: 120px;
     }
     img,
     button:active {

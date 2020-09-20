@@ -16,11 +16,11 @@ import {
 } from '~/pages/general.styles';
 import { BootstrapTooltip } from '~/componentes/ToolTip';
 import DialogInfo from '~/componentes/DialogInfo';
-import api from '~/services/api';
+import { ApiService, ApiTypes } from '~/services/api';
 import history from '~/services/history';
 
 export default function Adm6() {
-  // const [altura, setAltura] = React.useState(0);
+  const api = ApiService.getInstance(ApiTypes.API1);
   const [checked, setChecked] = useState([]);
   const [checkedEmp, setCheckedEmp] = useState([]);
   const [expanded, setExpanded] = useState([]);

@@ -138,10 +138,6 @@ exports.GridDateFormatter = (params) => {
   return value;
 };
 
-exports.GridCurrencyFormatter = (params) => {
-  return `R$ ${parseFloat(params.value).toLocaleString('pt')}`;
-};
-
 exports.a11yProps = (index) => {
   return {
     id: `scrollable-auto-tab-${index}`,
@@ -181,6 +177,20 @@ exports.maskCNPJCPF = (valor) => {
   }
 };
 
+exports.formataCNPJCPF = (valor) => {
+  if (valor.length > 11) {
+    return valor
+      .replace(/\D/g, '')
+      .replace(/^(\d{2})(\d{3})?(\d{3})?(\d{4})?(\d{2})?/, '$1.$2.$3/$4-$5');
+  }
+  return valor
+    .replace(/\D/g, '') // substitui qualquer caracter que nao seja numero por nada
+    .replace(/(\d{3})(\d)/, '$1.$2') // captura 2 grupos de numero o primeiro de 3 e o segundo de 1, apos capturar o primeiro grupo ele adiciona um ponto antes do segundo grupo de numero
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d{1,2})/, '$1-$2');
+  // .replace(/(-\d{2})\d+?$/, '$1'); // captura 2 numeros seguidos de um traço e não deixa ser digitado mais nada
+};
+
 exports.FormataMoeda = (valor) => {
   return `${parseFloat(valor).toLocaleString('pt-BR', {
     style: 'currency',
@@ -191,4 +201,69 @@ exports.FormataMoeda = (valor) => {
 exports.FormataNumeroBd = (valor) => {
   const v = valor.replace('.', '');
   return v.replace(',', '.');
+};
+
+exports.ApiBaseUrl = (apiType) => {
+  let baseUrl = '';
+  switch (apiType) {
+    case 'API1':
+      if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
+        baseUrl = process.env.REACT_APP_URL_API_LOCAL;
+      } else {
+        baseUrl = process.env.REACT_APP_URL_API_HONMOLOG;
+      }
+      break;
+
+    case 'API2':
+      if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
+        baseUrl = process.env.REACT_APP_URL_API_LOCAL;
+      } else {
+        baseUrl = process.env.REACT_APP_URL_API_LOCAL;
+      }
+      break;
+
+    case 'GERAL':
+      break;
+
+    default:
+      break;
+  }
+
+  return baseUrl;
+};
+
+exports.SeNull = (entrada, saida) => {
+  if (entrada === '') {
+    return saida;
+  }
+  return entrada;
+};
+
+exports.ArredondaValorDecimal = (valor) => {
+  return Math.round((valor + Number.EPSILON) * 100) / 100;
+};
+
+exports.toDecimal = (valor) => {
+  valor = valor.toString();
+  if (valor) {
+    if (valor.indexOf('.') > 0 && valor.indexOf(',') > 0) {
+      return parseFloat(valor.replace(/\./gi, '').replace(/,/gi, '.'));
+    }
+    if (valor.indexOf(',') < 0) {
+      return parseFloat(valor);
+    }
+    if (valor.indexOf('.') > 0 && valor.indexOf(',') < 0) {
+      return parseFloat(valor);
+    }
+
+    if (valor.indexOf('.') < 0 && valor.indexOf(',') > 0) {
+      return parseFloat(valor.replace(/\./gi, '').replace(/,/gi, '.'));
+    }
+  } else {
+    return 0;
+  }
+};
+
+exports.GridCurrencyFormatter = (params) => {
+  return `R$ ${parseFloat(params.value).toLocaleString('pt')}`;
 };

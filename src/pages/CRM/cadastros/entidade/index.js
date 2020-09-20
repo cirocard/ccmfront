@@ -36,10 +36,11 @@ import {
 import { BootstrapTooltip } from '~/componentes/ToolTip';
 import { getComboUf } from '~/services/arrays';
 import history from '~/services/history';
-import api from '~/services/api';
 import DialogInfo from '~/componentes/DialogInfo';
+import { ApiService, ApiTypes } from '~/services/api';
 
 export default function Crm4() {
+  const api = ApiService.getInstance(ApiTypes.API1);
   const [loading, setLoading] = useState(false);
   const [codigoCliente, setCodigoCliente] = useState('');
   const [uf, setUf] = useState([]);

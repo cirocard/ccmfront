@@ -40,10 +40,11 @@ import {
 } from '~/pages/general.styles';
 import { BootstrapTooltip } from '~/componentes/ToolTip';
 import history from '~/services/history';
-import api from '~/services/api';
+import { ApiService, ApiTypes } from '~/services/api';
 import DialogInfo from '~/componentes/DialogInfo';
 
 export default function Adm5() {
+  const api = ApiService.getInstance(ApiTypes.API1);
   const [loading, setLoading] = useState(false);
   const [gridPesquisa, setGridPesquisa] = useState([]);
   const [openCadastro, setOpenCadastro] = useState(false);

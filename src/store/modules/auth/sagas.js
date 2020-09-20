@@ -1,8 +1,14 @@
 import { takeLatest, call, put, all } from 'redux-saga/effects';
 import { toast } from 'react-toastify';
+import axios from 'axios';
 import history from '~/services/history';
-import api from '~/services/api';
+import { ApiBaseUrl } from '~/services/func.uteis';
 import { signInSuccess, signFailure } from './actions';
+
+const baseUrl = ApiBaseUrl('API1');
+const api = axios.create({
+  baseURL: baseUrl,
+});
 
 export function* signIn({ payload }) {
   try {

@@ -20,11 +20,12 @@ import {
   DivLimitadorRow,
 } from '~/pages/general.styles';
 import { BootstrapTooltip } from '~/componentes/ToolTip';
-import api from '~/services/api';
+import { ApiService, ApiTypes } from '~/services/api';
 import history from '~/services/history';
 import DialogInfo from '~/componentes/DialogInfo';
 
 export default function Adm4() {
+  const api = ApiService.getInstance(ApiTypes.API1);
   const { emp_id } = useSelector((state) => state.auth);
   const [checked, setChecked] = useState([]);
   const [checkedGrupo, setCheckedGrupo] = useState([]);

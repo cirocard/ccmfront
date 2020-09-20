@@ -25,8 +25,8 @@ export default function Header() {
   return (
     <Container>
       <Content>
-        <Grupo wd="50%">
-          <Nav>
+        <Grupo wd="60%">
+          <Nav mleft="30px">
             <Menu />
           </Nav>
           <Nav wd="60%">

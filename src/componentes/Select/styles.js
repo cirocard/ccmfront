@@ -1,4 +1,7 @@
 import styled from 'styled-components';
+import AsyncSelect from 'react-select/async';
+import Select from 'react-select';
+import { device } from '~/styles/mediaQuery';
 
 export const SelectContainer = styled.div`
   /* padding: 6px; */
@@ -29,5 +32,61 @@ export const FormInput = styled.input`
     background-color: #fff;
     border: solid 1px #ccc;
     outline: 0;
+  }
+`;
+
+export const AsyncCustomSelect = styled(AsyncSelect)`
+  & .Select__control {
+    background-color: #eef3f5;
+  }
+  & .Select__single-value {
+    font-weight: bold;
+    color: #495057;
+    font-size: 14px;
+  }
+
+  @media ${device.mobileS} {
+    & .Select__control {
+      height: 30px;
+      min-height: 30px;
+    }
+    & .css-tlfecz-indicatorContainer {
+      margin-top: -6px;
+    }
+    & .Select__single-value {
+      font-size: 12px;
+      top: 42%;
+    }
+    & .Select__indicator-separator {
+      margin-top: 3px;
+    }
+  }
+`;
+
+export const CustomSelect = styled(Select)`
+  & .Select__control {
+    background-color: #eef3f5;
+  }
+  & .Select__single-value {
+    font-weight: bold;
+    color: #495057;
+    font-size: 14px;
+  }
+
+  @media ${device.mobileS} {
+    & .Select__control {
+      height: 30px;
+      min-height: 30px;
+    }
+    & .css-tlfecz-indicatorContainer {
+      margin-top: -6px;
+    }
+    & .Select__single-value {
+      font-size: 12px;
+      top: 42%;
+    }
+    & .Select__indicator-separator {
+      margin-top: 3px;
+    }
   }
 `;

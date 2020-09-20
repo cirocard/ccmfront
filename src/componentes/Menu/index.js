@@ -3,10 +3,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { Container } from './styles';
 import logo from '~/assets/logo.png';
-import api from '~/services/api';
+import { ApiService, ApiTypes } from '~/services/api';
 import { loadMenu, logOut } from '~/store/modules/auth/actions';
 
 export function Menu() {
+  const api = ApiService.getInstance(ApiTypes.API1);
   const menuModelo = [
     {
       modulo: 'Adm. Sistema',

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import WindowSizeListener from 'react-window-size-listener';
 import { MdClose, MdAddCircle, MdSave } from 'react-icons/md';
 import CheckboxTree from 'react-checkbox-tree';
 import 'react-checkbox-tree/lib/react-checkbox-tree.css';
@@ -17,10 +16,10 @@ import {
   Scroll,
 } from '~/pages/general.styles';
 import { BootstrapTooltip } from '~/componentes/ToolTip';
-import api from '~/services/api';
+import { ApiService, ApiTypes } from '~/services/api';
 
 export default function Adm1() {
-  // const [altura, setAltura] = React.useState(0);
+  const api = ApiService.getInstance(ApiTypes.API1);
   const [checked, setChecked] = useState([]);
   const [expanded, setExpanded] = useState([]);
   const [clicked, setClicked] = useState({});

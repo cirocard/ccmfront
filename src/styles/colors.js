@@ -1,0 +1,18 @@
+export const colors = {
+  // primaria: '#61098A',
+  primaria_escura: '#4b0969',
+  primaria: '#610989',
+  primaria_opaca: '#6D459E',
+  primaria_intermediaria: '#8968AD',
+  primaria_clara: '#B6A4CC',
+  primaria_background: '#F5EFFC',
+  secundaria: '#A13A93',
+  secundaria_opaca: '#B968AD',
+  sucesso: '#00A990',
+  sucesso_opaca: '#31B9A5',
+  sucesso_clara: '#86D2C8',
+  alerta: '#F8901D',
+  alerta_opaca: '#F7A64B',
+  alerta_clara: '#F9C998',
+  cinza: '#999798',
+};

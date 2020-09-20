@@ -1,25 +1,25 @@
 import React, { useRef, useEffect } from 'react';
 import { useField } from '@unform/core';
 import PropTypes from 'prop-types';
-import { CustomSelect, SelectContainer } from './styles';
+import { SelectContainer, AsyncCustomSelect } from './styles';
 
-export default function FormSelect({
+export default function AsyncSelectForm({
   name,
-  optionsList,
-  clearable = true,
-  readOnly,
   label,
+  onChange,
+  value,
+  loadOptions,
   ...rest
 }) {
   const selectRef = useRef(null);
   const { fieldName, defaultValue, registerField, error } = useField(name);
 
-  /* ====== Custom Styles ====== */
   const selectStyles = {
     container: (base, state) => ({
       ...base,
+      // opacity: state.isDisabled ? '.5' : '1',
       backgroundColor: 'transparent',
-      zIndex: '150',
+      zIndex: '151',
     }),
     control: (base, state) => {
       let bdColor = 'hsl(0, 0%, 80%)';
@@ -42,12 +42,22 @@ export default function FormSelect({
     },
     menuPortal: (styles) => ({ ...styles, zIndex: 999 }),
   };
-  /* ====== Custom Styles ====== */
+
+  function customTheme(theme) {
+    return {
+      ...theme,
+      colors: {
+        ...theme.colors,
+        primary: '#00A924',
+        primary25: '#dae2e5',
+      },
+    };
+  }
 
   useEffect(() => {
     registerField({
       name: fieldName,
-      ref: selectRef.current,
+      ref: selectRef.current.select,
       path: 'state.value',
       getValue: (ref) => {
         if (rest.isMulti) {
@@ -66,7 +76,8 @@ export default function FormSelect({
           if (Value instanceof Object) {
             ref.select.setValue(Value);
           } else {
-            const objValue = optionsList.find((opt) => opt.value === Value);
+            const objValue = loadOptions.find((opt) => opt.value === Value);
+
             ref.select.setValue(objValue);
           }
         } else {
@@ -79,54 +90,44 @@ export default function FormSelect({
   return (
     <SelectContainer>
       <div className="select-label">
-        <label htmlFor={fieldName}>{label}</label>
-        {error && (
-          <span style={{ color: '#f00', display: 'block' }}>{error}</span>
-        )}
+        <label>{label}</label>
       </div>
       {/* propriedade menuPortalTarget é necessária para exibir corretamente
        * o dropdown de opções dentro de modais
        */}
       <div className="select">
-        <CustomSelect
-          isClearable={clearable}
-          isDisabled={readOnly}
+        <AsyncCustomSelect
           ref={selectRef}
-          classNamePrefix="Select"
-          options={optionsList}
           styles={selectStyles}
+          theme={customTheme}
+          onChange={onChange}
+          value={value}
+          loadOptions={loadOptions}
+          classNamePrefix="Select"
           menuPortalTarget={document.getElementById('modal')}
-          menuPlacement="auto"
+          isClearable
           {...rest}
-          theme={(theme) => ({
-            ...theme,
-            colors: {
-              ...theme.colors,
-              primary: '#00A924',
-              primary25: '#dae2e5',
-            },
-          })}
         />
       </div>
     </SelectContainer>
   );
 }
 
-FormSelect.propTypes = {
+AsyncSelectForm.propTypes = {
   name: PropTypes.string.isRequired,
-  optionsList: PropTypes.arrayOf(
+  loadOptions: PropTypes.arrayOf(
     PropTypes.shape({
       value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
       label: PropTypes.string,
     })
   ).isRequired,
-  clearable: PropTypes.bool,
-  readOnly: PropTypes.bool,
+  onChange: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   label: PropTypes.string,
 };
 
-FormSelect.defaultProps = {
-  clearable: true,
-  readOnly: false,
+AsyncSelectForm.defaultProps = {
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  onChange: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   label: '',
 };

@@ -37,6 +37,7 @@ export const Nav = styled.nav`
   align-items: left;
   justify-content: center;
   height: 64px;
+  margin-left: ${(props) => props.mleft};
   width: ${(props) => props.wd};
   img {
     margin-right: 10px;

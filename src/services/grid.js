@@ -119,7 +119,7 @@ function selectRowsBetweenIndexes(indexes, tabela) {
 
   for (let i = indexes[0]; i <= indexes[1]; i++) {
     trs[i - 1].className = 'selected';
-    trs[i - 1].style.backgroundColor = '#B6BBD1';
+    trs[i - 1].style.backgroundColor = '#425C68';
   }
 }
 

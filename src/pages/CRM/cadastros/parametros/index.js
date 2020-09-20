@@ -31,7 +31,7 @@ import {
 } from '~/pages/general.styles';
 import { BootstrapTooltip } from '~/componentes/ToolTip';
 import history from '~/services/history';
-import api from '~/services/api';
+import { ApiService, ApiTypes } from '~/services/api';
 // parametros crm: tipo oportunidade; motivo de perda; classificaçao de atividade
 export default function Crm3() {
   function useQuery() {
@@ -40,7 +40,7 @@ export default function Crm3() {
   const query = useQuery();
   const tipo = query.get('tipo');
   const frmCadastro = useRef(null);
-
+  const api = ApiService.getInstance(ApiTypes.API1);
   const [openCadastro, setOpenCadastro] = useState(false);
   const [tabId, setTabId] = useState(0);
   const [loading, setLoading] = useState(false);

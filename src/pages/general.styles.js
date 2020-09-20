@@ -1,11 +1,10 @@
 import styled, { css } from 'styled-components';
 import PerfectScrollbar from 'react-perfect-scrollbar';
+import { lighten, darken } from 'polished';
 
 export const Scroll = styled(PerfectScrollbar)`
   width: 100%;
-  height: 99%;
   padding-bottom: 7px;
-  padding-right: 12px;
 `;
 
 export const ScrollGrid = styled(PerfectScrollbar)`
@@ -32,7 +31,7 @@ export const TitleBar = styled.div`
   align-items: center;
   justify-items: center;
   padding-top: 5px;
-  padding-left: 10px;
+  padding-left: ${(props) => props.pleft || '10px'};
   width: ${(props) => props.wd};
   height: 30px;
   border-top-left-radius: 4px;
@@ -99,6 +98,7 @@ export const AreaComp = styled.div`
   flex-direction: column;
   justify-content: center;
   justify-items: left;
+  border-radius: ${(props) => props.radius || '0px'};
   align-self: ${(props) => props.alself || 'center'};
   padding-left: ${(props) => props.pleft};
   padding-top: ${(props) => props.ptop};
@@ -106,13 +106,13 @@ export const AreaComp = styled.div`
   padding-bottom: 5px;
   width: ${(props) => props.wd}%;
   height: ${(props) => props.hg}px;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 400;
   min-height: 35px;
-  color: #500569;
+  text-align: ${(props) => props.txtAlign || 'left'};
+  background: ${(props) => props.bckcomp};
   margin: 0;
   font-size: 12px;
-  color: #232c4f;
 
   ${(props) =>
     props.bright &&
@@ -135,18 +135,22 @@ export const AreaComp = styled.div`
   }
 
   label {
-    color: '#3b535f';
-    font-size: 14px;
+    color: ${(props) => props.lblColor || '#3b535f'};
+    font-size: ${(props) => props.lblFontSize || '12px'};
     font-weight: 700;
+    margin: 7px 0 3px 0;
   }
 
   h3 {
     width: 100%;
     text-align: right;
     display: block;
-    font-size: 14px;
+    padding: 4px 7px 4px 7px;
+    font-size: 15px;
     font-weight: bold;
-    color: #61098a;
+    text-align: ${(props) => props.h3talign || 'left'};
+    background: ${(props) => props.bckgndh3 || '#222829'};
+    color: #fa7d00;
   }
 
   h2 {
@@ -158,13 +162,54 @@ export const AreaComp = styled.div`
     color: #cf0515;
   }
 
-  /* cor do componente */
-  .css-yk16xz-control {
+  textarea {
     background: #eef3f5;
     border: solid 1px #ccc;
-    &:focus {
-      background: #eef3f5;
+    border-radius: 4px;
+    padding: 5px 10px 5px 10px;
+    color: #101b1d;
+    font-size: 12px;
+    font-weight: 700;
+
+    width: 100%;
+    transition: background 0.3s;
+
+    &::placeholder {
+      color: rgba(0, 0, 0, 0.4);
     }
+
+    &:focus {
+      background: ${darken(0.1, '#EEF3F5')};
+    }
+  }
+
+  /* cor do componente */
+
+  .cc-1pahdxg-controlt {
+    background: #eef3f5;
+
+    &:focus {
+      background: #d3dbdf;
+    }
+  }
+
+  /* altura select */
+  .css-yk16xz-control {
+    min-height: 30px !important;
+    height: 30px !important;
+    max-height: 30px !important;
+  }
+
+  .css-tlfecz-indicatorContainer {
+    padding: 5px;
+  }
+
+  .css-1hb7zxy-IndicatorsContainer {
+    height: 30px;
+  }
+
+  .css-g1d714-ValueContainer {
+    padding: 3px 2px 3px 2px;
   }
 
   .css-yk16xz-control,
@@ -387,5 +432,32 @@ export const ToolBarItem = styled.div`
   &:hover {
     background: #01293e;
     border-radius: 3px;
+  }
+`;
+
+export const GridContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 8px 5px 0 0;
+
+  @media (min-height: 300px) {
+    height: 40vh;
+  }
+
+  @media (min-height: 600px) {
+    height: 45vh;
+  }
+
+  @media (min-height: 680px) {
+    height: 50vh;
+  }
+
+  @media (min-height: 780px) {
+    height: 55vh;
+  }
+
+  @media (min-height: 880px) {
+    height: 65vh;
   }
 `;

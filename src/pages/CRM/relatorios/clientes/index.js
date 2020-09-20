@@ -24,11 +24,12 @@ import {
 } from '~/pages/general.styles';
 import { BootstrapTooltip } from '~/componentes/ToolTip';
 import history from '~/services/history';
-import api from '~/services/api';
+import { ApiService, ApiTypes } from '~/services/api';
 
 registerLocale('pt', pt);
 
 export default function Crm7() {
+  const api = ApiService.getInstance(ApiTypes.API1);
   const { params } = useRouteMatch();
   const [loading, setLoading] = useState(false);
   const [openRelCliente, setOpenRelCliente] = useState(false);

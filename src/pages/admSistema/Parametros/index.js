@@ -20,7 +20,7 @@ import {
 } from '~/pages/general.styles';
 import { BootstrapTooltip } from '~/componentes/ToolTip';
 import history from '~/services/history';
-import api from '~/services/api';
+import { ApiService, ApiTypes } from '~/services/api';
 import {
   getComboUf,
   getTpAmb,
@@ -30,6 +30,7 @@ import {
 import { FormataData } from '~/services/func.uteis';
 
 export default function Parametros() {
+  const api = ApiService.getInstance(ApiTypes.API1);
   const data = new Date();
   const [Altura, setAltura] = React.useState(0);
   const [loading, setLoading] = useState(false);
@@ -79,7 +80,7 @@ export default function Parametros() {
   // carregar parametros do sistema
   async function loadParameters(obj) {
     try {
-      setPreview(`${obj.par_logo_danfe}`);
+      setPreview(`${obj.par_logomarca}`);
 
       document.getElementsByName('proxNumNfe')[0].value = obj.par_prox_numero;
       document.getElementsByName('serieNfe')[0].value = obj.par_serie_nf;
@@ -135,7 +136,7 @@ export default function Parametros() {
 
     async function getComboTabPreco() {
       try {
-        const response = await api.get('v1/cadastros/comboTabPreco');
+        const response = await api.get('v1/combos/tabpreco');
         const dados = response.data.retorno;
         if (dados) {
           setOptComboTabPreco(dados);

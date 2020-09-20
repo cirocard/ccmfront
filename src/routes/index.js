@@ -17,6 +17,10 @@ import Crm5 from '~/pages/CRM/oportunidade';
 import Crm6 from '~/pages/CRM/oportunidade/atividade';
 import Crm7 from '~/pages/CRM/relatorios/clientes';
 
+import FAT1 from '~/pages/Faturamento/dashboard';
+import FAT2 from '~/pages/Faturamento/cadastros/pedidos';
+import FAT3 from '~/pages/Faturamento/cadastros/ecommerce';
+
 export default function Routes() {
   // /:parametro+  o mais é pra pegar tudo certinho q vem depois da barra
   return (
@@ -37,6 +41,11 @@ export default function Routes() {
       <Route path="/crm5" component={Crm5} isPrivate />
       <Route path="/crm6" component={Crm6} isPrivate />
       <Route path="/crm7/:tipo" component={Crm7} isPrivate />
+
+      {/* MÓDULO FATURAMENTO */}
+      <Route path="/fat1" component={FAT1} isPrivate />
+      <Route path="/fat2/:tipo" component={FAT2} isPrivate />
+      <Route path="/fat3" component={FAT3} isPrivate />
     </Switch>
   );
 }
