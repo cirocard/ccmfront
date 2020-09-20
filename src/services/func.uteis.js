@@ -223,6 +223,7 @@ exports.ApiBaseUrl = (apiType) => {
       break;
 
     case 'GERAL':
+      baseUrl = '';
       break;
 
     default:
