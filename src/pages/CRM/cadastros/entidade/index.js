@@ -58,8 +58,6 @@ export default function Crm4() {
   };
 
   const schemaCad = Yup.object().shape({
-    cnpjCpf: Yup.string().required('(??)'),
-    email: Yup.string().email().required('(??)'),
     fone: Yup.string().required('(??)'),
     razaoSocial: Yup.string().required('(??)'),
     perfil: Yup.string().required('(??)'),
@@ -286,12 +284,10 @@ export default function Crm4() {
         toast.error(`Erro salvar cadastro: ${err}`, toastOptions);
       }
 
-      frmCadastro.current.setFieldError('cnpjCpf', validationErrors.cnpjCpf);
       frmCadastro.current.setFieldError(
         'razaoSocial',
         validationErrors.razaoSocial
       );
-      frmCadastro.current.setFieldError('email', validationErrors.email);
       frmCadastro.current.setFieldError('fone', validationErrors.fone);
       frmCadastro.current.setFieldError('perfil', validationErrors.perfil);
     }
