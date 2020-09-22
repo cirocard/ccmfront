@@ -2,7 +2,6 @@
 /dist
 /node_modules
 /documentos
-.env
 yarn.lock
 # Logs
 logs
