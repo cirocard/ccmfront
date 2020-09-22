@@ -85,7 +85,7 @@ export default function FAT3() {
 
         setPedido(dados);
         const dtaPed = format(
-          new Date(dados.date_completed),
+          new Date(dados.date_created),
           'dd/MM/yyyy HH:mm:ss'
         );
         const info1 = `PEDIDO Nº:  ${
@@ -244,11 +244,11 @@ export default function FAT3() {
           cp_cvto_emp_id: null,
           cp_cvto_id: 1,
           cp_data_emis: format(
-            new Date(pedido.date_completed),
+            new Date(pedido.date_created),
             'yyyy-MM-dd HH:mm:ss'
           ),
           cp_data_saida: format(
-            new Date(pedido.date_completed),
+            new Date(pedido.date_created),
             'yyyy-MM-dd HH:mm:ss'
           ),
           cp_emp_id: null,
@@ -256,7 +256,7 @@ export default function FAT3() {
           cp_fpgto_id: 3, // cartao
           cp_fpgto_tab_id: '6',
           cp_id: null,
-          cp_indfinal: '0',
+          cp_indfinal: formCapa.cp_consumidor,
           cp_indpres: '9',
           cp_local_exporta: null,
           cp_num_nf: null,
@@ -348,8 +348,8 @@ export default function FAT3() {
 
             itens.push(item);
           } else {
-            // throw new Error(`ATENÇÃO!! O PEDIDO NÃO PODE SER IMPORTADO.
-            // A REFERÊNCIA:  ${i.sku} NÃO FOI ENCONTRADA NO SISTEMA DE GESTÃO`);
+            throw new Error(`ATENÇÃO!! O PEDIDO NÃO PODE SER IMPORTADO.
+             A REFERÊNCIA:  ${i.sku} NÃO FOI ENCONTRADA NO SISTEMA DE GESTÃO`);
           }
         });
 

@@ -513,16 +513,17 @@ export default function Crm5() {
               </BoxItemCadNoQuery>
               <BoxItemCad fr="1fr 1fr">
                 <AreaComp wd="100">
-                  <label>Entidade Vinculada</label>
                   <FormSelect
+                    label="Entidade Vinculada"
                     name="neg_entidade"
+                    zindex="152"
                     optionsList={optEntidade}
                     placeholder="Informe"
                   />
                 </AreaComp>
                 <AreaComp wd="100">
-                  <label>Responsável pelo acompanhamento</label>
                   <FormSelect
+                    label="Responsável pelo acompanhamento"
                     name="neg_responsavel"
                     optionsList={optResponsavel}
                     placeholder="Informe"
@@ -531,24 +532,25 @@ export default function Crm5() {
               </BoxItemCad>
               <BoxItemCad fr="1fr 1fr 1fr">
                 <AreaComp wd="100">
-                  <label>Situação</label>
                   <FormSelect
+                    label="Situação"
                     name="neg_situacao"
                     optionsList={optSituacao}
                     placeholder="Informe"
                   />
                 </AreaComp>
                 <AreaComp wd="100">
-                  <label>Classificação</label>
                   <FormSelect
+                    label="Classificação"
                     name="neg_classificacao"
+                    zindex="151"
                     optionsList={optClassificacao}
                     placeholder="Informe"
                   />
                 </AreaComp>
                 <AreaComp wd="100">
-                  <label>Motivo de Perda</label>
                   <FormSelect
+                    label="Motivo de Perda"
                     name="neg_motivo_perda"
                     optionsList={optPerda}
                     placeholder="Informe"
@@ -566,8 +568,8 @@ export default function Crm5() {
                   />
                 </AreaComp>
                 <AreaComp wd="100">
-                  <label>Exibir na grade</label>
                   <FormSelect
+                    label="Exibir na grade"
                     name="neg_ativo"
                     optionsList={optExibeGrade}
                     placeholder="Informe"

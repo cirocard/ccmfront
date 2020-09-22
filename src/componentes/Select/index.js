@@ -8,6 +8,7 @@ export default function FormSelect({
   optionsList,
   clearable = true,
   readOnly,
+  zindex,
   label,
   ...rest
 }) {
@@ -19,7 +20,7 @@ export default function FormSelect({
     container: (base, state) => ({
       ...base,
       backgroundColor: 'transparent',
-      zIndex: '150',
+      zIndex: zindex || '150',
     }),
     control: (base, state) => {
       let bdColor = 'hsl(0, 0%, 80%)';
@@ -123,10 +124,12 @@ FormSelect.propTypes = {
   clearable: PropTypes.bool,
   readOnly: PropTypes.bool,
   label: PropTypes.string,
+  zindex: PropTypes.string,
 };
 
 FormSelect.defaultProps = {
   clearable: true,
   readOnly: false,
   label: '',
+  zindex: '150',
 };

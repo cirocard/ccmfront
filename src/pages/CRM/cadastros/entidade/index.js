@@ -718,8 +718,8 @@ export default function Crm4() {
                       />
                     </AreaComp>
                     <AreaComp wd="100">
-                      <label>Perfil Cadastro</label>
                       <FormSelect
+                        label="Perfil Cadastro"
                         name="perfil"
                         optionsList={optPerfil}
                         placeholder="Informe"
@@ -790,8 +790,8 @@ export default function Crm4() {
               <Form ref={frmEndereco} onSubmit={handleSubmitEndereco}>
                 <BoxItemCad fr="1fr 1fr 2fr">
                   <AreaComp wd="100">
-                    <label>Tipo de Endereço</label>
                     <FormSelect
+                      label="Tipo de Endereço"
                       name="tipoEndereco"
                       optionsList={optEndereco}
                       placeholder="Informe"
@@ -836,8 +836,8 @@ export default function Crm4() {
                 </BoxItemCad>
                 <BoxItemCad fr="1fr 1fr 1fr">
                   <AreaComp wd="100">
-                    <label>UF</label>
                     <FormSelect
+                      label="UF"
                       name="uf"
                       optionsList={optUf}
                       value={uf}
@@ -846,8 +846,8 @@ export default function Crm4() {
                     />
                   </AreaComp>
                   <AreaComp wd="100">
-                    <label>PAÍS</label>
                     <FormSelect
+                      label="PAÍS"
                       name="pais"
                       optionsList={optPais}
                       placeholder="Informe"

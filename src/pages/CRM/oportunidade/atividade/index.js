@@ -99,8 +99,6 @@ export default function Crm6() {
 
   const schemaCadPessoa = Yup.object().shape({
     pes_nome: Yup.string().required('(??)'),
-    pes_email: Yup.string().email().required('(??)'),
-    pes_fone: Yup.string().required('(??)'),
     pes_funcao: Yup.string().required('(??)'),
   });
 
@@ -137,12 +135,37 @@ export default function Crm6() {
     }
   }
 
+  async function listaPessoa() {
+    try {
+      const prm = {
+        pes_neg_id: neg_id,
+      };
+      const response = await api.post(`v1/crm/consulta/consulta_pessoa`, prm);
+      const dados = response.data.retorno;
+      if (dados) {
+        setPessoa(dados);
+      }
+    } catch (error) {
+      toast.error(`Erro ao carregar registro \n${error}`);
+    }
+  }
+
   async function comboPessoa() {
     try {
       const response = await api.get(`v1/combos/pessoa_crm/${neg_id}`);
       const dados = response.data.retorno;
-      if (dados) {
+      if (dados.length > 0) {
         setOptPessoa(dados);
+      } else {
+        // cadastrar contato baseado na entidade
+        const objPessoa = {
+          pes_neg_id: neg_id,
+          pes_nome: neg_nome.toUpperCase(),
+          pes_funcao: 'NÃO DEFINIDO',
+        };
+        await api.post('v1/crm/cad/pessoa', objPessoa);
+        await comboPessoa();
+        await listaPessoa();
       }
     } catch (error) {
       toast.error(`Erro ao carregar registro \n${error}`);
@@ -179,21 +202,6 @@ export default function Crm6() {
     setPes_id(id);
   }
 
-  async function listaPessoa() {
-    try {
-      const prm = {
-        pes_neg_id: neg_id,
-      };
-      const response = await api.post(`v1/crm/consulta/consulta_pessoa`, prm);
-      const dados = response.data.retorno;
-      if (dados) {
-        setPessoa(dados);
-      }
-    } catch (error) {
-      toast.error(`Erro ao carregar registro \n${error}`);
-    }
-  }
-
   async function listaAtividade(prm) {
     try {
       const response = await api.get(
@@ -222,14 +230,7 @@ export default function Crm6() {
   }
 
   async function handleNovoAtividade() {
-    if (pessoa.length > 0) {
-      setOpenCadAtv(true);
-    } else {
-      toast.warn(
-        'Cadastre a pessoa de contato antes de iniciar uma atividade!!!',
-        toastOptions
-      );
-    }
+    setOpenCadAtv(true);
   }
 
   async function handleSubmitAtv(formData) {
@@ -355,11 +356,6 @@ export default function Crm6() {
       }
 
       frmCadPessoa.current.setFieldError('pes_nome', validationErrors.pes_nome);
-      frmCadPessoa.current.setFieldError(
-        'pes_email',
-        validationErrors.pes_email
-      );
-      frmCadPessoa.current.setFieldError('pes_fone', validationErrors.pes_fone);
       frmCadPessoa.current.setFieldError(
         'pes_funcao',
         validationErrors.pes_funcao
@@ -495,10 +491,10 @@ export default function Crm6() {
   }
 
   useEffect(() => {
-    listaPessoa();
+    comboPessoa();
     listaAtividade(0);
     comboResponsavel();
-    comboPessoa();
+    listaPessoa();
     comboGeral(29); // tipo atividade
   }, []);
 
@@ -799,9 +795,10 @@ export default function Crm6() {
                   />
                 </AreaComp>
                 <AreaComp wd="100">
-                  <label>Classificaçao da atividade</label>
                   <FormSelect
                     name="atv_tipo"
+                    zindex="151"
+                    label="Classificaçao da atividade"
                     optionsList={optTipoAtv}
                     placeholder="Informe"
                   />
@@ -862,24 +859,24 @@ export default function Crm6() {
               </BoxItemCadNoQuery>
               <BoxItemCad fr="1fr 1fr 1fr">
                 <AreaComp wd="100">
-                  <label>Responsável pela Atividade</label>
                   <FormSelect
+                    label="Responsável pela Atividade"
                     name="atv_responsavel_id"
                     optionsList={optResponsavel}
                     placeholder="Informe"
                   />
                 </AreaComp>
                 <AreaComp wd="100">
-                  <label>Contato Envolvido</label>
                   <FormSelect
                     name="atv_pes_id"
+                    label="Contato Envolvido"
                     optionsList={optPessoa}
                     placeholder="Informe se houver"
                   />
                 </AreaComp>
                 <AreaComp wd="100">
-                  <label>Indicador</label>
                   <FormSelect
+                    label="Indicador"
                     name="atv_indicador"
                     optionsList={optIndicadorAtv}
                     placeholder="Informe"
