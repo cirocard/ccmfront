@@ -7,6 +7,7 @@ export const SelectContainer = styled.div`
   /* padding: 6px; */
   display: flex;
   flex-direction: column;
+  max-height: 200px;
 `;
 
 export const FormLabel = styled.label`

@@ -22,7 +22,7 @@ export const ContentBar = styled.div`
 export const ToolBar = styled.div`
   display: flex;
   flex-direction: column;
-  padding-top: 120px;
+  padding-top: 60px;
   width: ${(props) => props.wd};
   height: ${(props) => props.hg};
   margin-left: ${(props) => props.mleft || -10}px;
@@ -54,7 +54,8 @@ export const Panel = styled.div`
   width: 100%;
   border-radius: 4px;
   margin-left: 0px;
-  margin-top: -10px;
+  margin-top: 2px;
+  padding: 1px 7px 1px 7px;
 
   h1 {
     width: 100%;
@@ -110,78 +111,6 @@ export const BoxPesquisa = styled.div`
   border-radius: 5px;
 `;
 
-export const GridContainerItens = styled.div`
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  padding: 8px 5px 0 0;
-
-  button {
-    border: 0;
-    background: none;
-    cursor: pointer;
-  }
-
-  @media (min-height: 300px) {
-    height: 29vh;
-  }
-
-  @media (min-height: 600px) {
-    height: 32vh;
-  }
-
-  @media (min-height: 680px) {
-    height: 36vh;
-  }
-
-  @media (min-height: 780px) {
-    height: 42vh;
-  }
-
-  @media (min-height: 880px) {
-    height: 53vh;
-  }
-`;
-
-export const GridContainerGrade = styled.div`
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  padding: 8px 5px 0 0;
-
-  button {
-    border: 0;
-    background: none;
-    cursor: pointer;
-  }
-
-  @media (min-height: 300px) {
-    height: 29vh;
-  }
-
-  @media (min-height: 600px) {
-    height: 32vh;
-  }
-
-  @media (min-height: 680px) {
-    height: 36vh;
-  }
-
-  @media (min-height: 780px) {
-    height: 42vh;
-  }
-
-  @media (min-height: 880px) {
-    height: 53vh;
-  }
-
-  h3 {
-    font-size: 18px;
-    color: #4d2679;
-    margin-bottom: 16px;
-  }
-`;
-
 export const GridContainerMain = styled.div`
   display: flex;
   flex-direction: column;
@@ -197,6 +126,12 @@ export const GridContainerMain = styled.div`
     color: #fff !important;
   }
 
+  button {
+    border: 0;
+    background: none;
+    cursor: pointer;
+  }
+
   @media (min-height: 300px) {
     height: 40vh;
   }
@@ -206,14 +141,14 @@ export const GridContainerMain = styled.div`
   }
 
   @media (min-height: 680px) {
-    height: 50vh;
-  }
-
-  @media (min-height: 780px) {
     height: 55vh;
   }
 
+  @media (min-height: 780px) {
+    height: 60vh;
+  }
+
   @media (min-height: 880px) {
-    height: 65vh;
+    height: 70vh;
   }
 `;

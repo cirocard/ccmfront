@@ -307,7 +307,7 @@ export const BoxItemCadNoQuery = styled.div`
 
 export const CModal = styled.div`
   width: ${(props) => props.wd};
-  height: ${(props) => props.hg};
+  height: ${(props) => props.hg} !important;
   margin: 0 auto;
   padding: 10px;
   background: #fafafa;

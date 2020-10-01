@@ -115,7 +115,6 @@ export default function Crm2() {
         situacao: formData.situacao,
         perfil: document.getElementById('rbGestor').checked ? '1' : '2',
       };
-
       frmCadastro.current.setErrors({});
       await schemaCad.validate(formData, {
         abortEarly: false,

@@ -17,9 +17,17 @@ import Crm5 from '~/pages/CRM/oportunidade';
 import Crm6 from '~/pages/CRM/oportunidade/atividade';
 import Crm7 from '~/pages/CRM/relatorios/clientes';
 
+// FATURAMENTO
+
 import FAT1 from '~/pages/Faturamento/dashboard';
 import FAT2 from '~/pages/Faturamento/cadastros/pedidos';
 import FAT3 from '~/pages/Faturamento/cadastros/ecommerce';
+import FAT4 from '~/pages/Faturamento/cadastros/pedidos/config';
+
+// SUPRIMENTOS
+import SUPR1 from '~/pages/Suprimentos/dashboard';
+import SUPR2 from '~/pages/Suprimentos/cadastros/fornecedor';
+import SUPR3 from '~/pages/Suprimentos/classificacao';
 
 export default function Routes() {
   // /:parametro+  o mais é pra pegar tudo certinho q vem depois da barra
@@ -46,6 +54,12 @@ export default function Routes() {
       <Route path="/fat1" component={FAT1} isPrivate />
       <Route path="/fat2/:tipo" component={FAT2} isPrivate />
       <Route path="/fat3" component={FAT3} isPrivate />
+      <Route path="/fat4" component={FAT4} isPrivate />
+
+      {/* MÓDULO SUPRIMENTOS */}
+      <Route path="/supr1" component={SUPR1} isPrivate />
+      <Route path="/supr2" component={SUPR2} isPrivate />
+      <Route path="/supr3/:geral" component={SUPR3} isPrivate />
     </Switch>
   );
 }

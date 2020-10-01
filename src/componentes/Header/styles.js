@@ -61,6 +61,18 @@ export const Nav = styled.nav`
   }
 `;
 
+export const Actions = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-content: center;
+
+  button {
+    border: 0;
+    background: none;
+  }
+`;
+
 export const Profile = styled.div`
   display: flex;
   margin-left: 20px;

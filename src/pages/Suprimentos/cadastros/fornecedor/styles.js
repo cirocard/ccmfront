@@ -189,11 +189,11 @@ export const GridContainerMain = styled.div`
   padding: 8px 5px 0 0;
 
   .warn-finalizado {
-    background-color: #fcfc18 !important;
+    background-color: #f3ff33 !important;
   }
 
   .warn-cancelado {
-    background-color: #bd0303 !important;
+    background-color: #d81e00 !important;
     color: #fff !important;
   }
 
