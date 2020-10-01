@@ -212,6 +212,12 @@ export default createGlobalStyle`
   }
 
 /*==== altura dos seletores de aba tab bar =========*/
+.MuiButtonBase-root{
+  padding: 3px 10px 3px 10px !important;
+}
+.MuiTooltip-pooper{
+  padding: 0px !important;
+}
 .MuiTabs-root{
   height: 62px;
   padding: 0px;

@@ -10,6 +10,11 @@ const api = axios.create({
   baseURL: baseUrl,
 });
 
+const toastOptions = {
+  autoClose: 4000,
+  position: toast.POSITION.TOP_CENTER,
+};
+
 export function* signIn({ payload }) {
   try {
     const { username, password, empId } = payload;
@@ -67,7 +72,7 @@ export function* signIn({ payload }) {
       history.push('/');
     }
   } catch (err) {
-    toast.error(`Falha na autenticação!! \n${err.message}`);
+    toast.error(`Falha na autenticação!! \n${err.message}`, toastOptions);
     yield put(signFailure());
   }
 }

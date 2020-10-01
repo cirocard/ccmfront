@@ -20,7 +20,6 @@ import {
   FaSearch,
   FaPlusCircle,
   FaCheck,
-  FaExchangeAlt,
   FaTrashAlt,
   FaBan,
   FaBarcode,
@@ -41,7 +40,13 @@ import Input from '~/componentes/Input';
 import TextArea from '~/componentes/TextArea';
 import FormSelect from '~/componentes/Select';
 import AsyncSelectForm from '~/componentes/Select/selectAsync';
-import { Container, Panel, GridContainerItens, ToolBar } from './styles';
+import {
+  Container,
+  Panel,
+  GridContainerItens,
+  ToolBar,
+  GridContainerMain,
+} from './styles';
 import {
   TitleBar,
   AreaComp,
@@ -50,11 +55,11 @@ import {
   CModal,
   Scroll,
   DivLimitador,
-  GridContainer,
   CCheck,
   Linha,
 } from '~/pages/general.styles';
 import { BootstrapTooltip } from '~/componentes/ToolTip';
+import Confirmation from '~/componentes/DialogChoice';
 import history from '~/services/history';
 import {
   a11yProps,
@@ -62,6 +67,7 @@ import {
   maskDecimal,
   ArredondaValorDecimal,
   toDecimal,
+  GridCurrencyFormatter,
 } from '~/services/func.uteis';
 import { ApiService, ApiTypes } from '~/services/api';
 
@@ -90,6 +96,7 @@ export default function FAT2() {
   const [openDlgGrade, setOpenDlgGrade] = useState(false);
   const [openDlgDesconto, setOpenDlgDesconto] = useState(false);
   const [openDlgImpressao, setOpenDlgImpressao] = useState(false);
+  const [openDlgNota, setOpenDlgNota] = useState(false);
   const [gridPesquisa, setGridPesquisa] = useState([]);
   const [dataGridPesqSelected, setDataGridPesqSelected] = useState([]);
   const [dataGridGradeSelected, setDataGridGradeSelected] = useState([]);
@@ -101,7 +108,8 @@ export default function FAT2() {
   const [selectedProduto, setSelectedProduto] = useState([]);
   const [situacaoPedido, setSituacaoPedido] = useState('');
   const [existeBordero, setExisteBordero] = useState('');
-  const [prmSistema, setPrmSistema] = useState([]);
+  const [gridApiPesquisa, setGridApiPesquisa] = useState([]);
+  let gridItensSelected;
 
   const toastOptions = {
     autoClose: 4000,
@@ -249,19 +257,6 @@ export default function FAT2() {
     frmItens.current.setFieldValue('item_prod_id', '');
   }
 
-  // get parametros sistema
-  async function getPrmSystem() {
-    try {
-      const response = await api.get('v1/cadastros/param');
-      const dados = response.data.retorno;
-      if (dados) {
-        setPrmSistema(dados);
-      }
-    } catch (error) {
-      toast.error(`Erro ao carregar parametros do sistema\n${error}`);
-    }
-  }
-
   // fazer consulta dos pedidos
   async function listaPedido() {
     try {
@@ -279,6 +274,7 @@ export default function FAT2() {
         status: null,
         nfce: 'N', // S/N
         cpf_consumidor: null,
+        naovalidado: document.getElementById('chbNaoValidado').checked,
         perfil: params.tipo,
       };
 
@@ -325,7 +321,7 @@ export default function FAT2() {
   }
 
   function handleDashboard() {
-    history.push('/crm1', '_blank');
+    history.push('/fat1', '_blank');
   }
 
   // grid pesquisa
@@ -352,6 +348,7 @@ export default function FAT2() {
     frmCapa.current.setFieldValue('cp_vlr_desc', 0);
     frmCapa.current.setFieldValue('cp_vlr_nf', 0);
     frmCapa.current.setFieldValue('cp_observacao', '');
+    frmCapa.current.setFieldValue('valor_cota', '');
 
     setValueTab(1);
   }
@@ -369,6 +366,7 @@ export default function FAT2() {
     }
   }
 
+  // impressao do pedido
   async function handleImpressao() {
     try {
       if (dataGridPesqSelected.length > 0) {
@@ -457,6 +455,10 @@ export default function FAT2() {
           'cp_observacao',
           dataGridPesqSelected[0].cp_observacao
         );
+        frmCapa.current.setFieldValue(
+          'valor_cota',
+          dataGridPesqSelected[0].valor_cota
+        );
 
         setValueTab(1);
         setLoading(false);
@@ -470,7 +472,7 @@ export default function FAT2() {
   }
 
   async function handleSubmitCapa() {
-    if (valueTab == '1') {
+    if (parseInt(valueTab) > 0) {
       const formCapa = frmCapa.current.getData();
       try {
         frmCapa.current.setErrors({});
@@ -667,6 +669,126 @@ export default function FAT2() {
     );
   }
 
+  // cancelar pedido
+  async function handleCancelar() {
+    try {
+      if (dataGridPesqSelected.length > 0) {
+        const confirmation = await Confirmation.show(
+          'VOCÊ TEM CERTEZA QUE QUER CANCEALR O PEDIDO???'
+        );
+
+        if (confirmation) {
+          setLoading(true);
+
+          const url = `v1/fat/cancelar_pedido?cp_id=${dataGridPesqSelected[0].cp_id}&cli_id=${dataGridPesqSelected[0].cli_id}`;
+          const response = await api.put(url);
+          setLoading(false);
+          if (response.data.success) {
+            await listaPedido();
+            toast.info('Pedido Cancelado com sucesso!!!', toastOptions);
+          }
+        }
+      } else {
+        toast.info('Selecione um pedido para cancelar', toastOptions);
+      }
+    } catch (error) {
+      setLoading(false);
+      toast.error(`Erro ao cancelar pedido \n${error}`, toastOptions);
+    }
+  }
+
+  // gerar nota fiscal
+  async function handleGerarNota() {
+    if (dataGridPesqSelected.length > 0) {
+      if (dataGridPesqSelected[0].situacao === '3') {
+        toast.warning(
+          'Atenção!! Este Pedido está cancelado. A nota não poderá ser gerada',
+          toastOptions
+        );
+      } else {
+        setLoading(true);
+        const tp_doc = document.getElementById('rbNota').checked ? '1' : '2';
+        const response = await api.post(
+          `v1/fat/gerar_nota?cp_id=${dataGridPesqSelected[0].cp_id}&tp_doc=${tp_doc}`
+        );
+
+        setLoading(false);
+        setOpenDlgNota(false);
+        if (response.data.success) {
+          await listaPedido();
+          toast.info(response.data.retorno, toastOptions);
+        }
+      }
+    } else {
+      toast.info('Selecione um pedido para gerar a nota', toastOptions);
+    }
+  }
+
+  // validar pedido
+  async function handleValidarPedido() {
+    if (dataGridPesqSelected.length > 0) {
+      if (
+        dataGridPesqSelected[0].situacao === '3' ||
+        dataGridPesqSelected[0].situacao === '10'
+      ) {
+        toast.warning(
+          'Atenção!! Este Pedido não pode ser validado. Verifique se não está cancelado ou finalizado',
+          toastOptions
+        );
+      } else {
+        setLoading(true);
+        const response = await api.put(
+          `v1/fat/validar_pedido?cp_id=${dataGridPesqSelected[0].cp_id}`
+        );
+
+        if (response.data.success) {
+          const url = `v1/fat/report/espelho_pedido?cp_id=${dataGridPesqSelected[0].cp_id}
+          &ordenar=2&conferencia=S&tipo=${params.tipo}`;
+
+          const rel = await api.get(url);
+          setLoading(false);
+
+          if (rel.data.toString() === '0') {
+            toast.info('PEDIDO VALIDADO COM SUCESSO!!!', toastOptions);
+          } else {
+            const link = rel.data;
+            window.open(link, '_blank');
+          }
+        }
+      }
+    } else {
+      toast.info('Selecione um pedido para validar', toastOptions);
+    }
+  }
+
+  // finalizar pedido
+  async function handleFinalizarPedido() {
+    try {
+      if (dataGridPesqSelected.length > 0) {
+        const confirmation = await Confirmation.show(
+          'Deseja realmente FINALIZAR o pedido???'
+        );
+
+        if (confirmation) {
+          setLoading(true);
+
+          const url = `v1/fat/finalizar_pedido?cp_id=${dataGridPesqSelected[0].cp_id}&situacao=10`;
+          const response = await api.put(url);
+          setLoading(false);
+          if (response.data.success) {
+            await listaPedido();
+            toast.info('Pedido finalizado com sucesso!!!', toastOptions);
+          }
+        }
+      } else {
+        toast.info('Selecione um pedido para finalizar', toastOptions);
+      }
+    } catch (error) {
+      setLoading(false);
+      toast.error(`Erro ao finalizar pedido \n${error}`, toastOptions);
+    }
+  }
+
   // adiconar itens
   async function handleSubmitItens() {
     try {
@@ -680,7 +802,10 @@ export default function FAT2() {
       });
 
       // verificar situacao
-      if (situacaoPedido !== '1') {
+      let sit = situacaoPedido;
+      if (!sit) sit = '1';
+
+      if (sit !== '1') {
         toast.warning(
           'Atenção!! Este Pedido não pode mais ser alterado. Verifique a situaçao!!!',
           toastOptions
@@ -698,14 +823,16 @@ export default function FAT2() {
       }
 
       setLoading(true);
-
+      if (!gridItensSelected) gridItensSelected = dataGridGradeSelected;
       const itensPedido = [
         {
           item_cp_id: formCapa.cp_id,
-          item_tab_preco_id: formItens.item_tab_preco_id,
-          item_prod_id: dataGridGradeSelected.prod_id,
-          item_prode_id: dataGridGradeSelected.prode_id,
-          item_prod_unidade: dataGridGradeSelected.prod_unidade_venda,
+          item_tab_preco_id:
+            formItens.item_tab_preco_id || gridItensSelected.item_tab_preco_id,
+          item_prod_id:
+            gridItensSelected.prod_id || gridItensSelected.item_prod_id,
+          item_prode_id: gridItensSelected.prode_id,
+          item_prod_unidade: gridItensSelected.prod_unidade_venda,
           item_qtd_bonificada: document.getElementById('chbBonificar').checked
             ? formItens.item_quantidade
             : null,
@@ -717,7 +844,12 @@ export default function FAT2() {
           item_vlr_desc: toDecimal(formItens.item_vlr_desc),
           item_valor_total: toDecimal(formItens.item_valor_total),
           item_tab_preco_vigencia: format(
-            new Date(dataGridGradeSelected.tab_data_vigencia),
+            new Date(
+              gridItensSelected.tab_data_vigencia ||
+                Date.parse(
+                  gridItensSelected.item_tab_preco_vigencia.substring(0, 19)
+                )
+            ),
             'yyyy-MM-dd HH:mm:ss'
           ),
           item_cfop: null,
@@ -752,7 +884,7 @@ export default function FAT2() {
         capa: null,
         itens: itensPedido,
       };
-
+      console.log(obj);
       const retorno = await api.post('v1/fat/pedido', obj);
       if (retorno.data.success) {
         await listaItens(formCapa.cp_id, 30);
@@ -834,8 +966,20 @@ export default function FAT2() {
   async function handleDeleteItem(param) {
     try {
       if (param.prode_id) {
-        if (situacaoPedido !== '10' || situacaoPedido !== '3') {
-          if (existeBordero !== 'S') {
+        let situ = '';
+        let sitBordero;
+        setSituacaoPedido((prevState) => {
+          situ = prevState;
+          return prevState;
+        });
+
+        setExisteBordero((prevState) => {
+          sitBordero = prevState;
+          return prevState;
+        });
+
+        if (situ == '1') {
+          if (sitBordero == 'N') {
             setLoading(true);
             const formCapa = frmCapa.current.getData();
             const response = await api.delete(
@@ -880,6 +1024,7 @@ export default function FAT2() {
       setDataGridPesqSelected([]);
       setGridPesquisa([]);
       await listaPedido();
+      setPesqCliId([]);
       setValueTab(newValue);
     } else if (newValue === 1) {
       // capa do pedido
@@ -890,12 +1035,13 @@ export default function FAT2() {
         await handleEdit();
       }
     } else if (newValue === 2) {
+      // itens do pedido
       limpaItens();
       if (valueTab > 0) {
         const formData = frmCapa.current.getData();
         if (formData.cp_id) {
           // se ja existe o pedido
-          if (gridItens.length < 1) listaItens(formData.cp_id);
+          await listaItens(formData.cp_id);
           setValueTab(newValue);
         } else {
           toast.info(
@@ -1037,13 +1183,96 @@ export default function FAT2() {
     }
   }
 
+  const handleEditarQuantidade = async (prm) => {
+    try {
+      if (prm.data.prode_id) {
+        let situ = '';
+        let sitBordero;
+        setSituacaoPedido((prevState) => {
+          situ = prevState;
+          return prevState;
+        });
+
+        setExisteBordero((prevState) => {
+          sitBordero = prevState;
+          return prevState;
+        });
+
+        if (situ == '1') {
+          if (sitBordero == 'N') {
+            setLoading(true);
+            const formCapa = frmCapa.current.getData();
+            const response = await api.delete(
+              `v1/fat/excluir_item_pedido?cp_id=${formCapa.cp_id}&prode_id=${prm.data.prode_id}
+              &cli_id=${pesqCli_id.value}&cp_perfil=${params.tipo}`
+            );
+            if (response.data.success) {
+              await listaItens(formCapa.cp_id, '');
+            } else {
+              toast.error(
+                `Erro ao excluir item do pedido: ${response.data.message}`
+              );
+            }
+            setLoading(false);
+
+            // adicionar nova quantidade
+            gridItensSelected = prm.data;
+            frmItens.current.setFieldValue(
+              'item_vlr_unit',
+              prm.data.item_vlr_unit
+            );
+            frmItens.current.setFieldValue(
+              'item_quantidade',
+              prm.data.item_quantidade
+            );
+            frmItens.current.setFieldValue(
+              'item_vlr_desc',
+              prm.data.item_vlr_desc
+            );
+            frmItens.current.setFieldValue(
+              'item_perc_desc',
+              prm.data.item_perc_desc
+            );
+
+            await handleSubmitItens();
+          } else {
+            toast.warning(
+              `ATENÇÃO!! ESTE PEDIDO NÃO PODE MAIS SER ALTERADO. EXISTE BORDERÔ ABERTO`,
+              toastOptions
+            );
+          }
+        } else {
+          toast.warning(
+            `ATENÇÃO!! ESTE PEDIDO NÃO PODE MAIS SER ALTERADO.  VERIFIQUE A SITUAÇÃO`,
+            toastOptions
+          );
+        }
+      } else {
+        toast.error(
+          `ATENÇÃO!! ESTE ITEM NÃO PODE SER EXCLUÍDO. NÃO FOI ENCONTRADO CONFIGURAÇÃO DE ESTOQUE PARA ELE`,
+          toastOptions
+        );
+      }
+    } catch (err) {
+      setLoading(false);
+      toast.error(`Erro ao alterar quantidade: ${err}`, toastOptions);
+    }
+  };
+
+  const gridValidationsQtd = (newValue) => {
+    if (!newValue) {
+      toast.info('Informe uma quantidade válida', toastOptions);
+      return false;
+    }
+    return true;
+  };
+
   useEffect(() => {
     if (params.tipo === '2') {
       setTitlePg('CADASTRO PEDIDOS - PRÉ-VENDA');
     } else {
       setTitlePg('CADASTRO PEDIDOS - CONSIGNADO');
     }
-    getPrmSystem();
     getComboFpgto();
     getComboOperFat();
     listaPedido();
@@ -1054,18 +1283,6 @@ export default function FAT2() {
   }, []);
 
   // #region GRID CONSULTA PEDIDO =========================
-  const [gridPrincipalInstance, setGridPrincipalInstance] = useState({
-    api: {},
-    columnApi: {},
-  });
-
-  const onGridPrincipalReady = (prm) => {
-    setGridPrincipalInstance({
-      api: prm.api,
-      columnApi: prm.columnApi,
-    });
-    prm.api.sizeColumnsToFit();
-  };
 
   const gridColumnConsulta = [
     {
@@ -1111,18 +1328,45 @@ export default function FAT2() {
       resizable: true,
       filter: true,
       lockVisible: true,
+      type: 'rightAligned',
+      valueFormatter: GridCurrencyFormatter,
     },
-    {
-      field: 'cp_situacao',
-      headerName: 'SITUAÇAO SISTEMA',
+  ];
+
+  if (params.tipo === '3') {
+    gridColumnConsulta.push({
+      field: 'valor_cota',
+      headerName: 'VLR. COTA',
+      width: 110,
+      sortable: true,
+      resizable: true,
+      filter: true,
+      lockVisible: true,
+      type: 'rightAligned',
+      valueFormatter: GridCurrencyFormatter,
+    });
+
+    gridColumnConsulta.push({
+      field: 'acerto',
+      headerName: 'SITUAÇÃO DE ACERTO',
       width: 280,
       sortable: true,
       resizable: true,
       filter: true,
       lockVisible: true,
-      flex: 1,
-    },
-  ];
+    });
+  }
+
+  gridColumnConsulta.push({
+    field: 'cp_situacao',
+    headerName: 'SITUAÇAO SISTEMA',
+    width: 280,
+    sortable: true,
+    resizable: true,
+    filter: true,
+    lockVisible: true,
+    flex: 1,
+  });
   // #endregion
 
   // #region GRID ITENS PEDIDO ===========================================
@@ -1193,6 +1437,7 @@ export default function FAT2() {
       width: 110,
       resizable: true,
       lockVisible: true,
+      type: 'rightAligned',
     },
     {
       field: 'item_quantidade',
@@ -1200,6 +1445,12 @@ export default function FAT2() {
       width: 110,
       sortable: true,
       editable: true,
+      type: 'rightAligned',
+      /* metodo para edição na grid */
+      onCellValueChanged: handleEditarQuantidade,
+      cellEditorParams: {
+        validacoes: gridValidationsQtd,
+      },
       resizable: true,
       lockVisible: true,
     },
@@ -1369,22 +1620,15 @@ export default function FAT2() {
 
         <DivLimitador hg="10px" />
 
-        <BootstrapTooltip title="Devolver Pedido" placement="left">
-          <button type="button">
-            <FaExchangeAlt size={25} color="#fff" />
-          </button>
-        </BootstrapTooltip>
-        <DivLimitador hg="10px" />
-
         <BootstrapTooltip title="Cancelar Pedido" placement="left">
-          <button type="button">
+          <button type="button" onClick={handleCancelar}>
             <FaBan size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
         <DivLimitador hg="10px" />
 
         <BootstrapTooltip title="Gerar Nota Fiscal" placement="left">
-          <button type="button">
+          <button type="button" onClick={() => setOpenDlgNota(true)}>
             <FaBarcode size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
@@ -1398,7 +1642,7 @@ export default function FAT2() {
         <DivLimitador hg="10px" />
 
         <BootstrapTooltip title="Validar Estoque" placement="left">
-          <button type="button">
+          <button type="button" onClick={handleValidarPedido}>
             <FaCartPlus size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
@@ -1412,7 +1656,7 @@ export default function FAT2() {
         <DivLimitador hg="10px" />
 
         <BootstrapTooltip title="Finalizar Pedido" placement="left">
-          <button type="button">
+          <button type="button" onClick={handleFinalizarPedido}>
             <FaRegCheckSquare size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
@@ -1479,7 +1723,7 @@ export default function FAT2() {
             <Panel lefth1="left" bckgnd="#dae2e5">
               <Form id="frmCapa" ref={frmPesquisa}>
                 <h1>PARÂMETROS DE PESQUISA</h1>
-                <BoxItemCad fr="2fr 1fr 1fr 1fr 1fr">
+                <BoxItemCad fr="2fr 0.8fr 0.8fr 0.8fr 1fr 1.2fr">
                   <AreaComp wd="100">
                     <AsyncSelectForm
                       name="pesq_cli_id"
@@ -1535,19 +1779,44 @@ export default function FAT2() {
                       placeholder="SITUAÇAO PEDIDO"
                     />
                   </AreaComp>
+                  <AreaComp wd="100" ptop="25px">
+                    <CCheck>
+                      <input
+                        type="checkbox"
+                        id="chbNaoValidado"
+                        name="chbNaoValidado"
+                        value="S"
+                      />
+                      <label htmlFor="chbNaoValidado">
+                        Pedidos não validado
+                      </label>
+                    </CCheck>
+                  </AreaComp>
                 </BoxItemCad>
                 <BoxItemCadNoQuery fr="1fr">
-                  <GridContainer className="ag-theme-balham">
+                  <GridContainerMain className="ag-theme-balham">
                     <AgGridReact
                       columnDefs={gridColumnConsulta}
                       rowData={gridPesquisa}
                       rowSelection="single"
                       animateRows
                       gridOptions={{ localeText: gridTraducoes }}
-                      onGridReady={onGridPrincipalReady}
+                      rowClassRules={{
+                        'warn-finalizado': function (p) {
+                          const finalizado = p.data.cp_situacao;
+                          return finalizado === 'PEDIDO FINALIZADO';
+                        },
+                        'warn-cancelado': function (p) {
+                          const cancelado = p.data.cp_situacao;
+                          return cancelado === 'CANCELADO';
+                        },
+                      }}
+                      onGridReady={(prm) => {
+                        setGridApiPesquisa(prm.api);
+                      }}
                       onSelectionChanged={handleSelectGridPesquisa}
                     />
-                  </GridContainer>
+                  </GridContainerMain>
                 </BoxItemCadNoQuery>
               </Form>
             </Panel>
@@ -1585,7 +1854,11 @@ export default function FAT2() {
                         <DatePickerInput
                           onChangeDate={(date) => setDataSaida(new Date(date))}
                           value={dataSaida}
-                          label="Data Saída"
+                          label={
+                            params.tipo === '2'
+                              ? 'Data Saída'
+                              : 'Data Prestação de contas'
+                          }
                         />
                       </span>
                     </div>
@@ -1640,7 +1913,13 @@ export default function FAT2() {
                   </AreaComp>
                 </BoxItemCadNoQuery>
                 <h1>TOTAIS DO PEDIDO</h1>
-                <BoxItemCad fr="1fr 1fr 1fr 1fr 1FR">
+                <BoxItemCad
+                  fr={
+                    params.tipo === '2'
+                      ? '1fr 1fr 1fr 1fr 1fr'
+                      : '1fr 1fr 1fr 1fr 1fr 1fr'
+                  }
+                >
                   <AreaComp wd="100">
                     <label>Valor do Produtos</label>
                     <Input
@@ -1686,6 +1965,19 @@ export default function FAT2() {
                       className="input_cad"
                     />
                   </AreaComp>
+                  {params.tipo === '3' ? (
+                    <AreaComp wd="100">
+                      <label>Cota mínima de venda</label>
+                      <Input
+                        type="number"
+                        name="valor_cota"
+                        readOnly
+                        className="input_cad"
+                      />
+                    </AreaComp>
+                  ) : (
+                    ''
+                  )}
                 </BoxItemCad>
               </Form>
             </Panel>
@@ -1835,7 +2127,6 @@ export default function FAT2() {
                       rowSelection="single"
                       animateRows
                       gridOptions={{ localeText: gridTraducoes }}
-                      onGridReady={onGridPrincipalReady}
                     />
                   </GridContainerItens>
                 </BoxItemCadNoQuery>
@@ -1885,7 +2176,6 @@ export default function FAT2() {
                       rowSelection="single"
                       animateRows
                       gridOptions={{ localeText: gridTraducoes }}
-                      onGridReady={onGridPrincipalReady}
                     />
                   </GridContainerItens>
                 </BoxItemCadNoQuery>
@@ -2004,6 +2294,54 @@ export default function FAT2() {
                     onClick={handleImpressao}
                   >
                     GERAR IMPRESSÃO
+                  </button>
+                </AreaComp>
+              </BoxItemCadNoQuery>
+            </CModal>
+          </Scroll>
+        </Dialog>
+      </Slide>
+
+      {/* popup para getar nota fiscal */}
+      <Slide direction="down" in={openDlgNota}>
+        <Dialog
+          open={openDlgNota}
+          keepMounted
+          fullWidth
+          maxWidth="sm"
+          onClose={() => setOpenDlgNota(false)}
+        >
+          <TitleBar wd="100%" bckgnd="#244448" fontcolor="#fff" lefth1="left">
+            <h1>CONFIRMAR EMISSÃO DE NOTA FISCAL</h1>
+            <BootstrapTooltip title="Fechar Modal" placement="top">
+              <button type="button" onClick={() => setOpenDlgNota(false)}>
+                <MdClose size={30} color="#fff" />
+              </button>
+            </BootstrapTooltip>
+          </TitleBar>
+
+          <Scroll>
+            <CModal wd="100%" hd="90%">
+              <BoxItemCadNoQuery fr="1fr 1fr">
+                <AreaComp wd="100">
+                  <CCheck>
+                    <input type="radio" id="rbNota" name="radioNf" value="S" />
+                    <label htmlFor="rbNota">Nota Fiscal (NF-e)</label>
+
+                    <input type="radio" id="rbCupom" name="radioNf" value="S" />
+                    <label htmlFor="rbCupom">Cupom Fiscal (NFC-e)</label>
+                  </CCheck>
+                </AreaComp>
+              </BoxItemCadNoQuery>
+              <Linha />
+              <BoxItemCadNoQuery>
+                <AreaComp wd="100" ptop="30px">
+                  <button
+                    type="button"
+                    className="btnGeralForm"
+                    onClick={handleGerarNota}
+                  >
+                    CONFIRMAR
                   </button>
                 </AreaComp>
               </BoxItemCadNoQuery>

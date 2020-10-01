@@ -9,8 +9,9 @@ import { signInRequest } from '~/store/modules/auth/actions';
 import logo from '~/assets/logo.png';
 
 const schema = Yup.object().shape({
-  username: Yup.string().required('O login é obrigatório'),
-  password: Yup.string().required('A senha é obrigatória'),
+  username: Yup.string()
+    .required('O login é obrigatório')
+    .min(4, 'usuario deve ter no minimo 4 digitos'),
 });
 
 export default function Login() {

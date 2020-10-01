@@ -60,7 +60,6 @@ export default function Adm5() {
     usr_nome: Yup.string().required('campo obrigatório'),
     usr_email: Yup.string().email().required('campo obrigatório'),
     situacao: Yup.string().required('??'),
-    grupo: Yup.string().required('??'),
   });
 
   const toastOptions = {
@@ -212,12 +211,11 @@ export default function Adm5() {
         usr_tipo: '2', // usuario padrao
         usr_emp_acesso: listaEmpAccess,
         usr_situacao: formData.situacao,
-        usr_grp_id: '3', // temporario
         usr_restricao_venda: document.getElementById('usr_restricao_venda')
           .checked
           ? 'S'
           : 'N',
-        usr_grupo_id: formData.grupo,
+        usr_grupo_id: formData.grupo || null,
       };
 
       frmCadastro.current.setErrors({});
@@ -256,7 +254,6 @@ export default function Adm5() {
         'usr_email',
         validationErrors.usr_email
       );
-      frmCadastro.current.setFieldError('grupo', validationErrors.grupo);
       frmCadastro.current.setFieldError('situacao', validationErrors.situacao);
     }
   }
@@ -500,8 +497,8 @@ export default function Adm5() {
                 </AreaComp>
 
                 <AreaComp wd="100">
-                  <label>Situação</label>
                   <FormSelect
+                    label="Situação"
                     name="situacao"
                     optionsList={optSituacao}
                     placeholder="Informe"
@@ -510,8 +507,8 @@ export default function Adm5() {
               </BoxItemCad>
               <BoxItemCad fr="1fr 1fr">
                 <AreaComp wd="100">
-                  <label>Grupo de Acesso</label>
                   <FormSelect
+                    label="Grupo de Acesso"
                     name="grupo"
                     optionsList={optGrupo}
                     placeholder="Informe"

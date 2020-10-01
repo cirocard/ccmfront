@@ -245,8 +245,8 @@ exports.ArredondaValorDecimal = (valor) => {
 };
 
 exports.toDecimal = (valor) => {
-  valor = valor.toString();
   if (valor) {
+    valor = valor.toString();
     if (valor.indexOf('.') > 0 && valor.indexOf(',') > 0) {
       return parseFloat(valor.replace(/\./gi, '').replace(/,/gi, '.'));
     }
