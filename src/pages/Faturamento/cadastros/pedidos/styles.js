@@ -116,6 +116,17 @@ export const GridContainerItens = styled.div`
   width: 100%;
   padding: 8px 5px 0 0;
 
+  .cell_quantity {
+    font-weight: bold;
+    font-size: 14px;
+    color: #af2000 !important;
+  }
+
+  .cell_total {
+    font-weight: bold;
+    font-size: 14px;
+  }
+
   button {
     border: 0;
     background: none;

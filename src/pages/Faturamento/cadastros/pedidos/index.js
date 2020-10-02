@@ -109,7 +109,7 @@ export default function FAT2() {
   const [situacaoPedido, setSituacaoPedido] = useState('');
   const [existeBordero, setExisteBordero] = useState('');
   const [gridApiPesquisa, setGridApiPesquisa] = useState([]);
-  let gridItensSelected;
+  let gridItensSelected = [];
 
   const toastOptions = {
     autoClose: 4000,
@@ -264,7 +264,7 @@ export default function FAT2() {
 
       const prm = {
         emp_id: null,
-        filtraUsr: 'N', // S/N
+        filtraUsr: null, // TRATAR NA APIN
         usr_id: null,
         numero: document.getElementsByName('pesq_cp_id')[0].value,
         cli_id: pesqCli_id.value,
@@ -884,7 +884,7 @@ export default function FAT2() {
         capa: null,
         itens: itensPedido,
       };
-      console.log(obj);
+
       const retorno = await api.post('v1/fat/pedido', obj);
       if (retorno.data.success) {
         await listaItens(formCapa.cp_id, 30);
@@ -1036,8 +1036,21 @@ export default function FAT2() {
       }
     } else if (newValue === 2) {
       // itens do pedido
-      limpaItens();
-      if (valueTab > 0) {
+      if (dataGridPesqSelected.length > 0) {
+        limpaItens();
+        await handleEdit();
+        const formData = frmCapa.current.getData();
+        if (formData.cp_id) {
+          // se ja existe o pedido
+          await listaItens(formData.cp_id);
+          setValueTab(newValue);
+        } else {
+          toast.info(
+            `SALVE O PEDIDO ANTES DE INFORMAR OU CONSULTAR OS ITENS...`,
+            toastOptions
+          );
+        }
+      } else if (valueTab === 1) {
         const formData = frmCapa.current.getData();
         if (formData.cp_id) {
           // se ja existe o pedido
@@ -1050,7 +1063,7 @@ export default function FAT2() {
           );
         }
       } else {
-        setValueTab(0);
+        toast.info('SELECIONE UM PEDIDO PARA CONSULTAR', toastOptions);
       }
     }
   };
@@ -1139,44 +1152,47 @@ export default function FAT2() {
   // evento barcode
   async function exitBarcode() {
     try {
-      setLoading(true);
       const { barcode, item_tab_preco_id } = frmItens.current.getData();
-      const prode = parseInt(barcode.substring(2, 11));
-      if (item_tab_preco_id) {
-        const url = `v1/fat/grade_produto?prod_id=&marca_id=&classific1=&classific2=&classific3=&tab_id=${item_tab_preco_id}&prode_id=${prode}`;
-        const response = await api.get(url);
-        const dados = response.data.retorno;
-        if (dados[0]) {
-          setLabelSaldo(`SALDO ATUAL DO ITEM: ${dados[0].prode_saldo}`);
-          frmItens.current.setFieldValue('item_quantidade', 1);
-          frmItens.current.setFieldValue(
-            'item_vlr_unit',
-            dados[0].tab_preco_final
-          );
-          document.getElementsByName('item_vlr_unit')[0].readOnly =
-            toDecimal(dados[0].tab_preco_final) > 0;
-          const x = {
-            value: dados[0].prod_id,
-            label: dados[0].prod_descricao,
-          };
-          frmItens.current.setFieldValue('item_prod_id', x);
-          document.getElementsByName('item_quantidade')[0].focus();
-
-          setDataGridGradeSelected(dados[0]);
-          totalItem();
+      if (barcode) {
+        const prode = parseInt(barcode.substring(2, 11));
+        if (item_tab_preco_id) {
+          setLoading(true);
+          const url = `v1/fat/grade_produto?prod_id=&marca_id=&classific1=&classific2=&classific3=&tab_id=${item_tab_preco_id}&prode_id=${prode}`;
+          const response = await api.get(url);
+          const dados = response.data.retorno;
+          if (dados[0]) {
+            gridItensSelected = dados[0];
+            setLabelSaldo(`SALDO ATUAL DO ITEM: ${dados[0].prode_saldo}`);
+            frmItens.current.setFieldValue('item_quantidade', 1);
+            frmItens.current.setFieldValue(
+              'item_vlr_unit',
+              dados[0].tab_preco_final
+            );
+            document.getElementsByName('item_vlr_unit')[0].readOnly =
+              toDecimal(dados[0].tab_preco_final) > 0;
+            const x = {
+              value: dados[0].prod_id,
+              label: dados[0].prod_descricao,
+            };
+            frmItens.current.setFieldValue('item_prod_id', x);
+            document.getElementsByName('item_quantidade')[0].focus();
+            setDataGridGradeSelected(dados[0]);
+            await totalItem();
+            await handleSubmitItens(); // tratar com parametros
+          } else {
+            toast.info('ATENÇÃO!! PRODUTO NÃO ENCONTRADO', toastOptions);
+          }
         } else {
-          toast.info('ATENÇÃO!! PRODUTO NÃO ENCONTRADO', toastOptions);
+          toast.warning(
+            'ATENÇÃO!! INFORME A TABELA DE PREÇOS PARA CONTINUAR...',
+            toastOptions
+          );
+          setLabelSaldo('');
+          frmItens.current.setFieldValue('item_quantidade', '');
+          frmItens.current.setFieldValue('item_vlr_unit', '');
         }
-      } else {
-        toast.warning(
-          'ATENÇÃO!! INFORME A TABELA DE PREÇOS PARA CONTINUAR...',
-          toastOptions
-        );
-        setLabelSaldo('');
-        frmItens.current.setFieldValue('item_quantidade', '');
-        frmItens.current.setFieldValue('item_vlr_unit', '');
+        setLoading(false);
       }
-      setLoading(false);
     } catch (error) {
       setLoading(false);
       toast.error(`Erro ao consultar Itens\n${error}`);
@@ -1453,6 +1469,7 @@ export default function FAT2() {
       },
       resizable: true,
       lockVisible: true,
+      cellClass: 'cell_quantity',
     },
     {
       field: 'item_perc_desc',
@@ -1476,6 +1493,7 @@ export default function FAT2() {
       sortable: true,
       resizable: true,
       lockVisible: true,
+      cellClass: 'cell_total',
       flex: 1,
     },
   ];
