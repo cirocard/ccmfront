@@ -224,11 +224,12 @@ export function Menu() {
 
   const getSubMenu = async (item) => {
     let response;
+
     if (usr_tipo === '1') {
-      response = await api.get(`/v1/accounts/listar_itens_nivel/${item}`);
+      response = await api.get(`/v1/accounts/listar_itens_nivel_geral/${item}`);
     } else {
       response = await api.get(
-        `/v1/accounts/listar_itens_nivel/${emp_id}/${item}`
+        `/v1/accounts/listar_itens_nivel_emp/${item}/${usr_grupo_id}`
       );
     }
 
