@@ -381,7 +381,7 @@ export default function FAT2() {
       x = optTabPreco.find(
         (op) =>
           op.value.toString() ===
-          paramSistema[0].par_tab_padrao_consignada.toString()
+          paramSistema[0].par_tab_padrao_consignado.toString()
       );
     }
     frmItens.current.setFieldValue('item_tab_preco_id', x);
@@ -507,7 +507,7 @@ export default function FAT2() {
           x = optTabPreco.find(
             (op) =>
               op.value.toString() ===
-              paramSistema[0].par_tab_padrao_consignada.toString()
+              paramSistema[0].par_tab_padrao_consignado.toString()
           );
         }
         frmItens.current.setFieldValue('item_tab_preco_id', x);
