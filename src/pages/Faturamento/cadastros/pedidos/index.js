@@ -370,6 +370,7 @@ export default function FAT2() {
     frmCapa.current.setFieldValue('valor_cota', '');
 
     let x;
+
     if (params.tipo === '2') {
       x = optTabPreco.find(
         (op) =>
@@ -496,12 +497,19 @@ export default function FAT2() {
           dataGridPesqSelected[0].valor_cota
         );
 
-        x = optTabPreco.find(
-          (op) =>
-            op.value.toString() ===
-            paramSistema[0].par_tab_padrao_prevenda.toString()
-        );
-
+        if (params.tipo === '2') {
+          x = optTabPreco.find(
+            (op) =>
+              op.value.toString() ===
+              paramSistema[0].par_tab_padrao_prevenda.toString()
+          );
+        } else {
+          x = optTabPreco.find(
+            (op) =>
+              op.value.toString() ===
+              paramSistema[0].par_tab_padrao_consignada.toString()
+          );
+        }
         frmItens.current.setFieldValue('item_tab_preco_id', x);
 
         setValueTab(1);
