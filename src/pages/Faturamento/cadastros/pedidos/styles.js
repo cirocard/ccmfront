@@ -34,6 +34,9 @@ export const ToolBar = styled.div`
   button {
     border: 0;
     background: none;
+    &:disabled {
+      cursor: not-allowed;
+    }
   }
   button:hover {
     background: #01293e;
@@ -200,7 +203,8 @@ export const GridContainerMain = styled.div`
   padding: 8px 5px 0 0;
 
   .warn-finalizado {
-    background-color: #fcfc18 !important;
+    background-color: #017a0c !important;
+    color: #fff !important;
   }
 
   .warn-cancelado {
