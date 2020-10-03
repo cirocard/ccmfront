@@ -32,7 +32,9 @@ export default function Adm1() {
   };
 
   const getSubMenu = async (item) => {
-    const response = await api.get(`/v1/accounts/listar_itens_nivel/${item}`);
+    const response = await api.get(
+      `/v1/accounts/listar_itens_nivel_geral/${item}`
+    );
     if (response.data.success) {
       const { retorno } = response.data;
       const subNivel = [];
@@ -76,6 +78,7 @@ export default function Adm1() {
 
     return menuMod;
   };
+
   // monta o treeview
   async function montaTreeMenu(dados) {
     let tree = {};
