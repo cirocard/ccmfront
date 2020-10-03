@@ -96,10 +96,10 @@ export default function Adm6() {
     let response;
     if (tpEmpresa) {
       response = await api.get(
-        `/v1/accounts/listar_itens_nivel/${tpEmpresa}/${item}`
+        `/v1/accounts/listar_itens_nivel_emp_geral/${tpEmpresa}/${item}`
       );
     } else {
-      response = await api.get(`/v1/accounts/listar_itens_nivel/${item}`);
+      response = await api.get(`/v1/accounts/listar_itens_nivel_geral/${item}`);
     }
 
     if (response.data.success) {

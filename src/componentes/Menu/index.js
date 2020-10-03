@@ -211,9 +211,7 @@ export function Menu() {
     },
   ];
 
-  const { menu, usr_tipo, emp_id, usr_grupo_id } = useSelector(
-    (state) => state.auth
-  );
+  const { menu, usr_tipo, usr_grupo_id } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
 
   const [menuGerado, setMenuGerado] = useState([]);
