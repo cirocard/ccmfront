@@ -62,9 +62,7 @@ export default function Adm4() {
         `/v1/users/listar_itens_nivel_group/${grupo}/${item}`
       );
     } else {
-      response = await api.get(
-        `/v1/accounts/listar_itens_nivel/${emp_id}/${item}`
-      );
+      response = await api.get(`/v1/accounts/listar_itens_nivel_geral/${item}`);
     }
 
     if (response.data.success) {
