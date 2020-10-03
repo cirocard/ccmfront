@@ -369,11 +369,20 @@ export default function FAT2() {
     frmCapa.current.setFieldValue('cp_observacao', '');
     frmCapa.current.setFieldValue('valor_cota', '');
 
-    const x = optTabPreco.find(
-      (op) =>
-        op.value.toString() ===
-        paramSistema[0].par_tab_padrao_prevenda.toString()
-    );
+    let x;
+    if (params.tipo === '2') {
+      x = optTabPreco.find(
+        (op) =>
+          op.value.toString() ===
+          paramSistema[0].par_tab_padrao_prevenda.toString()
+      );
+    } else {
+      x = optTabPreco.find(
+        (op) =>
+          op.value.toString() ===
+          paramSistema[0].par_tab_padrao_consignada.toString()
+      );
+    }
     frmItens.current.setFieldValue('item_tab_preco_id', x);
 
     setDesableSave(false);
