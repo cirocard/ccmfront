@@ -925,7 +925,9 @@ export default function FAT2() {
 
       const retorno = await api.post('v1/fat/pedido', obj);
       if (retorno.data.success) {
-        await listaItens(formCapa.cp_id, 30);
+        // await listaItens(formCapa.cp_id, 30);
+        setGridItens(retorno.data.retorno);
+        setResumoItens(retorno.data.message);
         limpaItens();
         document.getElementsByName('barcode')[0].focus();
       } else {
@@ -1213,10 +1215,12 @@ export default function FAT2() {
                 label: dados[0].prod_descricao,
               };
               frmItens.current.setFieldValue('item_prod_id', x);
-              document.getElementsByName('item_quantidade')[0].focus();
               setDataGridGradeSelected(dados[0]);
               await totalItem();
               await handleSubmitItens(); // tratar com parametros
+              setInputDesable(false);
+              frmItens.current.setFieldValue('barcode', '');
+              document.getElementsByName('barcode')[0].focus();
             } else {
               toast.info('ATENÇÃO!! PRODUTO NÃO ENCONTRADO', toastOptions);
             }
