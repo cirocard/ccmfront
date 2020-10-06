@@ -112,6 +112,8 @@ export default function FAT2() {
   const [gridApiPesquisa, setGridApiPesquisa] = useState([]);
   const [desableSave, setDesableSave] = useState(true);
   const [inputDesable, setInputDesable] = useState(true);
+  const [disableBtnGrid, setDisableBtnGrid] = useState(false);
+
   let gridItensSelected = [];
 
   const toastOptions = {
@@ -878,7 +880,9 @@ export default function FAT2() {
 
       setLoading(true);
       setInputDesable(true);
-      if (!gridItensSelected) gridItensSelected = dataGridGradeSelected;
+      if (dataGridGradeSelected.prode_id)
+        gridItensSelected = dataGridGradeSelected;
+
       const itensPedido = [
         {
           item_cp_id: formCapa.cp_id,
@@ -946,6 +950,7 @@ export default function FAT2() {
         setGridItens(retorno.data.retorno);
         setResumoItens(retorno.data.message);
         limpaItens();
+        setDataGridGradeSelected([]);
         document.getElementsByName('barcode')[0].focus();
       } else {
         toast.error(
@@ -1188,6 +1193,7 @@ export default function FAT2() {
 
   // selecionar um produto na grade de produto
   const handleSelectItemGrade = async (prm) => {
+    setOpenDlgGrade(false);
     if (prm) {
       setLabelSaldo(`SALDO ATUAL DO ITEM: ${prm.prode_saldo}`);
       frmItens.current.setFieldValue('item_quantidade', 1);
@@ -1196,11 +1202,10 @@ export default function FAT2() {
       setDataGridGradeSelected(prm);
       document.getElementsByName('item_vlr_unit')[0].readOnly =
         toDecimal(prm.tab_preco_final) > 0;
-      setOpenDlgGrade(false);
+
       await totalItem();
     }
     document.getElementsByName('item_quantidade')[0].focus();
-    await handleSubmitItens();
   };
 
   // evento barcode
@@ -1219,6 +1224,7 @@ export default function FAT2() {
             const dados = response.data.retorno;
             if (dados[0]) {
               gridItensSelected = dados[0];
+              // setDataGridGradeSelected(dados[0]);
               setLabelSaldo(`SALDO ATUAL DO ITEM: ${dados[0].prode_saldo}`);
               frmItens.current.setFieldValue('item_quantidade', 1);
               frmItens.current.setFieldValue(
@@ -1232,7 +1238,7 @@ export default function FAT2() {
                 label: dados[0].prod_descricao,
               };
               frmItens.current.setFieldValue('item_prod_id', x);
-              setDataGridGradeSelected(dados[0]);
+
               await totalItem();
               await handleSubmitItens(); // tratar com parametros
               setInputDesable(false);
@@ -1579,6 +1585,7 @@ export default function FAT2() {
             <BootstrapTooltip title="Selecionar Produto" placement="top">
               <button
                 type="button"
+                disabled={disableBtnGrid}
                 onClick={() => handleSelectItemGrade(prm.data)}
               >
                 <FaCheck size={18} color="#253739" />

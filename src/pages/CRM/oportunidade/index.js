@@ -54,6 +54,8 @@ export default function Crm5() {
   const [optClassificacao, setOptClassificacao] = useState([]);
   const [optPerda, setOptPerda] = useState([]);
   const [optResponsavel, setOptResponsavel] = useState([]);
+  const [filtroClassific, setFiltroClassific] = useState('');
+  const [filtroSitNeg, setFiltroSitNeg] = useState('');
   const frmCadastro = useRef(null);
   let oportunityRaia = [];
   const toastOptions = {
@@ -80,10 +82,10 @@ export default function Crm5() {
     history.push('/crm1', '_blank');
   }
 
-  async function listaOpPainel(classific) {
+  async function listaOpPainel(classific, sitNeg) {
     try {
       const response = await api.get(
-        `v1/crm/consulta/oportunity_panel/${classific}`
+        `v1/crm/consulta/oportunity_panel?classific=${classific}&sitNeg=${sitNeg}`
       );
       const dados = response.data.retorno;
       if (dados) {
@@ -299,7 +301,10 @@ export default function Crm5() {
       const response = await api.get(`v1/shared/consulta/geral/${tab_id}`);
       const dados = response.data.retorno;
       if (dados) {
-        if (tab_id === 30) setSitNegocio(dados);
+        if (tab_id === 30) {
+          setSitNegocio(dados);
+          setFiltroSitNeg(dados);
+        }
       }
     } catch (error) {
       toast.error(`Erro ao carregar registro \n${error}`);
@@ -348,15 +353,32 @@ export default function Crm5() {
     }
   }
 
+  async function handleFiltrarFunil(situacao) {
+    if (situacao) {
+      const x = filtroSitNeg.find(
+        (op) => op.ger_id.toString() === situacao.value.toString()
+      );
+      const sn = [];
+      sn.push(x);
+      setSitNegocio(sn);
+    } else {
+      setSitNegocio(filtroSitNeg);
+    }
+  }
+
   useEffect(() => {
     listaGeral(30); // situação do negocio
-    listaOpPainel(0);
+    listaOpPainel('', '');
     comboEntidade();
     comboResponsavel();
     comboGeral(30);
     comboGeral(27);
     comboGeral(28);
   }, []);
+
+  useEffect(() => {
+    listaOpPainel(filtroClassific, filtroSitNeg);
+  }, [filtroClassific, filtroSitNeg]);
 
   return (
     <>
@@ -377,17 +399,27 @@ export default function Crm5() {
           </BootstrapTooltip>
         </TitleBar>
         <Content>
-          <FiltroNeg>
-            <div style={{ width: '300px' }}>
+          <BoxItemCad fr="1fr 1fr 1fr">
+            <AreaComp wd="100">
               <Select
                 id="filtroClass"
-                onChange={(e) => listaOpPainel(e ? e.value : 0)}
+                onChange={(e) => setFiltroClassific(e ? e.value : '')}
                 options={optClassificacao}
                 isClearable
-                placeholder="TODAS AS CLASSIFICAÇOES"
+                placeholder="FILTRAR POR CLASSIFICAÇÃO"
               />
-            </div>
-          </FiltroNeg>
+            </AreaComp>
+            <AreaComp wd="100">
+              <Select
+                id="filtroSitNeg"
+                onChange={(e) => handleFiltrarFunil(e || null)}
+                options={optSituacao}
+                isClearable
+                placeholder="FILTRAR POR SITUAÇÃO DO NEGÓCIO"
+              />
+            </AreaComp>
+          </BoxItemCad>
+
           <Scroll>
             <BoxRaia hg="97%">
               {sitNegocio.map((sit) => (
@@ -404,17 +436,13 @@ export default function Crm5() {
                     <Scroll>
                       {oportunityRaia.map((op) => (
                         <Oportunidade id={op.neg_id}>
-                          <button
-                            type="button"
-                            onMouseMove={() => handleOportunity(op.neg_id)}
-                          >
+                          <button type="button">
                             <h1>{op.neg_nome}</h1>
                             <h3>{`Responsável.: ${op.responsavel}`}</h3>
                             <h3>{`Empresa......: ${op.entidade}`}</h3>
                             <h2>{`Valor Estimado: ${FormataMoeda(
                               op.neg_valor
                             )}`}</h2>
-                            <Linha />
 
                             <BoxControles>
                               <Controles>

@@ -124,7 +124,7 @@ export const Oportunidade = styled.div`
     margin: 0px;
   }
   margin: 5px 0px 0px 5px;
-  width: 100%;
+  width: calc(100% - 10px);
   height: 120px;
   background: #fff;
   padding: 5px;
