@@ -273,6 +273,7 @@ export default function FAT2() {
     frmItens.current.setFieldValue('item_valor_total', '');
     frmItens.current.setFieldValue('barcode', '');
     frmItens.current.setFieldValue('item_prod_id', '');
+    document.getElementById('chbBonificar').checked = false;
   }
 
   // fazer consulta dos pedidos
@@ -356,6 +357,7 @@ export default function FAT2() {
     setSituacaoPedido('1');
     setExisteBordero('N');
     setGridItens([]);
+    setDataGridPesqSelected([]);
     frmCapa.current.setFieldValue('cp_id', '');
     setDataEmiss(new Date());
     setDataSaida(new Date());
