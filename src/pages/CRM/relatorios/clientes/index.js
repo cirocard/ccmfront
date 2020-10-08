@@ -33,6 +33,7 @@ export default function Crm7() {
   const { params } = useRouteMatch();
   const [loading, setLoading] = useState(false);
   const [openRelCliente, setOpenRelCliente] = useState(false);
+  const [openRelClienteSemVenda, setOpenRelClienteSemVenda] = useState(false);
   const [titleRel, setTitleRel] = useState('');
   const [dataIni, setDataIni] = useState(new Date());
   const [dataFin, setDataFin] = useState(new Date());
@@ -51,39 +52,82 @@ export default function Crm7() {
     },
   ];
 
+  const optOrdemRelClienteSemVenda = [
+    {
+      value: 'c.cli_datacad desc',
+      label: 'Cadastro do Cliente (descrescente)',
+    },
+    { value: 'c.cli_datacad asc', label: 'Cadastro do Cliente (crescente)' },
+    { value: 'c.cli_razao_social', label: 'Cliente - Ordem alfabética' },
+    { value: 'mx.cp_data_emis desc', label: 'Data do Pedido (descrescente)' },
+    { value: 'mx.cp_data_emis asc', label: 'Data do Pedido (crescente)' },
+    { value: 'mx.cp_vlr_nf desc', label: 'Valor do Pedido (decrescente)' },
+  ];
+
   function handleDashboard() {
     history.push('/crm1', '_blank');
   }
-
+  // listagem de clientes
   async function handlePrint() {
-    setLoading(true);
-    let email = false;
-    let fone = false;
-    const todos = document.getElementById('rbTodos').checked;
-    if (!todos) {
-      email = document.getElementById('rbEmail').checked;
-      fone = document.getElementById('rbFone').checked;
-    }
-    const prm = {
-      emp_id: '',
-      data_ini: format(dataIni, 'yyyy-MM-dd HH:mm:ss'),
-      data_fin: format(dataFin, 'yyyy-MM-dd HH:mm:ss'),
-      possui_email: email,
-      possui_fone: fone,
-      ordem,
-    };
+    try {
+      setLoading(true);
+      let email = false;
+      let fone = false;
+      const todos = document.getElementById('rbTodos').checked;
+      if (!todos) {
+        email = document.getElementById('rbEmail').checked;
+        fone = document.getElementById('rbFone').checked;
+      }
+      const prm = {
+        emp_id: '',
+        data_ini: format(dataIni, 'yyyy-MM-dd HH:mm:ss'),
+        data_fin: format(dataFin, 'yyyy-MM-dd HH:mm:ss'),
+        possui_email: email,
+        possui_fone: fone,
+        ordem,
+      };
 
-    const response = await api.post('v1/crm/report/lista_clientes', prm);
-    const link = response.data;
-    setLoading(false);
-    window.open(link, '_blank');
+      const response = await api.post('v1/crm/report/lista_clientes', prm);
+      const link = response.data;
+      setLoading(false);
+      window.open(link, '_blank');
+    } catch (err) {
+      setLoading(false);
+      toast.error(`Erro ao alterar quantidade: ${err}`, toastOptions);
+    }
+  }
+
+  // clientes sem venda
+  async function handlePrintRel2() {
+    try {
+      setLoading(true);
+      let perfil = `'2', '3'`;
+      if (document.getElementById('r2rbTodos').checked) perfil = `'2', '3'`;
+      if (document.getElementById('r2rbConsignado').checked) perfil = `'3'`;
+      if (document.getElementById('r2rbPrevenda').checked) perfil = `'2'`;
+
+      const response = await api.get(
+        `v1/crm/report/rel_cliente_sem_venda?database=${format(
+          dataIni,
+          'yyyy-MM-dd HH:mm:ss'
+        )}&ordem=${ordem}&perfil=${perfil}`
+      );
+      const link = response.data;
+      setLoading(false);
+      window.open(link, '_blank');
+    } catch (err) {
+      setLoading(false);
+      toast.error(`Erro ao alterar quantidade: ${err}`, toastOptions);
+    }
   }
 
   useEffect(() => {
     if (params.tipo === 'clientes') {
       setTitleRel('RELATÓRIO GERENCIAL DE CLIENTES');
-
       setOpenRelCliente(true);
+    } else if (params.tipo === 'semvenda') {
+      setTitleRel('RELATÓRIO CLIENTES VS ULTIMA COMPRA');
+      setOpenRelClienteSemVenda(true);
     }
   }, []);
 
@@ -102,7 +146,7 @@ export default function Crm7() {
         <Content />
       </Container>
 
-      {/* popup tela de cadastro */}
+      {/* relatorio listagem de clientes */}
       <Slide direction="down" in={openRelCliente}>
         <Dialog
           open={openRelCliente}
@@ -192,6 +236,106 @@ export default function Crm7() {
               <DivLimitadorRow>
                 <DivLimitador wd="170px">
                   <button type="button" className="btn2" onClick={handlePrint}>
+                    {loading ? 'Aguarde Processando...' : 'Gerar Relatório'}
+                    <MdPrint size={20} color="#fff" />
+                  </button>
+                </DivLimitador>
+              </DivLimitadorRow>
+            </BoxItemCadNoQuery>
+          </CModal>
+        </Dialog>
+      </Slide>
+
+      {/* relatorio clientes sem venda */}
+      <Slide direction="down" in={openRelClienteSemVenda}>
+        <Dialog
+          open={openRelClienteSemVenda}
+          keepMounted
+          fullWidth
+          maxWidth="sm"
+          onClose={() => setOpenRelClienteSemVenda(false)}
+        >
+          <TitleBar wd="100%" bckgnd="#244448" fontcolor="#fff" lefth1="left">
+            <h1>{titleRel}</h1>
+            <BootstrapTooltip title="Fechar Modal" placement="top">
+              <button
+                type="button"
+                onClick={() => setOpenRelClienteSemVenda(false)}
+              >
+                <MdClose size={30} color="#fff" />
+              </button>
+            </BootstrapTooltip>
+          </TitleBar>
+
+          <CModal wd="100%" hd="50%">
+            <BoxItemCad fr="1fr 1fr">
+              <AreaComp wd="100">
+                <label>Data Base</label>
+                <DatePicker
+                  selected={dataIni}
+                  className="input_cad"
+                  locale="pt"
+                  name="r2DataBase"
+                  onChange={(date) => setDataIni(date)}
+                  dateFormat="dd/MM/yyy"
+                  todayButton="Hoje"
+                />
+              </AreaComp>
+              <AreaComp wd="100">
+                <label>Ordenar Por</label>
+                <Select
+                  id="r2Ordenar"
+                  options={optOrdemRelClienteSemVenda}
+                  onChange={(e) => setOrdem(e ? e.value : 'c.cli_razao_social')}
+                  placeholder="Informe"
+                />
+              </AreaComp>
+            </BoxItemCad>
+
+            <h1>Filtros adicionais</h1>
+            <BoxItemCadNoQuery fr="1fr" ptop="10px">
+              <AreaComp wd="100">
+                <CCheck>
+                  <input type="radio" id="r2rbTodos" name="radio" value="1" />
+                  <label htmlFor="r2rbTodos">Considerar todos os pedidos</label>
+                </CCheck>
+              </AreaComp>
+            </BoxItemCadNoQuery>
+            <BoxItemCadNoQuery fr="1fr" ptop="10px">
+              <AreaComp wd="100">
+                <CCheck>
+                  <input
+                    type="radio"
+                    id="r2rbConsignado"
+                    name="radio"
+                    value="2"
+                  />
+                  <label htmlFor="r2rbConsignado">Pedidos Consignados</label>
+                </CCheck>
+              </AreaComp>
+            </BoxItemCadNoQuery>
+            <BoxItemCadNoQuery fr="1fr" ptop="10px">
+              <AreaComp wd="100">
+                <CCheck>
+                  <input
+                    type="radio"
+                    id="r2rbPrevenda"
+                    name="radio"
+                    value="3"
+                  />
+                  <label htmlFor="r2rbPrevenda">Pedidos Pré Venda</label>
+                </CCheck>
+              </AreaComp>
+            </BoxItemCadNoQuery>
+            <Linha />
+            <BoxItemCadNoQuery fr="1fr" ptop="10px" just="center">
+              <DivLimitadorRow>
+                <DivLimitador wd="170px">
+                  <button
+                    type="button"
+                    className="btn2"
+                    onClick={handlePrintRel2}
+                  >
                     {loading ? 'Aguarde Processando...' : 'Gerar Relatório'}
                     <MdPrint size={20} color="#fff" />
                   </button>

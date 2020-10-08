@@ -82,10 +82,10 @@ export default function Crm5() {
     history.push('/crm1', '_blank');
   }
 
-  async function listaOpPainel(classific, sitNeg) {
+  async function listaOpPainel(classific, sitNeg, nome) {
     try {
       const response = await api.get(
-        `v1/crm/consulta/oportunity_panel?classific=${classific}&sitNeg=${sitNeg}`
+        `v1/crm/consulta/oportunity_panel?classific=${classific}&sitNeg=${sitNeg}&nome=${nome}`
       );
       const dados = response.data.retorno;
       if (dados) {
@@ -248,7 +248,7 @@ export default function Crm5() {
 
       const retorno = await api.post('v1/crm/cad/negocio', oportunity);
       if (retorno.data.success) {
-        await listaOpPainel();
+        await listaOpPainel('', '', '');
         toast.info('Cadastro realizado com sucesso!!!', toastOptions);
       } else {
         toast.error(
@@ -368,7 +368,7 @@ export default function Crm5() {
 
   useEffect(() => {
     listaGeral(30); // situação do negocio
-    listaOpPainel('', '');
+    listaOpPainel('', '', '');
     comboEntidade();
     comboResponsavel();
     comboGeral(30);
@@ -377,7 +377,7 @@ export default function Crm5() {
   }, []);
 
   useEffect(() => {
-    listaOpPainel(filtroClassific, filtroSitNeg);
+    listaOpPainel(filtroClassific, filtroSitNeg, '');
   }, [filtroClassific, filtroSitNeg]);
 
   return (
@@ -416,6 +416,26 @@ export default function Crm5() {
                 options={optSituacao}
                 isClearable
                 placeholder="FILTRAR POR SITUAÇÃO DO NEGÓCIO"
+              />
+            </AreaComp>
+            <AreaComp wd="100">
+              <input
+                type="text"
+                name="filtroNegNome"
+                placeholder="PESQUISAR NOME"
+                onChange={async (e) => {
+                  if (e.target.value) {
+                    if (e.target.value.length > 2)
+                      listaOpPainel(
+                        filtroClassific,
+                        filtroSitNeg,
+                        e.target.value
+                      );
+                  } else {
+                    listaOpPainel(filtroClassific, filtroSitNeg, '');
+                  }
+                }}
+                className="input_cad"
               />
             </AreaComp>
           </BoxItemCad>
@@ -526,7 +546,12 @@ export default function Crm5() {
                 </AreaComp>
                 <AreaComp wd="100">
                   <label>Nome/Titulo</label>
-                  <Input type="text" name="neg_nome" className="input_cad" />
+                  <Input
+                    type="text"
+                    name="neg_nome"
+                    className="input_cad"
+                    maxlength="30"
+                  />
                 </AreaComp>
               </BoxItemCad>
               <BoxItemCadNoQuery fr="1fr">
@@ -544,7 +569,7 @@ export default function Crm5() {
                   <FormSelect
                     label="Entidade Vinculada"
                     name="neg_entidade"
-                    zindex="152"
+                    zindex="153"
                     optionsList={optEntidade}
                     placeholder="Informe"
                   />
@@ -554,6 +579,7 @@ export default function Crm5() {
                     label="Responsável pelo acompanhamento"
                     name="neg_responsavel"
                     optionsList={optResponsavel}
+                    zindex="153"
                     placeholder="Informe"
                   />
                 </AreaComp>
@@ -563,6 +589,7 @@ export default function Crm5() {
                   <FormSelect
                     label="Situação"
                     name="neg_situacao"
+                    zindex="152"
                     optionsList={optSituacao}
                     placeholder="Informe"
                   />

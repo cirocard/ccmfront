@@ -48,6 +48,7 @@ export default function Crm4() {
   const [openEndereco, setOpenEndereco] = useState(false);
   const [gridPesquisa, setGridPesquisa] = useState([]);
   const [gridEndereco, setGridEndereco] = useState([]);
+  const [perfil, setPerfil] = useState('');
   const [optPais, setOptPais] = useState([]);
   const frmCadastro = useRef(null);
   const frmEndereco = useRef(null);
@@ -90,22 +91,22 @@ export default function Crm4() {
     { value: '4', label: 'PROSPECÇÃO' },
   ];
 
-  async function listarEntidade(perfil) {
+  async function listarEntidade() {
     try {
       setLoading(true);
-      let prm;
-      if (perfil) {
-        prm = {
-          cli_perfil: perfil,
-        };
-      } else {
-        prm = {};
-      }
+
+      const prm = {
+        cli_perfil: perfil || null,
+        cli_razao_social: document.getElementsByName('pesqRazaoSocial')[0]
+          .value,
+        cli_cnpj_cpf: document.getElementsByName('pesqCnpjCpf')[0].value,
+      };
+
       const response = await api.post('v1/crm/consulta/cliente_crm/param', prm);
       const dados = response.data.retorno;
       if (dados) {
         setGridPesquisa(dados);
-        setGridEndereco(dados[0].endereco);
+        if (dados.length > 0) setGridEndereco(dados[0].endereco);
       }
       setLoading(false);
     } catch (error) {
@@ -381,7 +382,7 @@ export default function Crm4() {
     {
       field: 'cli_id',
       headerName: 'AÇÕES',
-      width: 100,
+      width: 50,
       lockVisible: true,
       cellRendererFramework(params) {
         return (
@@ -432,11 +433,12 @@ export default function Crm4() {
     {
       field: 'cli_email',
       headerName: 'E-mail',
-      width: 280,
+      width: 250,
       sortable: true,
       resizable: true,
       filter: true,
       lockVisible: true,
+      flex: 1,
     },
   ];
 
@@ -554,7 +556,7 @@ export default function Crm4() {
             title="Atualizar lista de cadastro"
             placement="right"
           >
-            <button type="button" onClick={() => listarEntidade('')}>
+            <button type="button" onClick={() => listarEntidade()}>
               <MdSearch size={30} color="#fff" />
             </button>
           </BootstrapTooltip>
@@ -572,17 +574,35 @@ export default function Crm4() {
         <Content>
           <Scroll>
             <h1>RELAÇÃO DE CADASTROS</h1>
-            <BoxPesquisa>
-              <div style={{ width: '350px' }}>
+            <BoxItemCad fr="1fr 1fr 1fr">
+              <AreaComp wd="100">
                 <Select
                   id="filtroClass"
-                  onChange={(e) => listarEntidade(e ? e.value : 0)}
+                  onChange={(e) => setPerfil(e ? e.value : null)}
                   options={optPerfil}
                   isClearable
                   placeholder="TODOS OS PERFIS"
                 />
-              </div>
-            </BoxPesquisa>
+              </AreaComp>
+              <AreaComp wd="100">
+                <input
+                  type="text"
+                  name="pesqRazaoSocial"
+                  placeholder="PESQUISAR POR RAZÃO SOCIAL"
+                  className="input_cad"
+                />
+              </AreaComp>
+              <AreaComp wd="100">
+                <input
+                  type="text"
+                  name="pesqCnpjCpf"
+                  maxLength="18"
+                  onChange={maskCNPJCPF}
+                  placeholder="PESQUISAR POR CNPJ/CPF"
+                  className="input_cad"
+                />
+              </AreaComp>
+            </BoxItemCad>
             <Linha />
             <BoxItemCadNoQuery fr="1fr">
               <ScrollGrid>
