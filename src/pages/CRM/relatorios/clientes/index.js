@@ -109,7 +109,7 @@ export default function Crm7() {
       const response = await api.get(
         `v1/crm/report/rel_cliente_sem_venda?database=${format(
           dataIni,
-          'yyyy-MM-dd HH:mm:ss'
+          'yyyy-MM-dd'
         )}&ordem=${ordem}&perfil=${perfil}`
       );
       const link = response.data;
