@@ -23,6 +23,10 @@ export default function Crm1() {
     `TOTAL`,
   ]);
   const [dadosCard3, setDadosCard3] = useState(['RANKING DE VENDA', `TOTAL`]);
+  const [dadosCard4, setDadosCard4] = useState([['SITUAÇÃO NEGÓCIO', `TOTAL`]]);
+  const [dadosCard5, setDadosCard5] = useState([
+    ['SITUAÇÃO ATIVIDADE', `TOTAL`],
+  ]);
   const toastOptions = {
     autoClose: 4000,
     position: toast.POSITION.TOP_CENTER,
@@ -68,6 +72,32 @@ export default function Crm1() {
     }
   }
 
+  async function getDataCard4() {
+    try {
+      const response = await api.get(`v1/crm/consulta/situacao_negocio`);
+      const dados = response.data.retorno;
+
+      if (dados) {
+        setDadosCard4(dados);
+      }
+    } catch (error) {
+      toast.error(`Erro ao carregar dados card4 \n${error}`, toastOptions);
+    }
+  }
+
+  async function getDataCard5() {
+    try {
+      const response = await api.get(`v1/crm/consulta/situacao_atividade`);
+      const dados = response.data.retorno;
+
+      if (dados) {
+        setDadosCard5(dados);
+      }
+    } catch (error) {
+      toast.error(`Erro ao carregar dados card4 \n${error}`, toastOptions);
+    }
+  }
+
   async function handleDias() {
     if (dias > 0 && dias < 121) {
       getDataCard3();
@@ -82,6 +112,8 @@ export default function Crm1() {
     getDataCard1();
     getDataCard2();
     getDataCard3();
+    getDataCard4();
+    getDataCard5();
   }, []);
 
   return (
@@ -271,6 +303,70 @@ export default function Crm1() {
                 rootProps={{ 'data-testid': '2' }}
               />
             </AreaComp>
+          </BoxItemCadNoQuery>
+          <TitleBar>
+            <h1>VISÃO GERENCIAL ATIVIDADES CRM</h1>
+          </TitleBar>
+          <BoxItemCad fr="1fr 1fr">
+            <AreaComp>
+              <Chart
+                width="100%"
+                height="100%"
+                chartType="PieChart"
+                loader={<div>Gerando Gráfico</div>}
+                data={dadosCard4}
+                options={{
+                  is3D: true,
+                  backgroundColor: '#223536',
+                  titleTextStyle: {
+                    color: '#fafafa',
+                  },
+                  title: `FUNIL DE VENDA VS SITUAÇÃO`,
+
+                  chartArea: {
+                    left: 80,
+                    //    top: 30,
+                    width: '90%',
+                    height: '80%',
+                  },
+                  legend: {
+                    textStyle: { color: '#fafafa' },
+                  },
+                }}
+                rootProps={{ 'data-testid': '4' }}
+              />
+            </AreaComp>
+            <AreaComp>
+              <Chart
+                width="100%"
+                height="100%"
+                chartType="PieChart"
+                loader={<div>Gerando Gráfico</div>}
+                data={dadosCard5}
+                options={{
+                  is3D: true,
+                  backgroundColor: '#223536',
+                  titleTextStyle: {
+                    color: '#fafafa',
+                  },
+                  title: `ATIVIDADES CADASTRADA POR SITUAÇÃO`,
+
+                  chartArea: {
+                    left: 80,
+                    //    top: 30,
+                    width: '90%',
+                    height: '80%',
+                  },
+                  legend: {
+                    textStyle: { color: '#fafafa' },
+                  },
+                }}
+                rootProps={{ 'data-testid': '4' }}
+              />
+            </AreaComp>
+          </BoxItemCad>
+          <BoxItemCadNoQuery fr="1fr">
+            <AreaComp />
           </BoxItemCadNoQuery>
         </Scroll>
       </Container>

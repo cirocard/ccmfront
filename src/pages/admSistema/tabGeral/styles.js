@@ -34,9 +34,6 @@ export const ToolBar = styled.div`
   button {
     border: 0;
     background: none;
-    &:disabled {
-      cursor: not-allowed;
-    }
   }
   button:hover {
     background: #01293e;
@@ -119,17 +116,6 @@ export const GridContainerItens = styled.div`
   width: 100%;
   padding: 8px 5px 0 0;
 
-  .cell_quantity {
-    font-weight: bold;
-    font-size: 14px;
-    color: #af2000 !important;
-  }
-
-  .cell_total {
-    font-weight: bold;
-    font-size: 14px;
-  }
-
   button {
     border: 0;
     background: none;
@@ -203,20 +189,12 @@ export const GridContainerMain = styled.div`
   padding: 8px 5px 0 0;
 
   .warn-finalizado {
-    background-color: #017a0c !important;
-    color: #fff !important;
+    background-color: #f3ff33 !important;
   }
 
   .warn-cancelado {
-    background-color: #bd0303 !important;
+    background-color: #d81e00 !important;
     color: #fff !important;
-  }
-
-  .cell_valor {
-    font-weight: bold;
-    font-size: 13px;
-    color: #000;
-    text-align: right;
   }
 
   @media (min-height: 300px) {

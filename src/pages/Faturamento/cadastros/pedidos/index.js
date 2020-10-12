@@ -104,6 +104,7 @@ export default function FAT2() {
   const [gridGrade, setGridGrade] = useState([]);
   const [paramSistema, setParamSistema] = useState([]);
   const [remumoItens, setResumoItens] = useState('');
+  const [resumoPedido, setResumoPedido] = useState('');
   const [titleDlgGrade, setTitleDlgGrade] = useState('');
   const [labelSaldo, setLabelSaldo] = useState('');
   const [selectedProduto, setSelectedProduto] = useState([]);
@@ -300,6 +301,7 @@ export default function FAT2() {
       const response = await api.post('v1/fat/lista_pedido', prm);
       const dados = response.data.retorno;
       if (dados) {
+        setResumoPedido(response.data.message);
         setGridPesquisa(dados);
       }
       setLoading(false);
@@ -1412,13 +1414,14 @@ export default function FAT2() {
     {
       field: 'cp_vlr_nf',
       headerName: 'VLR. PEDIDO',
-      width: 110,
+      width: 120,
       sortable: true,
       resizable: true,
       filter: true,
       lockVisible: true,
       type: 'rightAligned',
       valueFormatter: GridCurrencyFormatter,
+      cellClass: 'cell_valor',
     },
   ];
 
@@ -1466,14 +1469,11 @@ export default function FAT2() {
       headerName: 'AÇÕES',
       width: 70,
       lockVisible: true,
-      cellRendererFramework(params) {
+      cellRendererFramework(prm) {
         return (
           <>
             <BootstrapTooltip title="Excluir Item do pedido" placement="top">
-              <button
-                type="button"
-                onClick={() => handleDeleteItem(params.data)}
-              >
+              <button type="button" onClick={() => handleDeleteItem(prm.data)}>
                 <FaTrashAlt size={18} color="#253739" />
               </button>
             </BootstrapTooltip>
@@ -1913,6 +1913,16 @@ export default function FAT2() {
                       onSelectionChanged={handleSelectGridPesquisa}
                     />
                   </GridContainerMain>
+                </BoxItemCadNoQuery>
+                <BoxItemCadNoQuery fr="1fr">
+                  <AreaComp
+                    wd="100"
+                    h3talign="center"
+                    bckgndh3="#fff"
+                    ptop="7px"
+                  >
+                    <h3>{resumoPedido}</h3>
+                  </AreaComp>
                 </BoxItemCadNoQuery>
               </Form>
             </Panel>
