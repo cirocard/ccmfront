@@ -111,6 +111,7 @@ export const AreaComp = styled.div`
   min-height: 35px;
   text-align: ${(props) => props.txtAlign || 'left'};
   background: ${(props) => props.bckcomp};
+
   margin: 0;
   font-size: 12px;
 

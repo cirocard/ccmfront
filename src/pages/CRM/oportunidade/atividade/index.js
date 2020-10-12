@@ -6,7 +6,6 @@ import { Form } from '@unform/web';
 import { toast } from 'react-toastify';
 import JoditEditor from 'jodit-react';
 import Select from 'react-select';
-import DatePicker, { registerLocale } from 'react-datepicker';
 import pt from 'date-fns/locale/pt';
 import { format } from 'date-fns';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -19,6 +18,7 @@ import {
 import { FaRegAddressCard, FaEdit, FaCheckCircle } from 'react-icons/fa';
 import Dialog from '@material-ui/core/Dialog';
 import { Slide } from '@material-ui/core';
+import DatePickerInput from '~/componentes/DatePickerInput';
 import Input from '~/componentes/Input';
 import FormSelect from '~/componentes/Select';
 import {
@@ -49,8 +49,6 @@ import {
 import { BootstrapTooltip } from '~/componentes/ToolTip';
 import history from '~/services/history';
 import { ApiService, ApiTypes } from '~/services/api';
-
-registerLocale('pt', pt);
 
 export default function Crm6() {
   function useQuery() {
@@ -806,35 +804,19 @@ export default function Crm6() {
               </BoxItemCad>
               <BoxItemCad fr="1fr 1fr 1fr">
                 <AreaComp wd="100">
-                  <label>Inicio Atividade</label>
-                  <DatePicker
-                    selected={dataIni}
-                    className="input_cad"
-                    locale="pt"
-                    name="atv_inicio"
-                    onChange={(date) => setDataIni(date)}
-                    showTimeSelect
-                    timeFormat="HH:mm"
-                    timeIntervals={30}
-                    timeCaption="Hora"
-                    dateFormat="dd/MM/yyy HH:mm:ss"
-                    todayButton="Hoje"
+                  <DatePickerInput
+                    onChangeDate={(date) => setDataIni(new Date(date))}
+                    dateAndTime
+                    value={dataIni}
+                    label="Inicio Atividade"
                   />
                 </AreaComp>
                 <AreaComp wd="100">
-                  <label>Previsão Término</label>
-                  <DatePicker
-                    selected={dataFin}
-                    className="input_cad"
-                    locale="pt"
-                    name="atv_fim"
-                    onChange={(date) => setDataFin(date)}
-                    showTimeSelect
-                    timeFormat="HH:mm"
-                    timeIntervals={30}
-                    timeCaption="Hora"
-                    dateFormat="dd/MM/yyy HH:mm:ss"
-                    todayButton="Hoje"
+                  <DatePickerInput
+                    onChangeDate={(date) => setDataFin(new Date(date))}
+                    dateAndTime
+                    value={dataFin}
+                    label="Previsão Término"
                   />
                 </AreaComp>
                 <AreaComp wd="100">

@@ -9,6 +9,8 @@ import Adm1 from '~/pages/admSistema/cadMenu/index';
 import Adm4 from '~/pages/admSistema/grupoUser/index';
 import Adm5 from '~/pages/admSistema/usuario';
 import Adm6 from '~/pages/admSistema/cadMenu/empresa';
+import Adm7 from '~/pages/admSistema/tabGeral';
+
 import Crm1 from '~/pages/CRM/dashboard';
 import Crm2 from '~/pages/CRM/cadastros/time';
 import Crm3 from '~/pages/CRM/cadastros/parametros';
@@ -40,6 +42,7 @@ export default function Routes() {
       <Route path="/adm4" component={Adm4} isPrivate />
       <Route path="/adm5" component={Adm5} isPrivate />
       <Route path="/adm6" component={Adm6} isPrivate />
+      <Route path="/adm7" component={Adm7} isPrivate />
 
       {/* MÓDULO CRM */}
       <Route path="/crm1" component={Crm1} isPrivate />
