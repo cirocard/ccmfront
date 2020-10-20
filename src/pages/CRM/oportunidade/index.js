@@ -10,6 +10,7 @@ import { Slide } from '@material-ui/core';
 import Select from 'react-select';
 import Input from '~/componentes/Input';
 import FormSelect from '~/componentes/Select';
+import AsyncSelectForm from '~/componentes/Select/selectAsync';
 import {
   Container,
   Content,
@@ -49,7 +50,7 @@ export default function Crm5() {
   const [sitNegocio, setSitNegocio] = useState([]);
   const [oportunityPanel, setOportunityPanel] = useState([]);
   const [neg_id, setNeg_id] = useState('');
-  const [optEntidade, setOptEntidade] = useState([]);
+  const [pesqCli_id, setPesqCliId] = useState([]);
   const [optSituacao, setOptSituacao] = useState([]);
   const [optClassificacao, setOptClassificacao] = useState([]);
   const [optPerda, setOptPerda] = useState([]);
@@ -131,14 +132,13 @@ export default function Crm5() {
         frmCadastro.current.setFieldValue('neg_nome', dados.neg_nome);
         frmCadastro.current.setFieldValue('neg_descricao', dados.neg_descricao);
 
-        let x = optEntidade.find(
-          (op) => op.value.toString() === dados.neg_entidade.toString()
-        );
+        let x = {
+          value: dados.neg_id,
+          label: dados.cli_razao_social,
+        };
+
         if (x) {
-          frmCadastro.current.setFieldValue('neg_entidade', {
-            value: x.value,
-            label: x.label,
-          });
+          frmCadastro.current.setFieldValue('neg_entidade', x);
         }
 
         frmCadastro.current.setFieldValue(
@@ -329,17 +329,27 @@ export default function Crm5() {
     }
   }
 
-  async function comboEntidade() {
-    try {
-      const response = await api.get(`v1/combos/entidade`);
-      const dados = response.data.retorno;
-      if (dados) {
-        setOptEntidade(dados);
+  const loadOptionsEntidade = async (inputText, callback) => {
+    if (inputText) {
+      const descricao = inputText.toUpperCase();
+      if (descricao.length > 2) {
+        const response = await api.get(
+          `v1/combos/combo_cliente?perfil=10&nome=${descricao}`
+        );
+        callback(
+          response.data.retorno.map((i) => ({ value: i.value, label: i.label }))
+        );
+      } else if (!isNaN(descricao)) {
+        // consultar com menos de 3 digitos só se for numerico como codigo do cliente
+        const response = await api.get(
+          `v1/combos/combo_cliente?perfil=10&nome=${descricao}`
+        );
+        callback(
+          response.data.retorno.map((i) => ({ value: i.value, label: i.label }))
+        );
       }
-    } catch (error) {
-      toast.error(`Erro ao carregar registro \n${error}`);
     }
-  }
+  };
 
   async function comboResponsavel() {
     try {
@@ -369,7 +379,6 @@ export default function Crm5() {
   useEffect(() => {
     listaGeral(30); // situação do negocio
     listaOpPainel('', '', '');
-    comboEntidade();
     comboResponsavel();
     comboGeral(30);
     comboGeral(27);
@@ -566,12 +575,15 @@ export default function Crm5() {
               </BoxItemCadNoQuery>
               <BoxItemCad fr="1fr 1fr">
                 <AreaComp wd="100">
-                  <FormSelect
-                    label="Entidade Vinculada"
+                  <AsyncSelectForm
                     name="neg_entidade"
+                    label="Entidade Vinculada"
+                    value={pesqCli_id}
+                    placeholder="PESQUISA POR CLIENTE"
+                    onChange={(e) => setPesqCliId(e || [])}
+                    loadOptions={loadOptionsEntidade}
                     zindex="153"
-                    optionsList={optEntidade}
-                    placeholder="Informe"
+                    isClearable
                   />
                 </AreaComp>
                 <AreaComp wd="100">
