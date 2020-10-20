@@ -18,7 +18,7 @@ import { Slide } from '@material-ui/core';
 import Select from 'react-select';
 import Input from '~/componentes/Input';
 import FormSelect from '~/componentes/Select';
-import { Container, ContentBar, Content, ToolBar, BoxPesquisa } from './styles';
+import { Container, ContentBar, Content, ToolBar } from './styles';
 import { maskFone, maskCNPJCPF, RetirarMascara } from '~/services/func.uteis';
 import { gridTraducoes } from '~/services/gridTraducoes';
 import {

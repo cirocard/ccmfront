@@ -79,12 +79,16 @@ export default function FormSelect({
 
   return (
     <SelectContainer>
-      <div className="select-label">
-        <label htmlFor={fieldName}>{label}</label>
-        {error && (
-          <span style={{ color: '#f00', display: 'block' }}>{error}</span>
-        )}
-      </div>
+      {label ? (
+        <div className="select-label">
+          <label htmlFor={fieldName}>{label}</label>
+          {error && (
+            <span style={{ color: '#f00', display: 'block' }}>{error}</span>
+          )}
+        </div>
+      ) : (
+        <></>
+      )}
       {/* propriedade menuPortalTarget é necessária para exibir corretamente
        * o dropdown de opções dentro de modais
        */}

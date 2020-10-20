@@ -28,6 +28,7 @@ import {
   FaCartPlus,
   FaCubes,
   FaDollarSign,
+  FaUserTie,
 } from 'react-icons/fa';
 import Dialog from '@material-ui/core/Dialog';
 import { Slide } from '@material-ui/core';
@@ -954,6 +955,7 @@ export default function FAT2() {
         setGridItens(retorno.data.retorno);
         setResumoItens(retorno.data.message);
         limpaItens();
+        gridItensSelected = [];
         setDataGridGradeSelected([]);
         document.getElementsByName('barcode')[0].focus();
       } else {
@@ -1237,6 +1239,7 @@ export default function FAT2() {
               );
               document.getElementsByName('item_vlr_unit')[0].readOnly =
                 toDecimal(dados[0].tab_preco_final) > 0;
+
               const x = {
                 value: dados[0].prod_id,
                 label: dados[0].prod_descricao,
@@ -1356,6 +1359,11 @@ export default function FAT2() {
     }
     return true;
   };
+
+  function handleCliente() {
+    // history.push('/crm9', '_blank');
+    window.open('/crm9', '_blank');
+  }
 
   useEffect(() => {
     if (params.tipo === '2') {
@@ -1754,6 +1762,14 @@ export default function FAT2() {
         <BootstrapTooltip title="Finalizar Pedido" placement="left">
           <button type="button" onClick={handleFinalizarPedido}>
             <FaRegCheckSquare size={25} color="#fff" />
+          </button>
+        </BootstrapTooltip>
+        <DivLimitador hg="20px" />
+        <Linha />
+        <DivLimitador hg="10px" />
+        <BootstrapTooltip title="ABRIR CADASTRO DE CLIENTES" placement="left">
+          <button type="button" onClick={handleCliente}>
+            <FaUserTie size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
       </ToolBar>

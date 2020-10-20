@@ -4,7 +4,12 @@ import * as Yup from 'yup';
 import { Form } from '@unform/web';
 import { toast } from 'react-toastify';
 import { MdClose, MdDelete } from 'react-icons/md';
-import { FaBuffer } from 'react-icons/fa';
+import {
+  FaBorderAll,
+  FaImages,
+  FaMapMarkedAlt,
+  FaUserTie,
+} from 'react-icons/fa';
 import { AgGridReact } from 'ag-grid-react';
 
 import KeyboardEventHandler from 'react-keyboard-event-handler';
@@ -22,8 +27,8 @@ import {
 import { BootstrapTooltip } from '~/componentes/ToolTip';
 import history from '~/services/history';
 import { ApiService, ApiTypes } from '~/services/api';
-// classificaçao de produto
-export default function SUPR3() {
+// parametros crm: tipo oportunidade; motivo de perda; classificaçao de atividade
+export default function Crm8() {
   const { params } = useRouteMatch();
   const frmCadastro = useRef(null);
   const api = ApiService.getInstance(ApiTypes.API1);
@@ -42,7 +47,7 @@ export default function SUPR3() {
   });
 
   function handleDashboard() {
-    history.push('/supr1', '_blank');
+    history.push('/crm1', '_blank');
   }
 
   async function listarGeral(tab) {
@@ -163,35 +168,23 @@ export default function SUPR3() {
   };
 
   function handleParametros(prm) {
-    history.push(`/supr3/${prm}`);
+    history.push(`/crm8/${prm}`);
     window.location.reload(false);
   }
 
   useEffect(() => {
-    if (params.geral === '9') {
-      setTituloCadastro('CADASTRO DE MARCAS');
-      setTabId(9);
-      listarGeral(9);
-    } else if (params.geral === '10') {
-      setTituloCadastro('CADASTRO DE ESPÉCIES');
-      setTabId(10);
-      listarGeral(10);
-    } else if (params.geral === '12') {
-      setTituloCadastro('CLASSIFICAÇÃO 1');
-      setTabId(12);
-      listarGeral(12);
-    } else if (params.geral === '13') {
-      setTituloCadastro('CLASSIFICAÇÃO 2');
-      setTabId(13);
-      listarGeral(13);
-    } else if (params.geral === '14') {
-      setTituloCadastro('CLASSIFICAÇÃO 3');
-      setTabId(14);
-      listarGeral(14);
-    } else if (params.geral === '15') {
-      setTituloCadastro('CATEGORIA DE PRODUTOS');
-      setTabId(15);
-      listarGeral(15);
+    if (params.tipo === '31') {
+      setTituloCadastro('SEGMENTAÇÃO DE MERCADO');
+      setTabId(31);
+      listarGeral(31);
+    } else if (params.tipo === '32') {
+      setTituloCadastro('RAMO DE ATIVIDADE');
+      setTabId(32);
+      listarGeral(32);
+    } else if (params.tipo === '33') {
+      setTituloCadastro('TIPO DE CLIENTE');
+      setTabId(33);
+      listarGeral(33);
     }
   }, []);
 
@@ -248,43 +241,28 @@ export default function SUPR3() {
     <>
       <ToolBar hg="100%" wd="40px">
         <DivLimitador hg="10px" />
-        <BootstrapTooltip title="Cadastro de Marcas" placement="left">
-          <button type="button" onClick={() => handleParametros('9')}>
-            <FaBuffer size={25} color="#fff" />
+        <BootstrapTooltip title="Cadastro de Cliente" placement="left">
+          <button type="button" onClick={() => history.push(`/crm9/`)}>
+            <FaUserTie size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
         <DivLimitador hg="10px" />
-        <BootstrapTooltip title="Cadastro de Espécies" placement="left">
-          <button type="button" onClick={() => handleParametros('10')}>
-            <FaBuffer size={25} color="#fff" />
+        <BootstrapTooltip title="Segmentação de Mercado" placement="left">
+          <button type="button" onClick={() => handleParametros('31')}>
+            <FaBorderAll size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
-
         <DivLimitador hg="10px" />
-        <BootstrapTooltip title="Cadastro de Classificação 1" placement="left">
-          <button type="button" onClick={() => handleParametros('12')}>
-            <FaBuffer size={25} color="#fff" />
-          </button>
-        </BootstrapTooltip>
-
-        <DivLimitador hg="10px" />
-        <BootstrapTooltip title="Cadastro de Classificação 2" placement="left">
-          <button type="button" onClick={() => handleParametros('13')}>
-            <FaBuffer size={25} color="#fff" />
+        <BootstrapTooltip title="Ramo de Atividade" placement="left">
+          <button type="button" onClick={() => handleParametros('32')}>
+            <FaImages size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
 
         <DivLimitador hg="10px" />
-        <BootstrapTooltip title="Cadastro de Classificação 3" placement="left">
-          <button type="button" onClick={() => handleParametros('14')}>
-            <FaBuffer size={25} color="#fff" />
-          </button>
-        </BootstrapTooltip>
-
-        <DivLimitador hg="10px" />
-        <BootstrapTooltip title="Cadastro de Categoria" placement="left">
-          <button type="button" onClick={() => handleParametros('15')}>
-            <FaBuffer size={25} color="#fff" />
+        <BootstrapTooltip title="Tipo de Cliente" placement="left">
+          <button type="button" onClick={() => handleParametros('33')}>
+            <FaMapMarkedAlt size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
       </ToolBar>

@@ -17,7 +17,9 @@ import Crm3 from '~/pages/CRM/cadastros/parametros';
 import Crm4 from '~/pages/CRM/cadastros/entidade';
 import Crm5 from '~/pages/CRM/oportunidade';
 import Crm6 from '~/pages/CRM/oportunidade/atividade';
-import Crm7 from '~/pages/CRM/relatorios/clientes';
+import Crm7 from '~/pages/CRM/relatorios/clientes'; // parametros
+import Crm8 from '~/pages/CRM/cadastros/clientes/classificacao'; // classificacao de clientes
+import Crm9 from '~/pages/CRM/cadastros/clientes'; // cadastro cliente
 
 // FATURAMENTO
 
@@ -52,6 +54,8 @@ export default function Routes() {
       <Route path="/crm5" component={Crm5} isPrivate />
       <Route path="/crm6" component={Crm6} isPrivate />
       <Route path="/crm7/:tipo" component={Crm7} isPrivate />
+      <Route path="/crm8/:tipo" component={Crm8} isPrivate />
+      <Route path="/crm9" component={Crm9} isPrivate />
 
       {/* MÓDULO FATURAMENTO */}
       <Route path="/fat1" component={FAT1} isPrivate />
