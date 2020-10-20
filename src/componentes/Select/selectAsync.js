@@ -9,6 +9,7 @@ export default function AsyncSelectForm({
   onChange,
   value,
   loadOptions,
+  zindex,
   ...rest
 }) {
   const selectRef = useRef(null);
@@ -19,7 +20,7 @@ export default function AsyncSelectForm({
       ...base,
       // opacity: state.isDisabled ? '.5' : '1',
       backgroundColor: 'transparent',
-      zIndex: '151',
+      zIndex: zindex,
     }),
     control: (base, state) => {
       let bdColor = 'hsl(0, 0%, 80%)';
@@ -124,10 +125,12 @@ AsyncSelectForm.propTypes = {
   onChange: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   label: PropTypes.string,
+  zindex: PropTypes.string,
 };
 
 AsyncSelectForm.defaultProps = {
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   onChange: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   label: '',
+  zindex: '150',
 };
