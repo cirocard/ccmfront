@@ -8,8 +8,7 @@ import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import KeyboardEventHandler from 'react-keyboard-event-handler';
-import Dialog from '@material-ui/core/Dialog';
-import { Slide } from '@material-ui/core';
+
 import { MdClose } from 'react-icons/md';
 import { FaSave, FaSearch, FaPlusCircle, FaFolderPlus } from 'react-icons/fa';
 import AsyncSelectForm from '~/componentes/Select/selectAsync';
@@ -28,23 +27,14 @@ import {
 } from '~/services/func.uteis';
 import { ApiService, ApiTypes } from '~/services/api';
 import { getComboUf } from '~/services/arrays';
-import {
-  Container,
-  Panel,
-  GridContainerItens,
-  ToolBar,
-  GridContainerMain,
-} from './styles';
+import { Container, Panel, ToolBar, GridContainerMain } from './styles';
 import {
   TitleBar,
   AreaComp,
   BoxItemCad,
   BoxItemCadNoQuery,
-  CModal,
   Scroll,
   DivLimitador,
-  CCheck,
-  Linha,
 } from '~/pages/general.styles';
 
 export default function SUPR2() {

@@ -22,7 +22,7 @@ export const ContentBar = styled.div`
 export const ToolBar = styled.div`
   display: flex;
   flex-direction: column;
-  padding-top: 30px;
+  padding-top: 120px;
   width: ${(props) => props.wd};
   height: ${(props) => props.hg};
   margin-left: ${(props) => props.mleft || -10}px;
@@ -34,9 +34,6 @@ export const ToolBar = styled.div`
   button {
     border: 0;
     background: none;
-    &:disabled {
-      cursor: not-allowed;
-    }
   }
   button:hover {
     background: #01293e;
@@ -119,50 +116,6 @@ export const GridContainerItens = styled.div`
   width: 100%;
   padding: 8px 5px 0 0;
 
-  .cell_quantity {
-    font-weight: bold;
-    font-size: 14px;
-    color: #af2000 !important;
-  }
-
-  .cell_total {
-    font-weight: bold;
-    font-size: 14px;
-  }
-
-  button {
-    border: 0;
-    background: none;
-    cursor: pointer;
-  }
-
-  @media (min-height: 300px) {
-    height: 29vh;
-  }
-
-  @media (min-height: 600px) {
-    height: 32vh;
-  }
-
-  @media (min-height: 680px) {
-    height: 36vh;
-  }
-
-  @media (min-height: 780px) {
-    height: 42vh;
-  }
-
-  @media (min-height: 880px) {
-    height: 47vh;
-  }
-`;
-
-export const GridContainerGrade = styled.div`
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  padding: 8px 5px 0 0;
-
   button {
     border: 0;
     background: none;
@@ -188,12 +141,6 @@ export const GridContainerGrade = styled.div`
   @media (min-height: 880px) {
     height: 53vh;
   }
-
-  h3 {
-    font-size: 18px;
-    color: #4d2679;
-    margin-bottom: 16px;
-  }
 `;
 
 export const GridContainerMain = styled.div`
@@ -202,21 +149,10 @@ export const GridContainerMain = styled.div`
   width: 100%;
   padding: 8px 5px 0 0;
 
-  .warn-finalizado {
-    background-color: #017a0c !important;
-    color: #fff !important;
-  }
-
-  .warn-cancelado {
-    background-color: #bd0303 !important;
-    color: #fff !important;
-  }
-
-  .cell_valor {
-    font-weight: bold;
-    font-size: 13px;
-    color: #000;
-    text-align: right;
+  button {
+    border: 0;
+    background: none;
+    cursor: pointer;
   }
 
   @media (min-height: 300px) {
@@ -232,10 +168,43 @@ export const GridContainerMain = styled.div`
   }
 
   @media (min-height: 780px) {
-    height: 55vh;
+    height: 57vh;
   }
 
   @media (min-height: 880px) {
-    height: 58vh;
+    height: 67vh;
+  }
+`;
+
+export const GridContainerEnd = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 8px 5px 0 0;
+
+  button {
+    border: 0;
+    background: none;
+    cursor: pointer;
+  }
+
+  @media (min-height: 300px) {
+    height: 29vh;
+  }
+
+  @media (min-height: 600px) {
+    height: 32vh;
+  }
+
+  @media (min-height: 680px) {
+    height: 36vh;
+  }
+
+  @media (min-height: 780px) {
+    height: 40vh;
+  }
+
+  @media (min-height: 880px) {
+    height: 46vh;
   }
 `;
