@@ -292,7 +292,7 @@ export default function FAT3() {
 
         let referencias = '';
         pedido.line_items.map((i) => {
-          referencias += `'${i.sku}',`;
+          referencias += `'${i.meta_data._id_exportacao}',`;
         });
 
         referencias = referencias.substring(0, referencias.length - 1);
@@ -305,7 +305,7 @@ export default function FAT3() {
 
         pedido.line_items.map((i) => {
           const p = refs.data.retorno.find(
-            (op) => op.prod_referencia.toString() === i.sku
+            (op) => op.prod_referencia.toString() === i.meta_data._id_exportacao
           );
           if (p) {
             const item = {
@@ -349,7 +349,7 @@ export default function FAT3() {
             itens.push(item);
           } else {
             throw new Error(`ATENÇÃO!! O PEDIDO NÃO PODE SER IMPORTADO.
-             A REFERÊNCIA:  ${i.sku} NÃO FOI ENCONTRADA NO SISTEMA DE GESTÃO`);
+             A REFERÊNCIA:  ${i.meta_data._id_exportacao} NÃO FOI ENCONTRADA NO SISTEMA DE GESTÃO`);
           }
         });
 
@@ -408,7 +408,7 @@ export default function FAT3() {
 
   const colGridItens = [
     {
-      field: 'sku',
+      field: 'meta_data._id_exportacao',
       headerName: 'REFERÊNCIA',
       width: 110,
       sortable: true,
@@ -524,7 +524,7 @@ export default function FAT3() {
             </BoxItemCadNoQuery>
             <Form id="frmImp" ref={frmImp}>
               <BoxItemCadNoQuery fr="1fr 1fr 1fr">
-                <AreaComp wd="100" ptop="15px">
+                <AreaComp wd="100" ptop="0px">
                   <KeyboardEventHandler
                     handleKeys={['enter', 'tab']}
                     onKeyEvent={() => handlePedido()}
