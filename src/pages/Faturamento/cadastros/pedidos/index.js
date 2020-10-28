@@ -1151,6 +1151,7 @@ export default function FAT2() {
           } else {
             frmCapa.current.setFieldValue('cp_credito_cli', 0);
           }
+          await handleSubmitCapa();
           setLoading(false);
         } else {
           toast.info('Desconto já aplicado!!!', toastOptions);
@@ -1297,7 +1298,7 @@ export default function FAT2() {
             const formCapa = frmCapa.current.getData();
             const response = await api.delete(
               `v1/fat/excluir_item_pedido?cp_id=${formCapa.cp_id}&prode_id=${prm.data.prode_id}
-              &cli_id=${pesqCli_id.value}&cp_perfil=${params.tipo}`
+              &cli_id=${formCapa.cp_cli_id}&cp_perfil=${params.tipo}`
             );
             if (response.data.success) {
               await listaItens(formCapa.cp_id, '');
@@ -2005,6 +2006,7 @@ export default function FAT2() {
                       onChange={(c) => setPesqCliId(c || [])}
                       loadOptions={loadOptionsCliente}
                       isClearable
+                      zindex="153"
                     />
                   </AreaComp>
                 </BoxItemCad>
