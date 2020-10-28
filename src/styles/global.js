@@ -68,8 +68,8 @@ export default createGlobalStyle`
       border-radius: 4px;
       height: 30px;
       padding: 5px 10px 5px 10px;
-      color: #101b1d;
-      font-size: 12px;
+      color: #243043;
+      font-size: 14px;
       font-weight: 700;
      
       width:100%;

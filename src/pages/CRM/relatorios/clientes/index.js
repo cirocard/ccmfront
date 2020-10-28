@@ -59,8 +59,8 @@ export default function Crm7() {
     },
     { value: 'c.cli_datacad asc', label: 'Cadastro do Cliente (crescente)' },
     { value: 'c.cli_razao_social', label: 'Cliente - Ordem alfabética' },
-    { value: 'mx.cp_data_emis desc', label: 'Data do Pedido (descrescente)' },
-    { value: 'mx.cp_data_emis asc', label: 'Data do Pedido (crescente)' },
+    { value: 'mx.cp_datacad desc', label: 'Data do Pedido (descrescente)' },
+    { value: 'mx.cp_datacad asc', label: 'Data do Pedido (crescente)' },
     { value: 'mx.cp_vlr_nf desc', label: 'Valor do Pedido (decrescente)' },
   ];
 

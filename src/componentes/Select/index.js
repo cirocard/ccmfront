@@ -10,6 +10,7 @@ export default function FormSelect({
   readOnly,
   zindex,
   label,
+  position,
   ...rest
 }) {
   const selectRef = useRef(null);
@@ -76,7 +77,6 @@ export default function FormSelect({
       },
     });
   }, [fieldName, registerField, rest.isMulti, defaultValue]);
-
   return (
     <SelectContainer>
       {label ? (
@@ -101,7 +101,7 @@ export default function FormSelect({
           options={optionsList}
           styles={selectStyles}
           menuPortalTarget={document.getElementById('modal')}
-          menuPlacement="auto"
+          menuPlacement={position}
           {...rest}
           theme={(theme) => ({
             ...theme,
@@ -129,6 +129,7 @@ FormSelect.propTypes = {
   readOnly: PropTypes.bool,
   label: PropTypes.string,
   zindex: PropTypes.string,
+  position: PropTypes.string,
 };
 
 FormSelect.defaultProps = {
@@ -136,4 +137,5 @@ FormSelect.defaultProps = {
   readOnly: false,
   label: '',
   zindex: '150',
+  position: 'auto',
 };

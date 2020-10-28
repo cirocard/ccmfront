@@ -532,7 +532,7 @@ export default function FAT2() {
   }
 
   async function handleSubmitCapa() {
-    if (parseInt(valueTab) > 0) {
+    if (parseInt(valueTab, 10) > 0) {
       const formCapa = frmCapa.current.getData();
       try {
         frmCapa.current.setErrors({});
@@ -1394,6 +1394,15 @@ export default function FAT2() {
       lockVisible: true,
     },
     {
+      field: 'autor',
+      headerName: 'VENDEDOR(A)',
+      width: 200,
+      sortable: true,
+      resizable: true,
+      filter: true,
+      lockVisible: true,
+    },
+    {
       field: 'cli_razao_social',
       headerName: 'CLIENTE',
       width: 350,
@@ -1543,7 +1552,7 @@ export default function FAT2() {
       sortable: true,
       editable: true,
       type: 'rightAligned',
-      /* metodo para edição na grid */
+      /* metodo para edição na grid  */
       onCellValueChanged: handleEditarQuantidade,
       cellEditorParams: {
         validacoes: gridValidationsQtd,

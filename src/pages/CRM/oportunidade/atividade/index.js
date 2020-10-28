@@ -6,7 +6,6 @@ import { Form } from '@unform/web';
 import { toast } from 'react-toastify';
 import JoditEditor from 'jodit-react';
 import Select from 'react-select';
-import pt from 'date-fns/locale/pt';
 import { format } from 'date-fns';
 import 'react-datepicker/dist/react-datepicker.css';
 import {

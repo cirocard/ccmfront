@@ -34,17 +34,6 @@ export const ToolBar = styled.div`
   }
 `;
 
-export const ToolBarGrid = styled.div`
-  display: flex;
-  justify-content: space-around;
-  justify-items: center;
-  align-items: center;
-  height: 100%;
-  width: 100%;
-  margin-left: 1px;
-  margin-top: 0px;
-`;
-
 export const Container = styled.div`
   width: calc(100% - 55px);
   height: 98%;

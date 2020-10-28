@@ -1,6 +1,6 @@
 import styled, { css } from 'styled-components';
 import PerfectScrollbar from 'react-perfect-scrollbar';
-import { lighten, darken } from 'polished';
+import { darken } from 'polished';
 
 export const Scroll = styled(PerfectScrollbar)`
   width: 100%;
@@ -93,6 +93,17 @@ export const ToolChart = styled.div`
   }
 `;
 
+export const ToolBarGrid = styled.div`
+  display: flex;
+  justify-content: space-around;
+  justify-items: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  margin-left: 1px;
+  margin-top: 0px;
+`;
+
 export const AreaComp = styled.div`
   display: flex;
   flex-direction: column;
@@ -136,9 +147,10 @@ export const AreaComp = styled.div`
   }
 
   label {
-    color: ${(props) => props.lblColor || '#3b535f'};
-    font-size: ${(props) => props.lblFontSize || '12px'};
-    font-weight: 700;
+    color: ${(props) => props.lblColor || '#2A404A'};
+    font-size: ${(props) => props.lblFontSize || '11px'};
+    text-transform: uppercase;
+    font-weight: 500;
     margin: 7px 0 3px 0;
   }
 
