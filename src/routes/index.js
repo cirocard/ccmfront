@@ -32,6 +32,7 @@ import FAT4 from '~/pages/Faturamento/cadastros/pedidos/config';
 import SUPR1 from '~/pages/Suprimentos/dashboard';
 import SUPR2 from '~/pages/Suprimentos/cadastros/fornecedor';
 import SUPR3 from '~/pages/Suprimentos/classificacao';
+import SUPR4 from '~/pages/Suprimentos/cadastros/produto';
 
 export default function Routes() {
   // /:parametro+  o mais é pra pegar tudo certinho q vem depois da barra
@@ -67,6 +68,7 @@ export default function Routes() {
       <Route path="/supr1" component={SUPR1} isPrivate />
       <Route path="/supr2" component={SUPR2} isPrivate />
       <Route path="/supr3/:geral" component={SUPR3} isPrivate />
+      <Route path="/supr4" component={SUPR4} isPrivate />
     </Switch>
   );
 }

@@ -16,13 +16,7 @@ import { Slide } from '@material-ui/core';
 import * as Yup from 'yup';
 import Input from '~/componentes/Input';
 import FormSelect from '~/componentes/Select';
-import {
-  Container,
-  Content,
-  ToolBar,
-  ListaEmpresa,
-  ToolBarGrid,
-} from './styles';
+import { Container, Content, ToolBar, ListaEmpresa } from './styles';
 import { gridTraducoes } from '~/services/gridTraducoes';
 import { store } from '~/store';
 import {
@@ -37,6 +31,7 @@ import {
   ScrollGrid,
   DivLimitador,
   DivLimitadorRow,
+  ToolBarGrid,
 } from '~/pages/general.styles';
 import { BootstrapTooltip } from '~/componentes/ToolTip';
 import history from '~/services/history';
@@ -51,7 +46,9 @@ export default function Adm5() {
   const [optGrupo, setOptGrupo] = useState([]);
   const [optEpmresa, setOptEmpresa] = useState([]);
   const [optEmpAutorizada, setOptEmpautorizada] = useState([]);
+  const [optGrupoVenda, setOptGrupoVenda] = useState([]);
   const [listaEmpAccess, setListaEmpAccess] = useState('');
+  const [listaGruposAccess, setListaGruposAccess] = useState('');
   const { usr_id, usr_tipo } = store.getState().auth;
   let optSelectedEmp = [];
   const frmCadastro = useRef(null);
@@ -105,6 +102,10 @@ export default function Adm5() {
     setOptEmpautorizada(valor);
   }
 
+  function validaGrupoVenda(valor) {
+    setOptGrupoVenda(valor);
+  }
+
   async function handleReset(data) {
     try {
       setLoading(true);
@@ -143,7 +144,19 @@ export default function Adm5() {
       }
       validaEmpAutorizada(optSelectedEmp); // gerar lista de empresas autorizadas
 
+      // buscar os grupos que o usuario pode gerenciar (se houver)
+      const grupos = await api.get(
+        `v1/combos/grupo_user_acess?usr_id=${dados.usr_id}`
+      );
+
+      if (grupos.data.retorno) {
+        validaGrupoVenda(grupos.data.retorno);
+      } else {
+        validaGrupoVenda([]);
+      }
+
       setListaEmpAccess(dados.usr_emp_acesso);
+      setListaGruposAccess(dados.usr_grupo_acesso);
       frmCadastro.current.setFieldValue('usr_id', dados.usr_id);
       frmCadastro.current.setFieldValue('usr_nome', dados.usr_nome);
       frmCadastro.current.setFieldValue('usr_email', dados.usr_email);
@@ -216,6 +229,7 @@ export default function Adm5() {
           ? 'S'
           : 'N',
         usr_grupo_id: formData.grupo || null,
+        usr_grupo_acesso: listaGruposAccess || null,
       };
 
       frmCadastro.current.setErrors({});
@@ -287,6 +301,30 @@ export default function Adm5() {
     }
   };
 
+  const handleGrupos = async (e) => {
+    if (e) {
+      const obj = [];
+      let lista = '';
+      optGrupoVenda.forEach((a) => {
+        if (a.value !== e.value) {
+          // nao adicionar uma empresa ja adicionada
+          obj.push(a);
+        }
+      });
+      obj.push(e);
+
+      obj.forEach((y) => {
+        lista += `${y.value}, `;
+      });
+      lista = lista.trim();
+      if (lista.indexOf(',') > 0) {
+        lista = lista.substring(0, lista.length - 1);
+      }
+      setListaGruposAccess(lista);
+      validaGrupoVenda(obj);
+    }
+  };
+
   const handleDeleteEmp = async (emp) => {
     const x = [];
     let lista = '';
@@ -301,6 +339,22 @@ export default function Adm5() {
     }
     setListaEmpAccess(lista);
     setOptEmpautorizada(x);
+  };
+
+  const handleDeleteGrupoVenda = async (grp) => {
+    const x = [];
+    let lista = '';
+    optGrupoVenda.splice(optGrupoVenda.indexOf(grp), 1);
+    optGrupoVenda.forEach((y) => {
+      lista += `${y.value}, `;
+      x.push(y);
+    });
+    lista = lista.trim();
+    if (lista.indexOf(',') > 0) {
+      lista = lista.substring(0, lista.length - 1);
+    }
+    setListaGruposAccess(lista);
+    setOptGrupoVenda(x);
   };
 
   // ======= Colunas e APIs das grids ========
@@ -512,6 +566,7 @@ export default function Adm5() {
                     name="grupo"
                     optionsList={optGrupo}
                     placeholder="Informe"
+                    zindex="152"
                   />
                 </AreaComp>
                 <AreaComp wd="100">
@@ -524,9 +579,9 @@ export default function Adm5() {
                   </CCheck>
                 </AreaComp>
               </BoxItemCad>
-              <h1>EMPRESAS AUTORIZADAS</h1>
-              <BoxItemCadNoQuery fr="1fr" ptop="3px">
+              <BoxItemCad fr="1fr 1fr" ptop="3px">
                 <AreaComp wd="100" alself="start">
+                  <h1>EMPRESAS AUTORIZADAS</h1>
                   <FormSelect
                     name="empresa"
                     optionsList={optEpmresa}
@@ -559,9 +614,44 @@ export default function Adm5() {
                     )}
                   </ListaEmpresa>
                 </AreaComp>
-              </BoxItemCadNoQuery>
+                <AreaComp wd="100" alself="start">
+                  <h1>GERENCIAR GRUPOS DE VENDA</h1>
+                  <FormSelect
+                    name="grupo_acesso"
+                    optionsList={optGrupo}
+                    placeholder="Informe"
+                    onChange={handleGrupos}
+                    position="top"
+                  />
+                  <ListaEmpresa>
+                    {optGrupoVenda.map((e) =>
+                      e.value ? (
+                        <ul>
+                          <li key={e.value}>
+                            {e.label}
+                            <BootstrapTooltip
+                              title="Excluir grupo"
+                              placement="top"
+                            >
+                              <button type="button">
+                                <MdDelete
+                                  size={20}
+                                  color="#244448"
+                                  onClick={() => handleDeleteGrupoVenda(e)}
+                                />
+                              </button>
+                            </BootstrapTooltip>
+                          </li>
+                        </ul>
+                      ) : (
+                        <ListaEmpresa />
+                      )
+                    )}
+                  </ListaEmpresa>
+                </AreaComp>
+              </BoxItemCad>
               <Linha />
-              <BoxItemCadNoQuery fr="1fr" ptop="10px" just="center">
+              <BoxItemCadNoQuery fr="1fr" ptop="20px" just="center">
                 <DivLimitadorRow>
                   <DivLimitador wd="160px">
                     <button type="submit" className="btn2">

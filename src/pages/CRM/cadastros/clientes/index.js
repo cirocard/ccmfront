@@ -16,11 +16,10 @@ import {
   FaPlusCircle,
   FaFolderPlus,
   FaPencilAlt,
-  FaEdit,
   FaTrashAlt,
   FaRegAddressCard,
 } from 'react-icons/fa';
-import AsyncSelectForm from '~/componentes/Select/selectAsync';
+
 import TextArea from '~/componentes/TextArea';
 import FormSelect from '~/componentes/Select';
 import DialogInfo from '~/componentes/DialogInfo';

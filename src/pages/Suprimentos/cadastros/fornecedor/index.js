@@ -419,7 +419,7 @@ export default function SUPR2() {
             <Panel lefth1="left" bckgnd="#dae2e5">
               <Form id="frmPesquisa" ref={frmPesquisa}>
                 <h1>PARÂMETROS DE PESQUISA</h1>
-                <BoxItemCadNoQuery fr="4fr 1fr">
+                <BoxItemCadNoQuery fr="1fr">
                   <AreaComp wd="100">
                     <KeyboardEventHandler
                       handleKeys={['enter', 'tab']}
