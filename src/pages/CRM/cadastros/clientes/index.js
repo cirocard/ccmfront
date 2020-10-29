@@ -19,7 +19,7 @@ import {
   FaTrashAlt,
   FaRegAddressCard,
 } from 'react-icons/fa';
-
+import AsyncSelectForm from '~/componentes/Select/selectAsync';
 import TextArea from '~/componentes/TextArea';
 import FormSelect from '~/componentes/Select';
 import DialogInfo from '~/componentes/DialogInfo';
@@ -72,7 +72,7 @@ export default function Crm9() {
   const [optOperFat, setOptOperFat] = useState([]);
   const [optTabPreco, setOptTabPreco] = useState([]);
   const [optPais, setOptPais] = useState([]);
-
+  const [representante, setRepresentante] = useState([]);
   const [perfil, setPerfil] = useState('0');
   const apiGeral = axios.create();
 
@@ -169,13 +169,13 @@ export default function Crm9() {
   }
 
   // cliente
-  const loadOptionsCliente = async (inputText, callback) => {
+  const loadOptionsRepresentante = async (inputText, callback) => {
     if (inputText) {
       const descricao = inputText.toUpperCase();
 
       if (descricao.length > 2) {
         const response = await api.get(
-          `v1/combos/combo_cliente?perfil=0&nome=${descricao}`
+          `v1/combos/combo_cliente?perfil=23&nome=${descricao}`
         );
         callback(
           response.data.retorno.map((i) => ({ value: i.value, label: i.label }))
@@ -295,6 +295,20 @@ export default function Crm9() {
     frmCadastro.current.setFieldValue('cli_insc_suframa', '');
     setGridEndereco([]);
     setDataGridPesqSelected([]);
+  };
+
+  const limpaend = () => {
+    frmEndereco.current.setFieldValue('clie_cep', '');
+    frmEndereco.current.setFieldValue('clie_logradouro', '');
+    frmEndereco.current.setFieldValue('clie_bairro', '');
+    frmEndereco.current.setFieldValue('clie_cidade', '');
+    frmEndereco.current.setFieldValue('clie_estado', '');
+    frmEndereco.current.setFieldValue('clie_numero', '');
+    frmEndereco.current.setFieldValue('clie_complemento', '');
+    frmEndereco.current.setFieldValue('clie_pais', '');
+    frmEndereco.current.setFieldValue('clie_pais_codigo', '');
+    frmEndereco.current.setFieldValue('clie_tipo', '');
+    frmEndereco.current.setFieldValue('clie_ibge', '');
   };
 
   async function handleNovoCadastro() {
@@ -439,6 +453,10 @@ export default function Crm9() {
           'cli_insc_suframa',
           dataGridPesqSelected[0].cli_insc_suframa
         );
+        await loadOptionsRepresentante(
+          dataGridPesqSelected[0].cli_representante,
+          setRepresentante
+        );
 
         setLoading(false);
       } else {
@@ -490,6 +508,7 @@ export default function Crm9() {
           cli_tab_preco: formData.cli_tab_preco || null,
           cli_insc_municipal: formData.cli_insc_municipal || null,
           cli_insc_suframa: formData.cli_insc_suframa || null,
+          cli_representante: formData.cli_representante,
         };
 
         const cadastro = { cliente };
@@ -591,6 +610,7 @@ export default function Crm9() {
           toastOptions
         );
       }
+      limpaend();
       setLoading(false);
     } catch (err) {
       const validationErrors = {};
@@ -659,16 +679,43 @@ export default function Crm9() {
   }
 
   const handleChangeTab = async (event, newValue) => {
-    const cadastro = frmCadastro.current.getData();
+    let cadastro = frmCadastro.current.getData();
     if (newValue === 0) {
       frmCadastro.current.setFieldValue('cli_id', '');
       await listarCliente();
       setValueTab(newValue);
-    } else if (cadastro.cli_id) {
-      setValueTab(newValue);
-    } else {
-      await handleEdit();
-      setValueTab(newValue);
+    } else if (newValue === 1) {
+      if (cadastro.cli_id) setValueTab(newValue);
+      else {
+        await handleEdit();
+        setValueTab(newValue);
+      }
+    } else if (newValue === 2) {
+      if (valueTab !== 2) {
+        if (cadastro.cli_id) {
+          setValueTab(newValue);
+        } else {
+          if (cadastro.cli_razao_social) {
+            await handleSubmit();
+          }
+          await handleEdit();
+          cadastro = frmCadastro.current.getData();
+          if (cadastro.cli_id) setValueTab(newValue);
+        }
+      }
+    } else if (newValue === 3) {
+      if (valueTab !== 3) {
+        if (cadastro.cli_id) {
+          setValueTab(newValue);
+        } else {
+          if (cadastro.cli_razao_social) {
+            await handleSubmit();
+          }
+          await handleEdit();
+          cadastro = frmCadastro.current.getData();
+          if (cadastro.cli_id) setValueTab(newValue);
+        }
+      }
     }
   };
 
@@ -833,7 +880,7 @@ export default function Crm9() {
   return (
     <>
       <ToolBar hg="100%" wd="40px">
-        <BootstrapTooltip title="Consultar FORNECEDOR" placement="right">
+        <BootstrapTooltip title="Consultar CLIENTE" placement="right">
           <button type="button" onClick={listarCliente}>
             <FaSearch size={28} color="#fff" />
           </button>
@@ -1108,7 +1155,34 @@ export default function Crm9() {
                   </AreaComp>
                 </BoxItemCad>
                 <h1>PARÂMETROS COMERCIAL/FISCAL</h1>
-                <BoxItemCad fr="1fr 1fr 1fr 1fr">
+                <BoxItemCad fr="2fr 2fr 1fr">
+                  <AreaComp wd="100">
+                    <BootstrapTooltip
+                      title="Representante preferencial é o vendedor que atende preferencialmente o cliente, e é informado nos pedidos do cliente"
+                      placement="top-end"
+                    >
+                      <AsyncSelectForm
+                        name="cli_representante"
+                        label="REPRESENTANTE PREFERENCIAL"
+                        placeholder="NÃO INFORMADO"
+                        defaultOptions
+                        cacheOptions
+                        value={representante}
+                        onChange={(c) => setRepresentante(c || [])}
+                        loadOptions={loadOptionsRepresentante}
+                        isClearable
+                        zindex="153"
+                      />
+                    </BootstrapTooltip>
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <FormSelect
+                      label="Operação Fat para NFe"
+                      name="cli_oper_fat"
+                      optionsList={optOperFat}
+                      placeholder="Informe"
+                    />
+                  </AreaComp>
                   <AreaComp wd="100">
                     <FormSelect
                       label="Tipo de Cliente"
@@ -1118,6 +1192,8 @@ export default function Crm9() {
                       zindex="152"
                     />
                   </AreaComp>
+                </BoxItemCad>
+                <BoxItemCad fr="1fr 1fr 1fr 1fr">
                   <AreaComp wd="100">
                     <FormSelect
                       label="Segmento de Mercado"
@@ -1135,29 +1211,7 @@ export default function Crm9() {
                       placeholder="Informe"
                     />
                   </AreaComp>
-                  <AreaComp wd="100">
-                    <BootstrapTooltip
-                      title="Válido somente para Estados que permitem contribuinte isento de inscrição estadual"
-                      placement="top-end"
-                    >
-                      <FormSelect
-                        label="Contribuinte Isento"
-                        name="cli_contribuinte_isento"
-                        optionsList={optContribIsento}
-                        placeholder="Informe"
-                      />
-                    </BootstrapTooltip>
-                  </AreaComp>
-                </BoxItemCad>
-                <BoxItemCad fr="1fr 1fr 1fr 1fr">
-                  <AreaComp wd="100">
-                    <FormSelect
-                      label="Operação Fat para NFe"
-                      name="cli_oper_fat"
-                      optionsList={optOperFat}
-                      placeholder="Informe"
-                    />
-                  </AreaComp>
+
                   <AreaComp wd="100">
                     <FormSelect
                       label="Tab. Preço Padrão"
@@ -1180,6 +1234,8 @@ export default function Crm9() {
                       />
                     </BootstrapTooltip>
                   </AreaComp>
+                </BoxItemCad>
+                <BoxItemCad fr="1fr 1fr 1fr 1fr">
                   <AreaComp wd="100">
                     <label>Limite Crédito</label>
                     <Input
@@ -1190,8 +1246,6 @@ export default function Crm9() {
                       onChange={maskDecimal}
                     />
                   </AreaComp>
-                </BoxItemCad>
-                <BoxItemCad fr="1fr 1fr 1fr 1fr">
                   <AreaComp wd="100">
                     <label>Crédito do Cliente</label>
                     <Input
@@ -1226,6 +1280,21 @@ export default function Crm9() {
                         name="cli_cota"
                         className="input_cad"
                         onChange={maskDecimal}
+                      />
+                    </BootstrapTooltip>
+                  </AreaComp>
+                </BoxItemCad>
+                <BoxItemCad fr="1fr 1fr 1fr 1fr">
+                  <AreaComp wd="100">
+                    <BootstrapTooltip
+                      title="Válido somente para Estados que permitem contribuinte isento de inscrição estadual"
+                      placement="top-end"
+                    >
+                      <FormSelect
+                        label="Contribuinte Isento"
+                        name="cli_contribuinte_isento"
+                        optionsList={optContribIsento}
+                        placeholder="Informe"
                       />
                     </BootstrapTooltip>
                   </AreaComp>
