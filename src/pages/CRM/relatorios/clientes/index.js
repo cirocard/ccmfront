@@ -37,7 +37,7 @@ export default function Crm7() {
   const [titleRel, setTitleRel] = useState('');
   const [dataIni, setDataIni] = useState(new Date());
   const [dataFin, setDataFin] = useState(new Date());
-  const [ordem, setOrdem] = useState('');
+  const [ordem, setOrdem] = useState('mx.cp_datacad desc');
 
   const toastOptions = {
     autoClose: 4000,
@@ -286,6 +286,9 @@ export default function Crm7() {
                 <Select
                   id="r2Ordenar"
                   options={optOrdemRelClienteSemVenda}
+                  value={optOrdemRelClienteSemVenda.filter(
+                    (obj) => obj.value === ordem
+                  )}
                   onChange={(e) => setOrdem(e ? e.value : 'c.cli_razao_social')}
                   placeholder="Informe"
                 />
