@@ -115,6 +115,7 @@ export default function FAT2() {
   const [desableSave, setDesableSave] = useState(true);
   const [inputDesable, setInputDesable] = useState(true);
   const [disableBtnGrid, setDisableBtnGrid] = useState(false);
+  const [representante, setRepresentante] = useState([]);
 
   let gridItensSelected = [];
 
@@ -164,6 +165,29 @@ export default function FAT2() {
         // consultar com menos de 3 digitos só se for numerico como codigo do cliente
         const response = await api.get(
           `v1/combos/combo_cliente?perfil=${tipo}&nome=${descricao}`
+        );
+        callback(
+          response.data.retorno.map((i) => ({ value: i.value, label: i.label }))
+        );
+      }
+    }
+  };
+
+  // representante
+  const loadOptionsRepresentante = async (inputText, callback) => {
+    if (inputText) {
+      const descricao = inputText.toUpperCase();
+      if (descricao.length > 2) {
+        const response = await api.get(
+          `v1/combos/combo_cliente?perfil=23&nome=${descricao}`
+        );
+        callback(
+          response.data.retorno.map((i) => ({ value: i.value, label: i.label }))
+        );
+      } else if (!isNaN(descricao)) {
+        // consultar com menos de 3 digitos só se for numerico como codigo do cliente
+        const response = await api.get(
+          `v1/combos/combo_cliente?perfil=23&nome=${descricao}`
         );
         callback(
           response.data.retorno.map((i) => ({ value: i.value, label: i.label }))
@@ -375,7 +399,7 @@ export default function FAT2() {
     frmCapa.current.setFieldValue('cp_vlr_nf', 0);
     frmCapa.current.setFieldValue('cp_observacao', '');
     frmCapa.current.setFieldValue('valor_cota', '');
-
+    frmCapa.current.setFieldValue('cp_representante', '');
     let x;
 
     if (params.tipo === '2') {
@@ -519,6 +543,11 @@ export default function FAT2() {
         }
         frmItens.current.setFieldValue('item_tab_preco_id', x);
 
+        await loadOptionsRepresentante(
+          dataGridPesqSelected[0].cp_representante,
+          setRepresentante
+        );
+
         setValueTab(1);
         setDesableSave(false);
         setLoading(false);
@@ -609,6 +638,7 @@ export default function FAT2() {
           cp_qvol: null,
           cp_usr_id: null,
           cp_tipo_doc: '3',
+          cp_representante: formCapa.cp_representante,
         };
 
         const obj = {
@@ -1053,7 +1083,7 @@ export default function FAT2() {
             const formCapa = frmCapa.current.getData();
             const response = await api.delete(
               `v1/fat/excluir_item_pedido?cp_id=${formCapa.cp_id}&prode_id=${param.prode_id}
-              &cli_id=${pesqCli_id.value}&cp_perfil=${params.tipo}`
+              &cli_id=${formCapa.cp_cli_id}&cp_perfil=${params.tipo}`
             );
             if (response.data.success) {
               await listaItens(formCapa.cp_id, '');
@@ -1959,7 +1989,7 @@ export default function FAT2() {
             <Panel lefth1="left" bckgnd="#dae2e5">
               <Form id="frmCapa" ref={frmCapa}>
                 <h1>IDENTIFICAÇÃO DO PEDIDO</h1>
-                <BoxItemCad fr="1fr 1fr 1fr 2fr">
+                <BoxItemCad fr="1fr 1fr 1fr 3fr">
                   <AreaComp wd="100">
                     <label>Código</label>
                     <Input
@@ -2006,11 +2036,11 @@ export default function FAT2() {
                       onChange={(c) => setPesqCliId(c || [])}
                       loadOptions={loadOptionsCliente}
                       isClearable
-                      zindex="153"
+                      zindex="154"
                     />
                   </AreaComp>
                 </BoxItemCad>
-                <BoxItemCad fr="1fr 1fr 1fr">
+                <BoxItemCad fr="1fr 1fr">
                   <AreaComp wd="100">
                     <FormSelect
                       label="Operação de Faturamento"
@@ -2018,6 +2048,7 @@ export default function FAT2() {
                       optionsList={optOperFat}
                       isClearable
                       placeholder="INFORME"
+                      zindex="153"
                     />
                   </AreaComp>
                   <AreaComp wd="100">
@@ -2027,8 +2058,11 @@ export default function FAT2() {
                       optionsList={optCvto}
                       isClearable
                       placeholder="INFORME"
+                      zindex="153"
                     />
                   </AreaComp>
+                </BoxItemCad>
+                <BoxItemCad fr="1fr 1fr">
                   <AreaComp wd="100">
                     <FormSelect
                       name="cp_fpgto_id"
@@ -2036,6 +2070,19 @@ export default function FAT2() {
                       optionsList={optFpgto}
                       isClearable
                       placeholder="INFORME"
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <AsyncSelectForm
+                      name="cp_representante"
+                      label="REPRESENTANTE/VENDEDOR"
+                      placeholder="NÃO INFORMADO"
+                      defaultOptions
+                      cacheOptions
+                      value={representante}
+                      onChange={(c) => setRepresentante(c || [])}
+                      loadOptions={loadOptionsRepresentante}
+                      isClearable
                     />
                   </AreaComp>
                 </BoxItemCad>

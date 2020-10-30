@@ -293,6 +293,7 @@ export default function Crm9() {
     frmCadastro.current.setFieldValue('cli_tab_preco', '');
     frmCadastro.current.setFieldValue('cli_insc_municipal', '');
     frmCadastro.current.setFieldValue('cli_insc_suframa', '');
+    frmCadastro.current.setFieldValue('cli_representante', '');
     setGridEndereco([]);
     setDataGridPesqSelected([]);
   };
@@ -1277,7 +1278,7 @@ export default function Crm9() {
                     >
                       <Input
                         type="text"
-                        name="cli_cota"
+                        name="cli_comissao"
                         className="input_cad"
                         onChange={maskDecimal}
                       />
