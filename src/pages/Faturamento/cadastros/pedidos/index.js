@@ -638,7 +638,7 @@ export default function FAT2() {
           cp_qvol: null,
           cp_usr_id: null,
           cp_tipo_doc: '3',
-          cp_representante: formCapa.cp_representante,
+          cp_representante: formCapa.cp_representante || null,
         };
 
         const obj = {
