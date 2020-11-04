@@ -288,7 +288,7 @@ export default function SUPR4() {
   async function getGridTabPreco(prod_id) {
     try {
       const response = await api.get(
-        `v1/supr/produto/tab_preco?prod_id=${prod_id}&tab_ativo=S`
+        `v1/supr/produto/tab_preco?prod_id=${prod_id}&tab_ativo=S&tab_id=`
       );
       const dados = response.data.retorno;
       if (dados) {
@@ -814,10 +814,6 @@ export default function SUPR4() {
   const handleChangeTab = async (event, newValue) => {
     let cadastro = frmCadastro.current.getData();
     if (newValue === 0) {
-      frmPesquisa.current.setFieldValue(
-        'pesq_prod_referencia',
-        cadastro.prod_referencia
-      );
       await listarProduto(50);
       setValueTab(newValue);
       frmCadastro.current.setFieldValue('prod_id', '');

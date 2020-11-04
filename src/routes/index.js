@@ -33,6 +33,7 @@ import SUPR1 from '~/pages/Suprimentos/dashboard';
 import SUPR2 from '~/pages/Suprimentos/cadastros/fornecedor';
 import SUPR3 from '~/pages/Suprimentos/classificacao';
 import SUPR4 from '~/pages/Suprimentos/cadastros/produto';
+import SUPR5 from '~/pages/Suprimentos/cadastros/tabPreco'; // tag menu 11
 
 export default function Routes() {
   // /:parametro+  o mais é pra pegar tudo certinho q vem depois da barra
@@ -69,6 +70,7 @@ export default function Routes() {
       <Route path="/supr2" component={SUPR2} isPrivate />
       <Route path="/supr3/:geral" component={SUPR3} isPrivate />
       <Route path="/supr4" component={SUPR4} isPrivate />
+      <Route path="/supr5" component={SUPR5} isPrivate />
     </Switch>
   );
 }
