@@ -509,7 +509,7 @@ export default function Crm9() {
           cli_tab_preco: formData.cli_tab_preco || null,
           cli_insc_municipal: formData.cli_insc_municipal || null,
           cli_insc_suframa: formData.cli_insc_suframa || null,
-          cli_representante: formData.cli_representante,
+          cli_representante: formData.cli_representante || null,
         };
 
         const cadastro = { cliente };
