@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useRef } from 'react';
-import * as Yup from 'yup';
 import { Form } from '@unform/web';
 import { toast } from 'react-toastify';
 import { AgGridReact } from 'ag-grid-react';
@@ -17,8 +16,7 @@ import {
   FaEdit,
   FaPrint,
 } from 'react-icons/fa';
-import Dialog from '@material-ui/core/Dialog';
-import { Slide } from '@material-ui/core';
+import Popup from '~/componentes/Popup';
 import DatePickerInput from '~/componentes/DatePickerInput';
 import AsyncSelectForm from '~/componentes/Select/selectAsync';
 import FormSelect from '~/componentes/Select';
@@ -792,323 +790,284 @@ export default function SUPR5() {
       </Container>
 
       {/* popup para cadastrar nova tabela */}
-      <Slide direction="down" in={openDlgNewTab}>
-        <Dialog
-          open={openDlgNewTab}
-          keepMounted
-          fullWidth
-          maxWidth="sm"
-          onClose={() => setOpenDlgNewTab(false)}
-        >
-          <TitleBar wd="100%" bckgnd="#244448" fontcolor="#fff" lefth1="left">
-            <h1>CADASTRAR NOVA TABELA</h1>
-            <BootstrapTooltip title="Fechar Modal" placement="top">
-              <button type="button" onClick={() => setOpenDlgNewTab(false)}>
-                <MdClose size={30} color="#fff" />
-              </button>
-            </BootstrapTooltip>
-          </TitleBar>
+      <Popup
+        isOpen={openDlgNewTab}
+        closeDialogFn={() => setOpenDlgNewTab(false)}
+        title="CADASTRAR NOVA TABELA DE PREÇOS"
+        size="sm"
+      >
+        <Scroll>
+          <CModal wd="100%" hd="90%">
+            <Form id="frmNewTable" ref={frmNewTable}>
+              <BoxItemCadNoQuery fr="1fr">
+                <AreaComp wd="100">
+                  <Input
+                    type="text"
+                    placeholder="INFORME A DESCRIÇÃO DA TABELA"
+                    name="new_tab_descricao"
+                    className="input_cad"
+                  />
+                </AreaComp>
+              </BoxItemCadNoQuery>
+              <BoxItemCad fr="1fr 1fr">
+                <AreaComp wd="100">
+                  <DatePickerInput
+                    onChangeDate={(date) => setDataVigencia(new Date(date))}
+                    value={dataVigencia}
+                    dateAndTime
+                    label="Data Vigência"
+                  />
+                </AreaComp>
+                <AreaComp wd="100">
+                  <DatePickerInput
+                    onChangeDate={(date) => {
+                      setDataValidade(new Date(date));
+                    }}
+                    dateAndTime
+                    value={dataValidade}
+                    label="Data Validade"
+                  />
+                </AreaComp>
+              </BoxItemCad>
 
-          <Scroll>
-            <CModal wd="100%" hd="90%">
-              <Form id="frmNewTable" ref={frmNewTable}>
-                <BoxItemCadNoQuery fr="1fr">
-                  <AreaComp wd="100">
-                    <Input
-                      type="text"
-                      placeholder="INFORME A DESCRIÇÃO DA TABELA"
-                      name="new_tab_descricao"
-                      className="input_cad"
-                    />
-                  </AreaComp>
-                </BoxItemCadNoQuery>
-                <BoxItemCad fr="1fr 1fr">
-                  <AreaComp wd="100">
-                    <DatePickerInput
-                      onChangeDate={(date) => setDataVigencia(new Date(date))}
-                      value={dataVigencia}
-                      dateAndTime
-                      label="Data Vigência"
-                    />
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <DatePickerInput
-                      onChangeDate={(date) => {
-                        setDataValidade(new Date(date));
-                      }}
-                      dateAndTime
-                      value={dataValidade}
-                      label="Data Validade"
-                    />
-                  </AreaComp>
-                </BoxItemCad>
-
-                <BoxItemCadNoQuery>
-                  <AreaComp wd="100" ptop="30px">
-                    <button
-                      type="button"
-                      className="btnGeralForm"
-                      onClick={handleSubmitNewTable}
-                    >
-                      CONFIRMAR CADASTRO
-                    </button>
-                  </AreaComp>
-                </BoxItemCadNoQuery>
-              </Form>
-            </CModal>
-          </Scroll>
-        </Dialog>
-      </Slide>
+              <BoxItemCadNoQuery>
+                <AreaComp wd="100" ptop="30px">
+                  <button
+                    type="button"
+                    className="btnGeralForm"
+                    onClick={handleSubmitNewTable}
+                  >
+                    CONFIRMAR CADASTRO
+                  </button>
+                </AreaComp>
+              </BoxItemCadNoQuery>
+            </Form>
+          </CModal>
+        </Scroll>
+      </Popup>
 
       {/* popup para ajustar preço */}
-      <Slide direction="down" in={openDlgAjustaPreco}>
-        <Dialog
-          open={openDlgAjustaPreco}
-          keepMounted
-          fullWidth
-          maxWidth="sm"
-          onClose={() => setOpenDlgAjustaPreco(false)}
-        >
-          <TitleBar wd="100%" bckgnd="#244448" fontcolor="#fff" lefth1="left">
-            <h1>REAJUSTE DE TABELA DE PREÇO</h1>
-            <BootstrapTooltip title="Fechar Modal" placement="top">
-              <button
-                type="button"
-                onClick={() => setOpenDlgAjustaPreco(false)}
-              >
-                <MdClose size={30} color="#fff" />
-              </button>
-            </BootstrapTooltip>
-          </TitleBar>
+      <Popup
+        isOpen={openDlgAjustaPreco}
+        closeDialogFn={() => setOpenDlgAjustaPreco(false)}
+        title="REAJUSTE DE TABELA DE PREÇOS"
+        size="sm"
+      >
+        <Scroll>
+          <CModal wd="100%" hd="90%">
+            <Form id="frmAjustaPreco" ref={frmAjustaPreco}>
+              <BoxItemCadNoQuery fr="1fr">
+                <AreaComp wd="100">
+                  <FormSelect
+                    name="ajust_tab_preco"
+                    label="Tabela de Preços"
+                    optionsList={optTabPreco}
+                    isClearable
+                    placeholder="TODAS AS TABELAS"
+                    zindex="153"
+                  />
+                </AreaComp>
+              </BoxItemCadNoQuery>
+              <BoxItemCadNoQuery fr="1fr">
+                <AreaComp wd="100">
+                  <AsyncSelectForm
+                    name="ajust_forn_id"
+                    label="FORNECEDOR"
+                    placeholder="NÃO INFORMADO"
+                    defaultOptions
+                    cacheOptions
+                    loadOptions={loadOptionsFornec}
+                    isClearable
+                    value={fornecedor}
+                    onChange={(f) => setFornecedor(f || [])}
+                    zindex="152"
+                  />
+                </AreaComp>
+              </BoxItemCadNoQuery>
+              <BoxItemCad fr="1fr 1fr">
+                <AreaComp wd="100">
+                  <FormSelect
+                    label="ESPÉCIE"
+                    name="ajust_especie_id"
+                    optionsList={optEspecie}
+                    placeholder="NÃO INFORMADO"
+                  />
+                </AreaComp>
+                <AreaComp wd="100">
+                  <FormSelect
+                    label="CATEGORIA"
+                    name="ajust_categoria_id"
+                    optionsList={optCategoria}
+                    placeholder="NÃO INFORMADO"
+                  />
+                </AreaComp>
+              </BoxItemCad>
+              <BoxItemCad fr="1fr 1fr">
+                <AreaComp wd="100">
+                  <DatePickerInput
+                    onChangeDate={(date) => setDataVigencia(new Date(date))}
+                    value={dataVigencia}
+                    dateAndTime
+                    label="Data Vigência"
+                  />
+                </AreaComp>
+                <AreaComp wd="100">
+                  <DatePickerInput
+                    onChangeDate={(date) => {
+                      setDataValidade(new Date(date));
+                    }}
+                    dateAndTime
+                    value={dataValidade}
+                    label="Data Validade"
+                  />
+                </AreaComp>
+              </BoxItemCad>
+              <BoxItemCad fr="1fr 1fr">
+                <AreaComp wd="100">
+                  <label>(%) margem</label>
+                  <BootstrapTooltip
+                    title="Campo Margem é opcional, se informado, será aplicado a tabela a margem informada sobre o preço de fábrica"
+                    placement="top-start"
+                  >
+                    <Input
+                      type="text"
+                      name="ajust_margem"
+                      className="input_cad"
+                      onChange={maskDecimal}
+                    />
+                  </BootstrapTooltip>
+                </AreaComp>
+                <AreaComp wd="100">
+                  <label>(%) rajuste</label>
+                  <BootstrapTooltip
+                    title="A tabela será reajustada de acordo com o percentual informado nesse campo. Caso queira dar um desconto, informe o percentual negativo."
+                    placement="top-start"
+                  >
+                    <Input
+                      type="text"
+                      name="ajust_reajuste"
+                      className="input_cad"
+                      onChange={maskDecimal}
+                    />
+                  </BootstrapTooltip>
+                </AreaComp>
+              </BoxItemCad>
 
-          <Scroll>
-            <CModal wd="100%" hd="90%">
-              <Form id="frmAjustaPreco" ref={frmAjustaPreco}>
-                <BoxItemCadNoQuery fr="1fr">
-                  <AreaComp wd="100">
-                    <FormSelect
-                      name="ajust_tab_preco"
-                      label="Tabela de Preços"
-                      optionsList={optTabPreco}
-                      isClearable
-                      placeholder="TODAS AS TABELAS"
-                      zindex="153"
-                    />
-                  </AreaComp>
-                </BoxItemCadNoQuery>
-                <BoxItemCadNoQuery fr="1fr">
-                  <AreaComp wd="100">
-                    <AsyncSelectForm
-                      name="ajust_forn_id"
-                      label="FORNECEDOR"
-                      placeholder="NÃO INFORMADO"
-                      defaultOptions
-                      cacheOptions
-                      loadOptions={loadOptionsFornec}
-                      isClearable
-                      value={fornecedor}
-                      onChange={(f) => setFornecedor(f || [])}
-                      zindex="152"
-                    />
-                  </AreaComp>
-                </BoxItemCadNoQuery>
-                <BoxItemCad fr="1fr 1fr">
-                  <AreaComp wd="100">
-                    <FormSelect
-                      label="ESPÉCIE"
-                      name="ajust_especie_id"
-                      optionsList={optEspecie}
-                      placeholder="NÃO INFORMADO"
-                    />
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <FormSelect
-                      label="CATEGORIA"
-                      name="ajust_categoria_id"
-                      optionsList={optCategoria}
-                      placeholder="NÃO INFORMADO"
-                    />
-                  </AreaComp>
-                </BoxItemCad>
-                <BoxItemCad fr="1fr 1fr">
-                  <AreaComp wd="100">
-                    <DatePickerInput
-                      onChangeDate={(date) => setDataVigencia(new Date(date))}
-                      value={dataVigencia}
-                      dateAndTime
-                      label="Data Vigência"
-                    />
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <DatePickerInput
-                      onChangeDate={(date) => {
-                        setDataValidade(new Date(date));
-                      }}
-                      dateAndTime
-                      value={dataValidade}
-                      label="Data Validade"
-                    />
-                  </AreaComp>
-                </BoxItemCad>
-                <BoxItemCad fr="1fr 1fr">
-                  <AreaComp wd="100">
-                    <label>(%) margem</label>
-                    <BootstrapTooltip
-                      title="Campo Margem é opcional, se informado, será aplicado a tabela a margem informada sobre o preço de fábrica"
-                      placement="top-start"
-                    >
-                      <Input
-                        type="text"
-                        name="ajust_margem"
-                        className="input_cad"
-                        onChange={maskDecimal}
-                      />
-                    </BootstrapTooltip>
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <label>(%) rajuste</label>
-                    <BootstrapTooltip
-                      title="A tabela será reajustada de acordo com o percentual informado nesse campo. Caso queira dar um desconto, informe o percentual negativo."
-                      placement="top-start"
-                    >
-                      <Input
-                        type="text"
-                        name="ajust_reajuste"
-                        className="input_cad"
-                        onChange={maskDecimal}
-                      />
-                    </BootstrapTooltip>
-                  </AreaComp>
-                </BoxItemCad>
-
-                <BoxItemCadNoQuery>
-                  <AreaComp wd="100" ptop="30px">
-                    <button
-                      type="button"
-                      className="btnGeralForm"
-                      onClick={handleAjustaTabela}
-                    >
-                      CONFIRMAR REAJUSTE
-                    </button>
-                  </AreaComp>
-                </BoxItemCadNoQuery>
-              </Form>
-            </CModal>
-          </Scroll>
-        </Dialog>
-      </Slide>
+              <BoxItemCadNoQuery>
+                <AreaComp wd="100" ptop="30px">
+                  <button
+                    type="button"
+                    className="btnGeralForm"
+                    onClick={handleAjustaTabela}
+                  >
+                    CONFIRMAR REAJUSTE
+                  </button>
+                </AreaComp>
+              </BoxItemCadNoQuery>
+            </Form>
+          </CModal>
+        </Scroll>
+      </Popup>
 
       {/* popup para impressao */}
-      <Slide direction="down" in={openDlgImpressao}>
-        <Dialog
-          open={openDlgImpressao}
-          keepMounted
-          fullWidth
-          maxWidth="sm"
-          onClose={() => setOpenDlgImpressao(false)}
-        >
-          <TitleBar wd="100%" bckgnd="#244448" fontcolor="#fff" lefth1="left">
-            <h1>IMPRESSÃO DE TABELA DE PREÇO</h1>
-            <BootstrapTooltip title="Fechar Modal" placement="top">
-              <button type="button" onClick={() => setOpenDlgImpressao(false)}>
-                <MdClose size={30} color="#fff" />
-              </button>
-            </BootstrapTooltip>
-          </TitleBar>
+      <Popup
+        isOpen={openDlgImpressao}
+        closeDialogFn={() => setOpenDlgImpressao(false)}
+        title="IMPRESSÃO DE TABELA DE PREÇO"
+        size="sm"
+      >
+        <Scroll>
+          <CModal wd="100%" hd="90%">
+            <Form id="frmImpressao" ref={frmImpressao}>
+              <BoxItemCadNoQuery fr="1fr">
+                <AreaComp wd="100">
+                  <FormSelect
+                    name="imp_tab_preco"
+                    label="Tabela de Preços"
+                    optionsList={optTabPreco}
+                    isClearable
+                    placeholder="TODAS AS TABELAS"
+                    zindex="154"
+                  />
+                </AreaComp>
+              </BoxItemCadNoQuery>
+              <BoxItemCadNoQuery fr="1fr">
+                <AreaComp wd="100">
+                  <AsyncSelectForm
+                    name="imp_forn_id"
+                    label="FORNECEDOR"
+                    placeholder="NÃO INFORMADO"
+                    defaultOptions
+                    cacheOptions
+                    loadOptions={loadOptionsFornec}
+                    isClearable
+                    value={fornecedor}
+                    onChange={(f) => setFornecedor(f || [])}
+                    zindex="153"
+                  />
+                </AreaComp>
+              </BoxItemCadNoQuery>
+              <BoxItemCad fr="1fr 1fr">
+                <AreaComp wd="100">
+                  <FormSelect
+                    label="ESPÉCIE"
+                    name="imp_especie_id"
+                    optionsList={optEspecie}
+                    placeholder="NÃO INFORMADO"
+                    zindex="152"
+                  />
+                </AreaComp>
+                <AreaComp wd="100">
+                  <FormSelect
+                    label="CATEGORIA"
+                    name="imp_categoria_id"
+                    optionsList={optCategoria}
+                    placeholder="NÃO INFORMADO"
+                    zindex="152"
+                  />
+                </AreaComp>
+              </BoxItemCad>
+              <BoxItemCadNoQuery fr="1fr">
+                <AreaComp wd="100">
+                  <AsyncSelectForm
+                    name="imp_prod_id"
+                    label="Produto"
+                    value={produto}
+                    placeholder="TODOS OS PRODUTO"
+                    onChange={(p) => setProduto(p || [])}
+                    loadOptions={loadOptionsProduto}
+                    isClearable
+                    zindex="151"
+                  />
+                </AreaComp>
+              </BoxItemCadNoQuery>
+              <BoxItemCadNoQuery>
+                <AreaComp wd="100">
+                  <FormSelect
+                    label="Tipo de Impressão"
+                    name="imp_tpImp"
+                    optionsList={optTipoImp}
+                    placeholder="NÃO INFORMADO"
+                    zindex="150"
+                  />
+                </AreaComp>
+              </BoxItemCadNoQuery>
 
-          <Scroll>
-            <CModal wd="100%" hd="90%">
-              <Form id="frmImpressao" ref={frmImpressao}>
-                <BoxItemCadNoQuery fr="1fr">
-                  <AreaComp wd="100">
-                    <FormSelect
-                      name="imp_tab_preco"
-                      label="Tabela de Preços"
-                      optionsList={optTabPreco}
-                      isClearable
-                      placeholder="TODAS AS TABELAS"
-                      zindex="154"
-                    />
-                  </AreaComp>
-                </BoxItemCadNoQuery>
-                <BoxItemCadNoQuery fr="1fr">
-                  <AreaComp wd="100">
-                    <AsyncSelectForm
-                      name="imp_forn_id"
-                      label="FORNECEDOR"
-                      placeholder="NÃO INFORMADO"
-                      defaultOptions
-                      cacheOptions
-                      loadOptions={loadOptionsFornec}
-                      isClearable
-                      value={fornecedor}
-                      onChange={(f) => setFornecedor(f || [])}
-                      zindex="153"
-                    />
-                  </AreaComp>
-                </BoxItemCadNoQuery>
-                <BoxItemCad fr="1fr 1fr">
-                  <AreaComp wd="100">
-                    <FormSelect
-                      label="ESPÉCIE"
-                      name="imp_especie_id"
-                      optionsList={optEspecie}
-                      placeholder="NÃO INFORMADO"
-                      zindex="152"
-                    />
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <FormSelect
-                      label="CATEGORIA"
-                      name="imp_categoria_id"
-                      optionsList={optCategoria}
-                      placeholder="NÃO INFORMADO"
-                      zindex="152"
-                    />
-                  </AreaComp>
-                </BoxItemCad>
-                <BoxItemCadNoQuery fr="1fr">
-                  <AreaComp wd="100">
-                    <AsyncSelectForm
-                      name="imp_prod_id"
-                      label="Produto"
-                      value={produto}
-                      placeholder="TODOS OS PRODUTO"
-                      onChange={(p) => setProduto(p || [])}
-                      loadOptions={loadOptionsProduto}
-                      isClearable
-                      zindex="151"
-                    />
-                  </AreaComp>
-                </BoxItemCadNoQuery>
-                <BoxItemCadNoQuery>
-                  <AreaComp wd="100">
-                    <FormSelect
-                      label="Tipo de Impressão"
-                      name="imp_tpImp"
-                      optionsList={optTipoImp}
-                      placeholder="NÃO INFORMADO"
-                      zindex="150"
-                    />
-                  </AreaComp>
-                </BoxItemCadNoQuery>
-
-                <BoxItemCadNoQuery>
-                  <AreaComp wd="100" ptop="40px">
-                    <button
-                      type="button"
-                      className="btnGeralForm"
-                      onClick={handleImpressao}
-                    >
-                      GERAR IMPRESSÃO
-                    </button>
-                  </AreaComp>
-                </BoxItemCadNoQuery>
-              </Form>
-            </CModal>
-          </Scroll>
-        </Dialog>
-      </Slide>
+              <BoxItemCadNoQuery>
+                <AreaComp wd="100" ptop="40px">
+                  <button
+                    type="button"
+                    className="btnGeralForm"
+                    onClick={handleImpressao}
+                  >
+                    GERAR IMPRESSÃO
+                  </button>
+                </AreaComp>
+              </BoxItemCadNoQuery>
+            </Form>
+          </CModal>
+        </Scroll>
+      </Popup>
 
       {/* popup para aguarde... */}
       <DialogInfo
