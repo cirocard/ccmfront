@@ -149,7 +149,7 @@ export default function SUPR6() {
             prod_id: e.prode_id,
             login: null,
             produto: e.prod_descricao,
-            descricao: e.descricao,
+            descricao: `${e.prod_referencia}-${e.descricao}`,
             tabpreco1: formData.tabPrincipal,
             tabpreco2: formData.tabSecundaria,
             preco1: 0,

@@ -633,7 +633,7 @@ export default function FAT2() {
           cp_vlr_outros: toDecimal(formCapa.cp_vlr_outros),
           cp_vlr_pis: null,
           cp_vlr_subst: null,
-          cp_credito_cli: toDecimal(formCapa.cp_credito_cli),
+          // cp_credito_cli: toDecimal(formCapa.cp_credito_cli),
           cp_vlr_total: toDecimal(formCapa.cp_valor_total),
           cp_qvol: null,
           cp_usr_id: null,
@@ -1166,11 +1166,11 @@ export default function FAT2() {
     try {
       const formCapa = frmCapa.current.getData();
       if (valueTab == '1' && formCapa.cp_id) {
-        if (parseFloat(formCapa.cp_credito_cli) === 0) {
+        if (toDecimal(formCapa.cp_credito_cli) === 0) {
           setLoading(true);
           if (pesqCli_id.value) {
             const response = await api.get(
-              `v1/fat/credito_cliente/${pesqCli_id.value}`
+              `v1/fat/credito_cliente/${pesqCli_id.value}/${formCapa.cp_id}`
             );
             const dados = response.data.retorno;
             if (dados) {
@@ -1184,7 +1184,7 @@ export default function FAT2() {
           await handleSubmitCapa();
           setLoading(false);
         } else {
-          toast.info('Desconto já aplicado!!!', toastOptions);
+          toast.info('Crédito já aplicado!!!', toastOptions);
         }
       } else {
         toast.info(
