@@ -17,6 +17,7 @@ import {
   FaClipboardList,
   FaSave,
   FaPercent,
+  FaCheckCircle,
   FaSearch,
   FaPlusCircle,
   FaCheck,
@@ -29,6 +30,7 @@ import {
   FaCubes,
   FaDollarSign,
   FaUserTie,
+  FaCcAmazonPay,
 } from 'react-icons/fa';
 import Dialog from '@material-ui/core/Dialog';
 import { Slide } from '@material-ui/core';
@@ -47,6 +49,7 @@ import {
   GridContainerItens,
   ToolBar,
   GridContainerMain,
+  dvGeral,
 } from './styles';
 import {
   TitleBar,
@@ -69,6 +72,7 @@ import {
   ArredondaValorDecimal,
   toDecimal,
   GridCurrencyFormatter,
+  FormataMoeda,
 } from '~/services/func.uteis';
 import { ApiService, ApiTypes } from '~/services/api';
 
@@ -83,6 +87,7 @@ export default function FAT2() {
   const frmItens = useRef(null);
   const frmGrade = useRef(null);
   const frmDesc = useRef(null);
+  const frmFinanceiro = useRef(null);
   const [optOperFat, setOptOperFat] = useState([]);
   const [optCvto, setOptCvto] = useState([]);
   const [optFpgto, setOptFpgto] = useState([]);
@@ -103,9 +108,14 @@ export default function FAT2() {
   const [dataGridGradeSelected, setDataGridGradeSelected] = useState([]);
   const [gridItens, setGridItens] = useState([]);
   const [gridGrade, setGridGrade] = useState([]);
+  const [gridFinanceiro, setGridFinanceiro] = useState([]);
   const [paramSistema, setParamSistema] = useState([]);
   const [remumoItens, setResumoItens] = useState('');
   const [resumoPedido, setResumoPedido] = useState('');
+  const [valorPedido, setValorPedido] = useState(0);
+  const [valorPedidoNegociado, setValorPedidoNegociado] = useState(0);
+  const [infoVlrPedido, setInfoVlrPedido] = useState('');
+  const [infoVlrPedidoNegociado, setInfoVlrPedidoNegociado] = useState('');
   const [titleDlgGrade, setTitleDlgGrade] = useState('');
   const [labelSaldo, setLabelSaldo] = useState('');
   const [selectedProduto, setSelectedProduto] = useState([]);
@@ -120,7 +130,7 @@ export default function FAT2() {
   let gridItensSelected = [];
 
   const toastOptions = {
-    autoClose: 4000,
+    autoClose: 5000,
     position: toast.POSITION.TOP_CENTER,
   };
 
@@ -570,7 +580,7 @@ export default function FAT2() {
           abortEarly: false,
         });
         // verificar situacao
-        if (situacaoPedido !== '1') {
+        if (situacaoPedido !== '1' && valueTab.toString() !== '3') {
           toast.warning(
             'Atenção!! Este Pedido não pode mais ser alterado. Verifique a situaçao!!!',
             toastOptions
@@ -1158,6 +1168,23 @@ export default function FAT2() {
       } else {
         toast.info('SELECIONE UM PEDIDO PARA CONSULTAR', toastOptions);
       }
+    } else if (newValue === 3) {
+      if (dataGridPesqSelected.length > 0) {
+        if (dataGridPesqSelected[0].situacao === '10') {
+          setInfoVlrPedido(
+            `VALOR ATUAL DO PEDIDO PEDIDO: ${FormataMoeda(
+              dataGridPesqSelected[0].cp_vlr_nf
+            )}`
+          );
+          frmCapa.current.setFieldValue('cp_id', dataGridPesqSelected[0].cp_id);
+          setValorPedido(toDecimal(dataGridPesqSelected[0].cp_vlr_nf));
+          setValueTab(newValue);
+        } else {
+          toast.info('SELECIONE UM PEDIDO FINALIZADO', toastOptions);
+        }
+      } else {
+        toast.info('SELECIONE UM PEDIDO FINALIZADO', toastOptions);
+      }
     }
   };
 
@@ -1394,6 +1421,158 @@ export default function FAT2() {
   function handleCliente() {
     // history.push('/crm9', '_blank');
     window.open('/crm9', '_blank');
+  }
+
+  function handleAddFina() {
+    try {
+      const formFina = frmFinanceiro.current.getData();
+      if (formFina.fina_fpgto_id) {
+        if (!formFina.fina_perc_desc) {
+          frmFinanceiro.current.setFieldValue('fina_perc_desc', '');
+          document.getElementsByName('fina_perc_desc')[0].focus();
+        } else if (
+          toDecimal(formFina.fina_valor) > 0 &&
+          toDecimal(formFina.fina_valor_final) === 0
+        ) {
+          const valor_final =
+            toDecimal(formFina.fina_valor) *
+            (1 - toDecimal(formFina.fina_perc_desc) / 100);
+          frmFinanceiro.current.setFieldValue(
+            'fina_valor_final',
+            valor_final.toFixed(2)
+          );
+        } else {
+          // adicionar o item na grid
+          const itemGrid = [];
+          const objForma = optFpgto.filter(
+            (f) => f.value === formFina.fina_fpgto_id
+          );
+
+          const grdValidar = gridFinanceiro.filter(
+            (f) => f.fina_fpgto_id === formFina.fina_fpgto_id
+          );
+
+          if (grdValidar.length > 0) {
+            toast.warn(
+              `VOCÊ JÁ INFORMOU ESTA FORMA DE PAGAMENTO. SE NECESSÁRIO, EXCLUA O LANÇAMENTO ANTERIOR...`,
+              toastOptions
+            );
+            return;
+          }
+
+          const vlr_atualizado = valorPedido - toDecimal(formFina.fina_valor);
+          if (vlr_atualizado > -1) {
+            setValorPedido(vlr_atualizado.toFixed(2));
+            const objFina = {
+              fina_fpgto_id: formFina.fina_fpgto_id,
+              forma_pgto: objForma[0].label,
+              fina_valor: formFina.fina_valor,
+              fina_perc_desc: formFina.fina_perc_desc,
+              fina_valor_final: formFina.fina_valor_final,
+              persistido: 'N',
+            };
+
+            itemGrid.push(...gridFinanceiro, objFina);
+            setGridFinanceiro(itemGrid);
+
+            const vlrNeg =
+              valorPedidoNegociado + toDecimal(formFina.fina_valor_final);
+            setValorPedidoNegociado(vlrNeg);
+
+            if (vlr_atualizado === 0) {
+              setInfoVlrPedidoNegociado(
+                `VALOR DO PEDIDDO APÓS NEGOCIAÇÃ0: ${FormataMoeda(
+                  vlrNeg.toString()
+                )}`
+              );
+            } else {
+              setInfoVlrPedidoNegociado('');
+            }
+
+            // limpar controles
+            frmFinanceiro.current.setFieldValue('fina_valor_final', '');
+            frmFinanceiro.current.setFieldValue('fina_valor', '');
+            frmFinanceiro.current.setFieldValue('fina_perc_desc', '');
+            frmFinanceiro.current.setFieldValue('fina_fpgto_id', '');
+          } else {
+            toast.error(
+              `O VALOR INFORMADO É MAIOR QUE O SALDO DO PEDIDO. OPERAÇÃO CANCELADA!!`,
+              toastOptions
+            );
+          }
+        }
+      } else {
+        toast.warn(`INFORME A FORMA DE PAGAMENTO`, toastOptions);
+      }
+    } catch (err) {
+      toast.error(`Erro ao informar forma de pagamento: ${err}`, toastOptions);
+    }
+  }
+
+  const handleExcluirFina = async (prm) => {
+    try {
+      if (prm.persistido === 'S') {
+        // vem da api
+      } else {
+        setGridFinanceiro((prev) => {
+          prev = prev.filter((item) => item !== prm);
+          return prev;
+        });
+      }
+
+      // tratar valores
+      let vlped = 0;
+
+      setValorPedido((prev) => {
+        vlped = toDecimal(prev) + toDecimal(prm.fina_valor);
+        frmFinanceiro.current.setFieldValue('fina_valor', vlped);
+        return vlped;
+      });
+
+      let vlneg = 0;
+      setValorPedidoNegociado((prev) => {
+        vlneg = prev - toDecimal(prm.fina_valor_final);
+        setValorPedidoNegociado(vlneg);
+      });
+
+      setInfoVlrPedidoNegociado('');
+    } catch (err) {
+      toast.error(`Erro ao excluir item: ${err}`, toastOptions);
+    }
+  };
+
+  async function handleConfirmarNeg() {
+    try {
+      if (gridFinanceiro.length > 0) {
+        setLoading(true);
+        const formCapa = frmCapa.current.getData();
+        const cad = [];
+        let obj = {};
+        gridFinanceiro.forEach((g) => {
+          obj = {
+            fina_cp_emp_id: null,
+            fina_cp_id: formCapa.cp_id,
+            fina_fpgto_id: g.fina_fpgto_id,
+            fina_valor: toDecimal(g.fina_valor),
+            fina_perc_desc: toDecimal(g.fina_perc_desc),
+            fina_valor_final: toDecimal(g.fina_valor_final),
+          };
+
+          cad.push(obj);
+        });
+
+        const retorno = await api.post('v1/fat/pedido_financeiro', cad);
+        if (retorno.data.success) {
+          await handleSubmitCapa();
+        }
+        setLoading(false);
+      } else {
+        toast.info('Não há itens para confirmar');
+      }
+    } catch (err) {
+      setLoading(false);
+      toast.error(`Erro ao confirmar negociação: ${err}`, toastOptions);
+    }
   }
 
   useEffect(() => {
@@ -1720,6 +1899,74 @@ export default function FAT2() {
       flex: 1,
     },
   ];
+
+  const gridColumnFinanceiro = [
+    {
+      field: 'fina_fpgto_id',
+      headerName: 'AÇÕES',
+      width: 70,
+      lockVisible: true,
+      cellRendererFramework(prm) {
+        return (
+          <>
+            <BootstrapTooltip
+              title="Excluir Forma de Pagamento"
+              placement="top"
+            >
+              <button
+                type="button"
+                disabled={disableBtnGrid}
+                onClick={() => handleExcluirFina(prm.data)}
+              >
+                <FaTrashAlt size={18} color="#253739" />
+              </button>
+            </BootstrapTooltip>
+          </>
+        );
+      },
+    },
+    {
+      field: 'forma_pgto',
+      headerName: 'FORMA DE PAGAMENTO',
+      width: 300,
+      sortable: true,
+      resizable: true,
+      filter: true,
+      lockVisible: true,
+    },
+    {
+      field: 'fina_valor',
+      headerName: 'VALOR INFORMADO',
+      width: 160,
+      sortable: true,
+      resizable: true,
+      filter: true,
+      lockVisible: true,
+      cellStyle: { color: '#036302', fontWeight: 'bold' },
+    },
+    {
+      field: 'fina_perc_desc',
+      headerName: '% DESC. CONCEDIDO',
+      width: 160,
+      sortable: true,
+      resizable: true,
+      filter: true,
+      lockVisible: true,
+      cellStyle: { fontWeight: 'bold' },
+    },
+    {
+      field: 'fina_valor_final',
+      headerName: 'VALOR A PAGAR',
+      width: 160,
+      sortable: true,
+      resizable: true,
+      filter: true,
+      lockVisible: true,
+      cellStyle: { color: '#000', fontWeight: 'bold' },
+      flex: 1,
+    },
+  ];
+
   // #endregion
 
   return (
@@ -1855,16 +2102,23 @@ export default function FAT2() {
                   icon={<FaThList size={26} color="#244448" />}
                 />
               </BootstrapTooltip>
-              <BootstrapTooltip
-                label="Lotes"
-                title="Itens do pedido"
-                placement="top-end"
-              >
+              <BootstrapTooltip title="Itens do pedido" placement="top-end">
                 <Tab
                   disabled={false}
                   label="ITENS PEDIDO"
                   {...a11yProps(2)}
                   icon={<FaClipboardList size={29} color="#244448" />}
+                />
+              </BootstrapTooltip>
+              <BootstrapTooltip
+                title="Registro de negociação financeira do cliente"
+                placement="top-end"
+              >
+                <Tab
+                  disabled
+                  label="FINANCEIRO"
+                  {...a11yProps(3)}
+                  icon={<FaCcAmazonPay size={29} color="#244448" />}
                 />
               </BootstrapTooltip>
             </Tabs>
@@ -2324,6 +2578,126 @@ export default function FAT2() {
                   >
                     <h3>{remumoItens}</h3>
                   </AreaComp>
+                </BoxItemCadNoQuery>
+              </Form>
+            </Panel>
+          </TabPanel>
+
+          {/* ABA FINANCEIRO */}
+          <TabPanel value={valueTab} index={3}>
+            <Panel lefth1="left" bckgnd="#dae2e5">
+              <h1>NEGOCIAÇÃO FINANCEIRA DO CLIENTE</h1>
+              <Form id="frmFinanceiro" ref={frmFinanceiro}>
+                <BoxItemCad fr="2fr 1fr 1fr 1fr">
+                  <AreaComp wd="100">
+                    <FormSelect
+                      name="fina_fpgto_id"
+                      label="Forma de Pagamento"
+                      optionsList={optFpgto}
+                      isClearable
+                      onChange={() => {
+                        frmFinanceiro.current.setFieldValue(
+                          'fina_valor',
+                          valorPedido
+                        );
+                        document.getElementsByName('fina_valor')[0].focus();
+                      }}
+                      placeholder="INFORME"
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <BootstrapTooltip
+                      title="Informe o valor que o cliente quer pagar de acordo com a forma de pagamento escolhida"
+                      placement="top"
+                    >
+                      <KeyboardEventHandler
+                        handleKeys={['enter', 'tab']}
+                        onKeyEvent={() => handleAddFina()}
+                      >
+                        <label>Valor Desejado</label>
+                        <Input
+                          type="text"
+                          name="fina_valor"
+                          placeholder="0,00"
+                          onChange={maskDecimal}
+                          className="input_cad"
+                        />
+                      </KeyboardEventHandler>
+                    </BootstrapTooltip>
+                  </AreaComp>
+
+                  <AreaComp wd="100">
+                    <BootstrapTooltip
+                      title="Informe o percentual de desconto concedido de acordo com a forma de pagamento"
+                      placement="top"
+                    >
+                      <KeyboardEventHandler
+                        handleKeys={['enter', 'tab']}
+                        onKeyEvent={() => handleAddFina()}
+                      >
+                        <label>% Desconto Concedido</label>
+                        <Input
+                          type="text"
+                          name="fina_perc_desc"
+                          placeholder="0,00"
+                          onChange={maskDecimal}
+                          className="input_cad"
+                        />
+                      </KeyboardEventHandler>
+                    </BootstrapTooltip>
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <KeyboardEventHandler
+                      handleKeys={['enter', 'tab']}
+                      onKeyEvent={() => handleAddFina()}
+                    >
+                      <label>Valor a Pagar</label>
+                      <Input
+                        type="text"
+                        name="fina_valor_final"
+                        placeholder="0,00"
+                        onChange={maskDecimal}
+                        className="input_cad"
+                        readOnly
+                      />
+                    </KeyboardEventHandler>
+                  </AreaComp>
+                </BoxItemCad>
+
+                <BoxItemCadNoQuery fr="1fr">
+                  <GridContainerItens className="ag-theme-balham">
+                    <AgGridReact
+                      columnDefs={gridColumnFinanceiro}
+                      rowData={gridFinanceiro}
+                      rowSelection="single"
+                      animateRows
+                      gridOptions={{ localeText: gridTraducoes }}
+                    />
+                  </GridContainerItens>
+                </BoxItemCadNoQuery>
+                <BoxItemCadNoQuery fr="1fr">
+                  <AreaComp wd="100" h3talign="left" bckgndh3="#fff" ptop="7px">
+                    <h3>{infoVlrPedido}</h3>
+                  </AreaComp>
+                </BoxItemCadNoQuery>
+                <BoxItemCadNoQuery fr="1fr">
+                  <AreaComp wd="100" h3talign="left" bckgndh3="#fff" ptop="7px">
+                    <h3>{infoVlrPedidoNegociado}</h3>
+                  </AreaComp>
+                </BoxItemCadNoQuery>
+                <BoxItemCadNoQuery fr="1fr" ptop="10px" just="center">
+                  <dvGeral wd="300px">
+                    <button
+                      type="button"
+                      className="btn2"
+                      onClick={handleConfirmarNeg}
+                    >
+                      {loading
+                        ? 'Aguarde Processando...'
+                        : 'Confirmar Negociação'}
+                      <FaCheckCircle size={20} color="#fff" />
+                    </button>
+                  </dvGeral>
                 </BoxItemCadNoQuery>
               </Form>
             </Panel>

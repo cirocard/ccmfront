@@ -62,7 +62,9 @@ export default function Adm4() {
         `/v1/users/listar_itens_nivel_group/${grupo}/${item}`
       );
     } else {
-      response = await api.get(`/v1/accounts/listar_itens_nivel_geral/${item}`);
+      response = await api.get(
+        `/v1/accounts/listar_itens_nivel_emp_logada/${item}`
+      );
     }
 
     if (response.data.success) {
@@ -116,6 +118,7 @@ export default function Adm4() {
     const modulo = await Promise.all(
       dados.map(async (d) => {
         const itensMenu = await getMenu(d.modulo_itens, grupo);
+
         tree = {
           value: d.modulo_id,
           label: d.nome,
