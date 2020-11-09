@@ -239,3 +239,9 @@ export const GridContainerMain = styled.div`
     height: 58vh;
   }
 `;
+
+export const dvGeral = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: ${(props) => props.wd || '200px'};
+`;
