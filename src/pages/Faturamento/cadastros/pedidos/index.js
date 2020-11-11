@@ -49,7 +49,7 @@ import {
   GridContainerItens,
   ToolBar,
   GridContainerMain,
-  dvGeral,
+  DivGeral,
 } from './styles';
 import {
   TitleBar,
@@ -105,7 +105,6 @@ export default function FAT2() {
   const [openDlgNota, setOpenDlgNota] = useState(false);
   const [gridPesquisa, setGridPesquisa] = useState([]);
   const [dataGridPesqSelected, setDataGridPesqSelected] = useState([]);
-  const [dataGridGradeSelected, setDataGridGradeSelected] = useState([]);
   const [gridItens, setGridItens] = useState([]);
   const [gridGrade, setGridGrade] = useState([]);
   const [gridFinanceiro, setGridFinanceiro] = useState([]);
@@ -126,8 +125,6 @@ export default function FAT2() {
   const [inputDesable, setInputDesable] = useState(true);
   const [disableBtnGrid, setDisableBtnGrid] = useState(false);
   const [representante, setRepresentante] = useState([]);
-
-  let gridItensSelected = [];
 
   const toastOptions = {
     autoClose: 5000,
@@ -891,7 +888,7 @@ export default function FAT2() {
   }
 
   // adiconar itens
-  async function handleSubmitItens() {
+  async function handleSubmitItens(gridItensSelected) {
     try {
       await totalItem();
       const formItens = frmItens.current.getData();
@@ -925,8 +922,8 @@ export default function FAT2() {
 
       setLoading(true);
       setInputDesable(true);
-      if (dataGridGradeSelected.prode_id)
-        gridItensSelected = dataGridGradeSelected;
+      // if (dataGridGradeSelected.prode_id)
+      //   gridItensSelected = dataGridGradeSelected;
 
       const itensPedido = [
         {
@@ -995,8 +992,7 @@ export default function FAT2() {
         setGridItens(retorno.data.retorno);
         setResumoItens(retorno.data.message);
         limpaItens();
-        gridItensSelected = [];
-        setDataGridGradeSelected([]);
+
         document.getElementsByName('barcode')[0].focus();
       } else {
         toast.error(
@@ -1127,67 +1123,6 @@ export default function FAT2() {
     }
   }
 
-  const handleChangeTab = async (event, newValue) => {
-    if (newValue === 0) {
-      setDesableSave(true);
-      frmCapa.current.setFieldValue('cp_id', '');
-      setDataGridPesqSelected([]);
-      setGridPesquisa([]);
-      await listaPedido();
-      setPesqCliId([]);
-      setValueTab(newValue);
-    } else if (newValue === 1) {
-      // capa do pedido
-      const formCapa = frmCapa.current.getData();
-      if (formCapa.cp_id) {
-        setValueTab(newValue);
-      } else {
-        await handleEdit();
-      }
-    } else if (newValue === 2) {
-      // itens
-      limpaItens();
-      if (dataGridPesqSelected.length > 0) {
-        await handleEdit();
-        await listaItens();
-        setInputDesable(false);
-        setValueTab(newValue);
-      } else if (valueTab === 1) {
-        const formData = frmCapa.current.getData();
-        if (formData.cp_id) {
-          // se ja existe o pedido
-          await listaItens();
-          setInputDesable(false);
-          setValueTab(newValue);
-        } else {
-          toast.info(
-            `SALVE O PEDIDO ANTES DE INFORMAR OU CONSULTAR OS ITENS...`,
-            toastOptions
-          );
-        }
-      } else {
-        toast.info('SELECIONE UM PEDIDO PARA CONSULTAR', toastOptions);
-      }
-    } else if (newValue === 3) {
-      if (dataGridPesqSelected.length > 0) {
-        if (dataGridPesqSelected[0].situacao === '10') {
-          setInfoVlrPedido(
-            `VALOR ATUAL DO PEDIDO PEDIDO: ${FormataMoeda(
-              dataGridPesqSelected[0].cp_vlr_nf
-            )}`
-          );
-          frmCapa.current.setFieldValue('cp_id', dataGridPesqSelected[0].cp_id);
-          setValorPedido(toDecimal(dataGridPesqSelected[0].cp_vlr_nf));
-          setValueTab(newValue);
-        } else {
-          toast.info('SELECIONE UM PEDIDO FINALIZADO', toastOptions);
-        }
-      } else {
-        toast.info('SELECIONE UM PEDIDO FINALIZADO', toastOptions);
-      }
-    }
-  };
-
   // credito do cliente
   async function handleCreditoCli() {
     try {
@@ -1262,14 +1197,14 @@ export default function FAT2() {
       setLabelSaldo(`SALDO ATUAL DO ITEM: ${prm.prode_saldo}`);
       frmItens.current.setFieldValue('item_quantidade', 1);
       frmItens.current.setFieldValue('item_vlr_unit', prm.tab_preco_final);
-      gridItensSelected = prm;
-      setDataGridGradeSelected(prm);
+
       document.getElementsByName('item_vlr_unit')[0].readOnly =
         toDecimal(prm.tab_preco_final) > 0;
 
       await totalItem();
+      await handleSubmitItens(prm);
     }
-    document.getElementsByName('item_quantidade')[0].focus();
+    document.getElementsByName('barcode')[0].focus();
   };
 
   // evento barcode
@@ -1286,9 +1221,7 @@ export default function FAT2() {
             const url = `v1/fat/grade_produto?prod_id=&marca_id=&classific1=&classific2=&classific3=&tab_id=${item_tab_preco_id}&prode_id=${prode}`;
             const response = await api.get(url);
             const dados = response.data.retorno;
-            if (dados[0]) {
-              gridItensSelected = dados[0];
-              // setDataGridGradeSelected(dados[0]);
+            if (dados.length > 0) {
               setLabelSaldo(`SALDO ATUAL DO ITEM: ${dados[0].prode_saldo}`);
               frmItens.current.setFieldValue('item_quantidade', 1);
               frmItens.current.setFieldValue(
@@ -1305,7 +1238,7 @@ export default function FAT2() {
               frmItens.current.setFieldValue('item_prod_id', x);
 
               await totalItem();
-              await handleSubmitItens(); // tratar com parametros
+              await handleSubmitItens(dados[0]); // tratar com parametros
               setInputDesable(false);
               frmItens.current.setFieldValue('barcode', '');
               document.getElementsByName('barcode')[0].focus();
@@ -1367,7 +1300,7 @@ export default function FAT2() {
             setLoading(false);
 
             // adicionar nova quantidade
-            gridItensSelected = prm.data;
+
             frmItens.current.setFieldValue(
               'item_vlr_unit',
               prm.data.item_vlr_unit
@@ -1385,7 +1318,7 @@ export default function FAT2() {
               prm.data.item_perc_desc
             );
 
-            await handleSubmitItens();
+            await handleSubmitItens(prm.data);
           } else {
             toast.warning(
               `ATENÇÃO!! ESTE PEDIDO NÃO PODE MAIS SER ALTERADO. EXISTE BORDERÔ ABERTO`,
@@ -1421,6 +1354,21 @@ export default function FAT2() {
   function handleCliente() {
     // history.push('/crm9', '_blank');
     window.open('/crm9', '_blank');
+  }
+
+  // alimenta grid financeiro
+  async function getGridFinanceiro() {
+    try {
+      const response = await api.get(
+        `v1/fat/grid_financeiro?cp_id=${dataGridPesqSelected[0].cp_id}`
+      );
+      const dados = response.data.retorno;
+      if (dados) {
+        setGridFinanceiro(dados);
+      }
+    } catch (error) {
+      toast.error(`Erro ao listar negociação do cliente \n${error}`);
+    }
   }
 
   function handleAddFina() {
@@ -1511,32 +1459,46 @@ export default function FAT2() {
 
   const handleExcluirFina = async (prm) => {
     try {
+      setLoading(true);
+      let excluiu = false;
       if (prm.persistido === 'S') {
-        // vem da api
+        const response = await api.delete(
+          `v1/fat/excluir_aba_financeiro?cp_id=${prm.fina_cp_id}`
+        );
+        if (response.data.success) {
+          await handleSubmitCapa();
+          setGridFinanceiro([]);
+          excluiu = true;
+        }
       } else {
         setGridFinanceiro((prev) => {
           prev = prev.filter((item) => item !== prm);
           return prev;
         });
+        excluiu = true;
       }
 
-      // tratar valores
-      let vlped = 0;
+      if (excluiu) {
+        // tratar valores
+        let vlped = 0;
 
-      setValorPedido((prev) => {
-        vlped = toDecimal(prev) + toDecimal(prm.fina_valor);
-        frmFinanceiro.current.setFieldValue('fina_valor', vlped);
-        return vlped;
-      });
+        setValorPedido((prev) => {
+          vlped = toDecimal(prev) + toDecimal(prm.fina_valor);
+          frmFinanceiro.current.setFieldValue('fina_valor', vlped);
+          return vlped;
+        });
 
-      let vlneg = 0;
-      setValorPedidoNegociado((prev) => {
-        vlneg = prev - toDecimal(prm.fina_valor_final);
-        setValorPedidoNegociado(vlneg);
-      });
+        let vlneg = 0;
+        setValorPedidoNegociado((prev) => {
+          vlneg = prev - toDecimal(prm.fina_valor_final);
+          setValorPedidoNegociado(vlneg);
+        });
 
-      setInfoVlrPedidoNegociado('');
+        setInfoVlrPedidoNegociado('');
+      }
+      setLoading(false);
     } catch (err) {
+      setLoading(false);
       toast.error(`Erro ao excluir item: ${err}`, toastOptions);
     }
   };
@@ -1564,6 +1526,12 @@ export default function FAT2() {
         const retorno = await api.post('v1/fat/pedido_financeiro', cad);
         if (retorno.data.success) {
           await handleSubmitCapa();
+          await getGridFinanceiro();
+          await listaPedido();
+          setValueTab(0);
+          toast.success(
+            'Negociação confirmada com sucesso!!! Abra o pedido novamente para conferir'
+          );
         }
         setLoading(false);
       } else {
@@ -1574,6 +1542,73 @@ export default function FAT2() {
       toast.error(`Erro ao confirmar negociação: ${err}`, toastOptions);
     }
   }
+
+  // change TAB
+  const handleChangeTab = async (event, newValue) => {
+    if (newValue === 0) {
+      setDesableSave(true);
+      frmCapa.current.setFieldValue('cp_id', '');
+      setDataGridPesqSelected([]);
+      setGridPesquisa([]);
+      await listaPedido();
+      setPesqCliId([]);
+      setValueTab(newValue);
+    } else if (newValue === 1) {
+      // capa do pedido
+      const formCapa = frmCapa.current.getData();
+      if (formCapa.cp_id) {
+        setValueTab(newValue);
+      } else {
+        await handleEdit();
+      }
+    } else if (newValue === 2) {
+      // itens
+      limpaItens();
+      if (dataGridPesqSelected.length > 0) {
+        await handleEdit();
+        await listaItens();
+        setInputDesable(false);
+        setValueTab(newValue);
+      } else if (valueTab === 1) {
+        const formData = frmCapa.current.getData();
+        if (formData.cp_id) {
+          // se ja existe o pedido
+          await listaItens();
+          setInputDesable(false);
+          setValueTab(newValue);
+        } else {
+          toast.info(
+            `SALVE O PEDIDO ANTES DE INFORMAR OU CONSULTAR OS ITENS...`,
+            toastOptions
+          );
+        }
+      } else {
+        toast.info('SELECIONE UM PEDIDO PARA CONSULTAR', toastOptions);
+      }
+    } else if (newValue === 3) {
+      if (dataGridPesqSelected.length > 0) {
+        frmFinanceiro.current.setFieldValue('fina_valor', '');
+        const formCapa = frmCapa.current.getData();
+        if (dataGridPesqSelected[0].situacao === '10') {
+          setInfoVlrPedido(
+            `VALOR ATUAL DO PEDIDO PEDIDO: ${FormataMoeda(
+              dataGridPesqSelected[0].cp_vlr_nf
+            )}`
+          );
+          if (!formCapa.cp_id) await handleEdit();
+          setValorPedido(toDecimal(dataGridPesqSelected[0].cp_vlr_nf));
+          setInfoVlrPedidoNegociado('');
+          setValorPedidoNegociado(0);
+          await getGridFinanceiro();
+          setValueTab(newValue);
+        } else {
+          toast.info('SELECIONE UM PEDIDO FINALIZADO', toastOptions);
+        }
+      } else {
+        toast.info('SELECIONE UM PEDIDO FINALIZADO', toastOptions);
+      }
+    }
+  };
 
   useEffect(() => {
     if (params.tipo === '2') {
@@ -1712,7 +1747,7 @@ export default function FAT2() {
     {
       field: 'prode_id',
       headerName: 'CÓDIGO',
-      width: 100,
+      width: 95,
       sortable: false,
       resizable: true,
       filter: true,
@@ -1722,7 +1757,7 @@ export default function FAT2() {
       field: 'prod_referencia',
       headerName: 'REFERÊNCIA',
       sortable: true,
-      width: 110,
+      width: 120,
       resizable: true,
       editable: true,
       filter: true,
@@ -1741,7 +1776,7 @@ export default function FAT2() {
     {
       field: 'classific1',
       headerName: 'CLASSIFIC. 1',
-      width: 120,
+      width: 110,
       sortable: true,
       resizable: true,
       filter: true,
@@ -1757,7 +1792,7 @@ export default function FAT2() {
     },
     {
       field: 'item_quantidade',
-      headerName: 'QUANTIDADE',
+      headerName: 'QTD. LANÇADA',
       width: 110,
       sortable: true,
       editable: true,
@@ -1770,6 +1805,14 @@ export default function FAT2() {
       resizable: true,
       lockVisible: true,
       cellClass: 'cell_quantity',
+    },
+    {
+      field: 'qtd_pedido',
+      headerName: 'QTD. NO PEDIDO',
+      width: 110,
+      resizable: true,
+      lockVisible: true,
+      cellStyle: { color: '#006BFD', fontWeight: 'bold' },
     },
     {
       field: 'item_perc_desc',
@@ -1789,12 +1832,11 @@ export default function FAT2() {
     {
       field: 'valor_final',
       headerName: 'VLR. ITEM',
-      width: 110,
+      width: 120,
       sortable: true,
       resizable: true,
       lockVisible: true,
       cellClass: 'cell_total',
-      flex: 1,
     },
   ];
 
@@ -1900,6 +1942,10 @@ export default function FAT2() {
     },
   ];
 
+  // #endregion
+
+  // #region GRID FINANCEIRO ======================================================
+
   const gridColumnFinanceiro = [
     {
       field: 'fina_fpgto_id',
@@ -1937,7 +1983,7 @@ export default function FAT2() {
     {
       field: 'fina_valor',
       headerName: 'VALOR INFORMADO',
-      width: 160,
+      width: 180,
       sortable: true,
       resizable: true,
       filter: true,
@@ -2115,7 +2161,7 @@ export default function FAT2() {
                 placement="top-end"
               >
                 <Tab
-                  disabled
+                  disabled={false}
                   label="FINANCEIRO"
                   {...a11yProps(3)}
                   icon={<FaCcAmazonPay size={29} color="#244448" />}
@@ -2484,7 +2530,7 @@ export default function FAT2() {
                     <label>Quantidade</label>
                     <KeyboardEventHandler
                       handleKeys={['enter']}
-                      onKeyEvent={() => handleSubmitItens()}
+                      onKeyEvent={() => null}
                     >
                       <Input
                         type="text"
@@ -2499,7 +2545,7 @@ export default function FAT2() {
                   <AreaComp wd="100">
                     <KeyboardEventHandler
                       handleKeys={['enter']}
-                      onKeyEvent={() => handleSubmitItens()}
+                      onKeyEvent={() => null}
                     >
                       <label>Valor Unitário</label>
                       <Input
@@ -2517,7 +2563,7 @@ export default function FAT2() {
                     <label>Valor Desconto</label>
                     <KeyboardEventHandler
                       handleKeys={['enter']}
-                      onKeyEvent={() => handleSubmitItens()}
+                      onKeyEvent={() => null}
                     >
                       <Input
                         type="text"
@@ -2534,7 +2580,7 @@ export default function FAT2() {
                     <label>Desconto em percentual (%)</label>
                     <KeyboardEventHandler
                       handleKeys={['enter']}
-                      onKeyEvent={() => handleSubmitItens()}
+                      onKeyEvent={() => null}
                     >
                       <Input
                         type="text"
@@ -2686,7 +2732,7 @@ export default function FAT2() {
                   </AreaComp>
                 </BoxItemCadNoQuery>
                 <BoxItemCadNoQuery fr="1fr" ptop="10px" just="center">
-                  <dvGeral wd="300px">
+                  <DivGeral wd="230px">
                     <button
                       type="button"
                       className="btn2"
@@ -2695,9 +2741,9 @@ export default function FAT2() {
                       {loading
                         ? 'Aguarde Processando...'
                         : 'Confirmar Negociação'}
-                      <FaCheckCircle size={20} color="#fff" />
+                      <FaCheckCircle size={22} color="#fff" />
                     </button>
-                  </dvGeral>
+                  </DivGeral>
                 </BoxItemCadNoQuery>
               </Form>
             </Panel>
