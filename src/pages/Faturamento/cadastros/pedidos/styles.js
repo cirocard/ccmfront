@@ -240,7 +240,7 @@ export const GridContainerMain = styled.div`
   }
 `;
 
-export const dvGeral = styled.div`
+export const DivGeral = styled.div`
   display: flex;
   flex-direction: column;
   width: ${(props) => props.wd || '200px'};
