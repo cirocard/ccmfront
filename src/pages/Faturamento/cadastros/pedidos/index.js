@@ -1202,7 +1202,7 @@ export default function FAT2() {
         toDecimal(prm.tab_preco_final) > 0;
 
       await totalItem();
-      await handleSubmitItens(prm);
+      handleSubmitItens(prm);
     }
     document.getElementsByName('barcode')[0].focus();
   };
@@ -1269,6 +1269,16 @@ export default function FAT2() {
 
   const handleEditarQuantidade = async (prm) => {
     try {
+      if (prm.colDef.field === 'item_vlr_unit') {
+        if (parseFloat(prm.oldValue, 10) > 0) {
+          toast.warn(
+            'O VALOR UNITÁRIO NÃO PODE SER ALTERADO, POIS JÁ EXISTE PREÇO INFORMADO NA TABELA DE PREÇOS',
+            toastOptions
+          );
+          await listaItens();
+          return;
+        }
+      }
       if (prm.data.prode_id) {
         let situ = '';
         let sitBordero;
@@ -1282,8 +1292,8 @@ export default function FAT2() {
           return prevState;
         });
 
-        if (situ == '1') {
-          if (sitBordero == 'N') {
+        if (situ === '1') {
+          if (sitBordero === 'N') {
             setLoading(true);
             const formCapa = frmCapa.current.getData();
             const response = await api.delete(
@@ -1789,6 +1799,11 @@ export default function FAT2() {
       resizable: true,
       lockVisible: true,
       type: 'rightAligned',
+      editable: true,
+      onCellValueChanged: handleEditarQuantidade,
+      cellEditorParams: {
+        validacoes: gridValidationsQtd,
+      },
     },
     {
       field: 'item_quantidade',
@@ -1825,18 +1840,21 @@ export default function FAT2() {
     {
       field: 'item_vlr_desc',
       headerName: 'VLR DESC.',
-      width: 110,
+      width: 120,
       resizable: true,
       lockVisible: true,
     },
     {
       field: 'valor_final',
       headerName: 'VLR. ITEM',
-      width: 120,
+      width: 130,
       sortable: true,
       resizable: true,
       lockVisible: true,
       cellClass: 'cell_total',
+    },
+    {
+      flex: 1,
     },
   ];
 

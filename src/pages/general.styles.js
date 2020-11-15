@@ -345,8 +345,8 @@ export const CCheck = styled.div`
     position: relative;
     padding-left: 25px;
 
-    margin-bottom: 20px;
-    font: 14px/20px 'Open Sans', Arial, sans-serif;
+    margin-bottom: 10px;
+    font: 12px/20px 'Open Sans', Arial, sans-serif;
     font-weight: 700;
     color: #3b535f;
     cursor: pointer;
@@ -394,8 +394,8 @@ export const CCheck = styled.div`
     display: block;
     position: relative;
     padding-left: 25px;
-    margin-bottom: 20px;
-    font: 14px/20px 'Open Sans', Arial, sans-serif;
+    margin-bottom: 10px;
+    font: 12px/20px 'Open Sans', Arial, sans-serif;
     font-weight: 700;
     color: #3b535f;
     cursor: pointer;

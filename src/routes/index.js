@@ -34,7 +34,9 @@ import SUPR2 from '~/pages/Suprimentos/cadastros/fornecedor';
 import SUPR3 from '~/pages/Suprimentos/classificacao';
 import SUPR4 from '~/pages/Suprimentos/cadastros/produto';
 import SUPR5 from '~/pages/Suprimentos/cadastros/tabPreco';
-import SUPR6 from '~/pages/Suprimentos/cadastros/etiqueta'; // tag menu 12
+import SUPR6 from '~/pages/Suprimentos/cadastros/etiqueta';
+import SUPR7 from '~/pages/Suprimentos/estoque/operacaoEst';
+import SUPR8 from '~/pages/Suprimentos/estoque/entrada_saida';
 
 export default function Routes() {
   // /:parametro+  o mais é pra pegar tudo certinho q vem depois da barra
@@ -73,6 +75,8 @@ export default function Routes() {
       <Route path="/supr4" component={SUPR4} isPrivate />
       <Route path="/supr5" component={SUPR5} isPrivate />
       <Route path="/supr6" component={SUPR6} isPrivate />
+      <Route path="/supr7" component={SUPR7} isPrivate />
+      <Route path="/supr8" component={SUPR8} isPrivate />
     </Switch>
   );
 }
