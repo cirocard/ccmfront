@@ -4,7 +4,13 @@ import * as Yup from 'yup';
 import { Form } from '@unform/web';
 import { toast } from 'react-toastify';
 import { MdClose, MdDelete } from 'react-icons/md';
-import { FaBuffer } from 'react-icons/fa';
+import {
+  FaBuffer,
+  FaTicketAlt,
+  FaTh,
+  FaListOl,
+  FaBuromobelexperte,
+} from 'react-icons/fa';
 import { AgGridReact } from 'ag-grid-react';
 
 import KeyboardEventHandler from 'react-keyboard-event-handler';
@@ -192,6 +198,10 @@ export default function SUPR3() {
       setTituloCadastro('CATEGORIA DE PRODUTOS');
       setTabId(15);
       listarGeral(15);
+    } else if (params.geral === '16') {
+      setTituloCadastro('LOCAL DE ESTOQUE');
+      setTabId(16);
+      listarGeral(16);
     }
   }, []);
 
@@ -248,36 +258,42 @@ export default function SUPR3() {
     <>
       <ToolBar hg="100%" wd="40px">
         <DivLimitador hg="10px" />
+        <BootstrapTooltip title="Cadastro de Local de Estoque" placement="left">
+          <button type="button" onClick={() => handleParametros('16')}>
+            <FaBuromobelexperte size={25} color="#fff" />
+          </button>
+        </BootstrapTooltip>
+        <DivLimitador hg="10px" />
         <BootstrapTooltip title="Cadastro de Marcas" placement="left">
           <button type="button" onClick={() => handleParametros('9')}>
-            <FaBuffer size={25} color="#fff" />
+            <FaTicketAlt size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
         <DivLimitador hg="10px" />
         <BootstrapTooltip title="Cadastro de Espécies" placement="left">
           <button type="button" onClick={() => handleParametros('10')}>
-            <FaBuffer size={25} color="#fff" />
+            <FaTh size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
 
         <DivLimitador hg="10px" />
         <BootstrapTooltip title="Cadastro de Classificação 1" placement="left">
           <button type="button" onClick={() => handleParametros('12')}>
-            <FaBuffer size={25} color="#fff" />
+            <FaListOl size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
 
         <DivLimitador hg="10px" />
         <BootstrapTooltip title="Cadastro de Classificação 2" placement="left">
           <button type="button" onClick={() => handleParametros('13')}>
-            <FaBuffer size={25} color="#fff" />
+            <FaListOl size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
 
         <DivLimitador hg="10px" />
         <BootstrapTooltip title="Cadastro de Classificação 3" placement="left">
           <button type="button" onClick={() => handleParametros('14')}>
-            <FaBuffer size={25} color="#fff" />
+            <FaListOl size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
 

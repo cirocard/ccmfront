@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
 import * as Yup from 'yup';
-import axios from 'axios';
 import { Form } from '@unform/web';
 import { toast } from 'react-toastify';
 import { AgGridReact } from 'ag-grid-react';
@@ -8,9 +7,10 @@ import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import KeyboardEventHandler from 'react-keyboard-event-handler';
-
+import moment from 'moment';
 import { MdClose } from 'react-icons/md';
 import { FaSave, FaSearch, FaPlusCircle, FaFolderPlus } from 'react-icons/fa';
+import DatePickerInput from '~/componentes/DatePickerInput';
 import AsyncSelectForm from '~/componentes/Select/selectAsync';
 import FormSelect from '~/componentes/Select';
 import DialogInfo from '~/componentes/DialogInfo';
@@ -19,14 +19,8 @@ import TabPanel from '~/componentes/TabPanel';
 import Input from '~/componentes/Input';
 import { BootstrapTooltip } from '~/componentes/ToolTip';
 import history from '~/services/history';
-import {
-  a11yProps,
-  maskCNPJCPF,
-  maskFone,
-  RetirarMascara,
-} from '~/services/func.uteis';
+import { a11yProps, RetirarMascara, toDecimal } from '~/services/func.uteis';
 import { ApiService, ApiTypes } from '~/services/api';
-import { getComboUf } from '~/services/arrays';
 import { Container, Panel, ToolBar, GridContainerMain } from './styles';
 import {
   TitleBar,
@@ -37,7 +31,7 @@ import {
   DivLimitador,
 } from '~/pages/general.styles';
 
-export default function SUPR2() {
+export default function SUPR8() {
   const api = ApiService.getInstance(ApiTypes.API1);
   const [valueTab, setValueTab] = useState(0);
   const frmPesquisa = useRef(null);
@@ -46,9 +40,9 @@ export default function SUPR2() {
   const [gridPesquisa, setGridPesquisa] = useState([]);
   const [dataGridPesqSelected, setDataGridPesqSelected] = useState([]);
   const [gridApiPesquisa, setGridApiPesquisa] = useState([]);
-  const [pesq_forn_id, setPesq_forn_id] = useState([]);
-  const [uf, setUf] = useState([]);
-  const apiGeral = axios.create();
+  const [fornecedor, setFornecedor] = useState([]);
+  const [pesqDataIni, setPesqDataIni] = useState(moment());
+  const [pesqDataFin, setPesqDataFin] = useState(moment());
 
   const toastOptions = {
     autoClose: 4000,
@@ -56,7 +50,18 @@ export default function SUPR2() {
   };
 
   // #region COMBO ========================
-  const optUf = getComboUf();
+
+  const optSituacao = [
+    { value: '0', label: 'TODOS' },
+    { value: '1', label: 'CADASTRADO' },
+    { value: '2', label: 'ATUALIZADOS' },
+    { value: '3', label: 'CANCELADO' },
+  ];
+
+  const optTipo = [
+    { value: 'E', label: 'ENTRADA' },
+    { value: 'S', label: 'SAÍDA' },
+  ];
 
   const loadOptionsFornec = async (inputText, callback) => {
     if (inputText) {
@@ -93,36 +98,28 @@ export default function SUPR2() {
     setDataGridPesqSelected(selectedRows);
   };
 
-  // fazer consulta dos fornecedores
-  async function listaFornecedor() {
+  // listar movimentaçoes cadastradas
+  async function listaMovimentacoes() {
     try {
       setLoading(true);
+      const dados = frmPesquisa.current.getData();
       const response = await api.get(
-        `v1/supr/fornec?forn_id=${pesq_forn_id.value || ''}`
+        `v1/supr/estoque/entrada_estoque?ent_id=${dados.pesq_ent_id}&forn_id=${
+          fornecedor.value || ''
+        }&data_ini=${moment(pesqDataIni).format(
+          'YYYY-MM-DD'
+        )}&data_fin=${moment(pesqDataFin).format('YYYY-MM-DD')}&tipo=${
+          dados.pesq_ent_tipo
+        }&situacao=${dados.pesq_ent_situacao}`
       );
-      const dados = response.data.retorno;
-      if (dados) {
-        setGridPesquisa(dados);
+      const { retorno } = response.data;
+      if (retorno) {
+        setGridPesquisa(retorno);
       }
       setLoading(false);
     } catch (error) {
       setLoading(false);
-      toast.error(`Erro ao consultar fornecedor\n${error}`);
-    }
-  }
-
-  async function handleCep(cep) {
-    if (cep.target.value.length > 7) {
-      const cepVaidar = RetirarMascara(cep.target.value, '.-');
-      const response = await apiGeral.get(
-        `https://viacep.com.br/ws/${cepVaidar}/json`
-      );
-      const dados = response.data;
-      frmCadastro.current.setFieldValue('forn_logradouro', dados.logradouro);
-      frmCadastro.current.setFieldValue('forn_bairro', dados.bairro);
-      frmCadastro.current.setFieldValue('forn_cidade', dados.localidade);
-
-      setUf(optUf.find((op) => op.value === dados.uf));
+      toast.error(`Erro ao consultar movimentação de estoque\n${error}`);
     }
   }
 
@@ -193,13 +190,6 @@ export default function SUPR2() {
           'forn_ie',
           dataGridPesqSelected[0].forn_ie
         );
-
-        const x = optUf.find(
-          (op) =>
-            op.value.toString() ===
-            dataGridPesqSelected[0].forn_estado.toString()
-        );
-        frmCadastro.current.setFieldValue('forn_estado', x);
 
         setValueTab(1);
         setLoading(false);
@@ -288,7 +278,7 @@ export default function SUPR2() {
     if (newValue === 0) {
       frmCadastro.current.setFieldValue('forn_id', '');
       setValueTab(newValue);
-      await listaFornecedor();
+      await listaMovimentacoes();
     } else if (newValue === 1) {
       const cadastro = frmCadastro.current.getData();
       if (cadastro.forn_id) {
@@ -300,7 +290,7 @@ export default function SUPR2() {
   };
 
   useEffect(() => {
-    listaFornecedor();
+    listaMovimentacoes();
     setValueTab(0);
   }, []);
 
@@ -308,36 +298,36 @@ export default function SUPR2() {
 
   const gridColumnPesquisa = [
     {
-      field: 'forn_id',
-      headerName: 'COD. FORNECEDOR',
-      width: 120,
+      field: 'ent_id',
+      headerName: 'CÓDIGO',
+      width: 110,
       sortable: true,
       resizable: true,
       filter: true,
       lockVisible: true,
     },
     {
-      field: 'forn_razao_social',
-      headerName: 'RAZÃO SOCIAL',
-      width: 450,
+      field: 'ent_datacad',
+      headerName: 'DATA CADASTRO',
+      width: 150,
       sortable: true,
       resizable: true,
       filter: true,
       lockVisible: true,
     },
     {
-      field: 'forn_cnpj',
-      headerName: 'CNPJ',
-      width: 160,
+      field: 'ent_observacao',
+      headerName: 'IDENTIFICAÇÃO DA MOVIMENTAÇÃO',
+      width: 600,
       sortable: false,
       resizable: true,
       lockVisible: true,
     },
     {
-      field: 'forn_email',
-      headerName: 'E-MAIL',
+      field: 'ent_situacao',
+      headerName: 'SITUAÇÃO',
       width: 130,
-      sortable: false,
+      sortable: true,
       resizable: true,
       filter: true,
       lockVisible: true,
@@ -350,19 +340,19 @@ export default function SUPR2() {
   return (
     <>
       <ToolBar hg="100%" wd="40px">
-        <BootstrapTooltip title="Consultar FORNECEDOR" placement="right">
-          <button type="button" onClick={listaFornecedor}>
+        <BootstrapTooltip title="CONSULTAR MOVIMENTAÇÕES" placement="right">
+          <button type="button" onClick={listaMovimentacoes}>
             <FaSearch size={28} color="#fff" />
           </button>
         </BootstrapTooltip>
         <DivLimitador hg="10px" />
-        <BootstrapTooltip title="Novo Cadastro" placement="left">
+        <BootstrapTooltip title="NOVO CADASTRO" placement="left">
           <button type="button" onClick={handleNovoCadastro}>
             <FaPlusCircle size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
         <DivLimitador hg="10px" />
-        <BootstrapTooltip title="Salvar Cadastro" placement="left">
+        <BootstrapTooltip title="SALVAR CADASTRO" placement="left">
           <button type="button" onClick={handleSubmit}>
             <FaSave size={25} color="#fff" />
           </button>
@@ -372,7 +362,7 @@ export default function SUPR2() {
       <Container>
         <Scroll>
           <TitleBar bckgnd="#dae2e5">
-            <h1>CADASTRO DE FORNECEDOR</h1>
+            <h1>CADASTRAR ENTRADA/SAÍDA DE ESTOQUE</h1>
             <BootstrapTooltip title="Voltar para Dashboard" placement="top">
               <button type="button" onClick={handleDashboard}>
                 <MdClose size={30} color="#244448" />
@@ -391,22 +381,22 @@ export default function SUPR2() {
               textColor="primary"
             >
               <BootstrapTooltip
-                title="Consultar Fornecedor Cadastrado"
+                title="CONSULTAR MOVIMENTAÇÕES DE ENTRADA/SAÍDA"
                 placement="top-start"
               >
                 <Tab
-                  label="CONSULTAR FORNECEDOR"
+                  label="CONSULTAR MOVIMENTAÇÕES"
                   {...a11yProps(0)}
                   icon={<FaSearch size={29} color="#244448" />}
                 />
               </BootstrapTooltip>
               <BootstrapTooltip
-                title="Tela de cadastro de fornecedores"
+                title="CADASTRAR NOVA MOVIMENTAÇÃO DE ENTRADA OU SAÍDA"
                 placement="top-end"
               >
                 <Tab
                   disabled={false}
-                  label="CADASTRAR FORNECEDOR"
+                  label="CADASTRAR MOVIMENTAÇÕES"
                   {...a11yProps(1)}
                   icon={<FaFolderPlus size={26} color="#244448" />}
                 />
@@ -419,22 +409,64 @@ export default function SUPR2() {
             <Panel lefth1="left" bckgnd="#dae2e5">
               <Form id="frmPesquisa" ref={frmPesquisa}>
                 <h1>PARÂMETROS DE PESQUISA</h1>
-                <BoxItemCadNoQuery fr="1fr">
+                <BoxItemCadNoQuery fr="3fr 1fr 1fr 1fr 1fr 1fr">
                   <AreaComp wd="100">
                     <KeyboardEventHandler
                       handleKeys={['enter', 'tab']}
-                      onKeyEvent={() => listaFornecedor()}
+                      onKeyEvent={() => null}
                     >
                       <AsyncSelectForm
-                        name="pesq_forn_id"
+                        name="pesq_ent_forn_id"
                         label="Informe CNPJ ou Razão Social do fornecedor para pesquisar"
-                        value={pesq_forn_id}
+                        value={fornecedor}
                         placeholder="PESQUISAR FORNECEDOR"
-                        onChange={(f) => setPesq_forn_id(f || [])}
+                        onChange={(f) => setFornecedor(f || [])}
                         loadOptions={loadOptionsFornec}
                         isClearable
                       />
                     </KeyboardEventHandler>
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <FormSelect
+                      label="TIPO MOVIMENTAÇÀO"
+                      name="pesq_ent_tipo"
+                      optionsList={optTipo}
+                      isClearable
+                      placeholder="INFORME"
+                      zindex="153"
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <label>Código</label>
+                    <Input
+                      type="number"
+                      name="pesq_ent_id"
+                      className="input_cad"
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <DatePickerInput
+                      onChangeDate={(date) => setPesqDataIni(new Date(date))}
+                      value={pesqDataIni}
+                      label="Data Iniial:"
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <DatePickerInput
+                      onChangeDate={(date) => setPesqDataFin(new Date(date))}
+                      value={pesqDataFin}
+                      label="Data Final:"
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <FormSelect
+                      label="situação"
+                      name="pesq_ent_situacao"
+                      optionsList={optSituacao}
+                      isClearable
+                      placeholder="INFORME"
+                      zindex="153"
+                    />
                   </AreaComp>
                 </BoxItemCadNoQuery>
                 <BoxItemCadNoQuery fr="1fr">
@@ -486,106 +518,9 @@ export default function SUPR2() {
                       name="forn_cnpj"
                       maxlength="18"
                       className="input_cad"
-                      onChange={maskCNPJCPF}
                     />
                   </AreaComp>
                 </BoxItemCad>
-                <BoxItemCad fr="1fr 1fr 2fr">
-                  <AreaComp wd="100">
-                    <label>Inscrição Estadual</label>
-                    <Input type="text" name="forn_ie" className="input_cad" />
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <label>Fone</label>
-                    <Input
-                      type="text"
-                      name="forn_telefone"
-                      className="input_cad"
-                      onChange={maskFone}
-                    />
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <label>E-mail</label>
-                    <Input
-                      type="text"
-                      name="forn_email"
-                      className="input_cad"
-                    />
-                  </AreaComp>
-                </BoxItemCad>
-                <h1>ENDEREÇO FORNECEDOR</h1>
-                <BoxItemCad fr="1fr 2fr 1fr">
-                  <AreaComp wd="100">
-                    <label>CEP</label>
-                    <Input
-                      type="text"
-                      name="forn_cep"
-                      onKeyPress={(event) => {
-                        if (event.key === 'Enter') {
-                          document.getElementsByName('forn_numero')[0].focus();
-                        }
-                      }}
-                      onBlur={handleCep}
-                      className="input_cad"
-                    />
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <label>Logradouro</label>
-                    <Input
-                      type="text"
-                      name="forn_logradouro"
-                      className="input_cad"
-                    />
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <label>Bairro</label>
-                    <Input
-                      type="text"
-                      name="forn_bairro"
-                      className="input_cad"
-                    />
-                  </AreaComp>
-                </BoxItemCad>
-                <BoxItemCad fr="1fr 1fr 1fr">
-                  <AreaComp wd="100">
-                    <label>CIDADE</label>
-                    <Input
-                      type="text"
-                      name="forn_cidade"
-                      className="input_cad"
-                    />
-                  </AreaComp>
-
-                  <AreaComp wd="100">
-                    <FormSelect
-                      label="UF"
-                      name="forn_estado"
-                      optionsList={optUf}
-                      value={uf}
-                      onChange={(u) => setUf([u])}
-                      placeholder="Informe"
-                    />
-                  </AreaComp>
-
-                  <AreaComp wd="100">
-                    <label>NÚMERO</label>
-                    <Input
-                      type="text"
-                      name="forn_numero"
-                      className="input_cad"
-                    />
-                  </AreaComp>
-                </BoxItemCad>
-                <BoxItemCadNoQuery fr="1fr">
-                  <AreaComp wd="100">
-                    <label>COMPLEMENTO</label>
-                    <Input
-                      type="text"
-                      name="forn_complemento"
-                      className="input_cad"
-                    />
-                  </AreaComp>
-                </BoxItemCadNoQuery>
               </Form>
             </Panel>
           </TabPanel>
@@ -597,7 +532,7 @@ export default function SUPR2() {
         closeDialogFn={() => {
           setLoading(false);
         }}
-        title="CADASTRO DE FORNECEDOR"
+        title="ENTRADA/SAÍDA DE ESTOQUE"
         message="Aguarde Processamento..."
       />
     </>

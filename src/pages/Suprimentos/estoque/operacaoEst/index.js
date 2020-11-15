@@ -19,14 +19,8 @@ import TabPanel from '~/componentes/TabPanel';
 import Input from '~/componentes/Input';
 import { BootstrapTooltip } from '~/componentes/ToolTip';
 import history from '~/services/history';
-import {
-  a11yProps,
-  maskCNPJCPF,
-  maskFone,
-  RetirarMascara,
-} from '~/services/func.uteis';
+import { a11yProps, RetirarMascara, toDecimal } from '~/services/func.uteis';
 import { ApiService, ApiTypes } from '~/services/api';
-import { getComboUf } from '~/services/arrays';
 import { Container, Panel, ToolBar, GridContainerMain } from './styles';
 import {
   TitleBar,
@@ -35,9 +29,10 @@ import {
   BoxItemCadNoQuery,
   Scroll,
   DivLimitador,
+  CCheck,
 } from '~/pages/general.styles';
 
-export default function SUPR2() {
+export default function SUPR7() {
   const api = ApiService.getInstance(ApiTypes.API1);
   const [valueTab, setValueTab] = useState(0);
   const frmPesquisa = useRef(null);
@@ -46,9 +41,10 @@ export default function SUPR2() {
   const [gridPesquisa, setGridPesquisa] = useState([]);
   const [dataGridPesqSelected, setDataGridPesqSelected] = useState([]);
   const [gridApiPesquisa, setGridApiPesquisa] = useState([]);
-  const [pesq_forn_id, setPesq_forn_id] = useState([]);
-  const [uf, setUf] = useState([]);
-  const apiGeral = axios.create();
+  const [cfop, setCfop] = useState([]);
+  const [cfopEst, setCfopEst] = useState([]);
+  const [cfopImp, setCfopImp] = useState([]);
+  const [optLocalEst, setOptLocalEst] = useState([]);
 
   const toastOptions = {
     autoClose: 4000,
@@ -56,15 +52,22 @@ export default function SUPR2() {
   };
 
   // #region COMBO ========================
-  const optUf = getComboUf();
 
-  const loadOptionsFornec = async (inputText, callback) => {
+  const optSituacao = [
+    { value: '1', label: 'ATIVO' },
+    { value: '2', label: 'INATIVO' },
+  ];
+
+  const optTipo = [
+    { value: 'E', label: 'ENTRADA' },
+    { value: 'S', label: 'SAÍDA' },
+  ];
+
+  const loadOptionsCfopEst = async (inputText, callback) => {
     if (inputText) {
       const valor = inputText.toUpperCase();
       if (valor.length > 2) {
-        const response = await api.get(
-          `v1/combos/combo_fornecedor?valor=${valor}`
-        );
+        const response = await api.get(`v1/combos/cfop?descricao=${valor}`);
         callback(
           response.data.retorno.map((i) => ({ value: i.value, label: i.label }))
         );
@@ -72,12 +75,28 @@ export default function SUPR2() {
     }
   };
 
+  // combo geral
+  async function comboGeral(tab_id) {
+    try {
+      const response = await api.get(`v1/combos/geral/${tab_id}`);
+      const dados = response.data.retorno;
+      if (dados) {
+        if (tab_id === 16) {
+          setOptLocalEst(dados);
+        }
+      }
+    } catch (error) {
+      toast.error(`Erro ao carregar registro \n${error}`);
+    }
+  }
+
   // #endregion
 
   // #region SCHEMA VALIDATIONS =====================
   const schemaCad = Yup.object().shape({
-    forn_razao_social: Yup.string().required('(??)'),
-    forn_cnpj: Yup.string().required('(??)'),
+    oper_descricao: Yup.string().required('(??)'),
+    oper_tipo: Yup.string().required('(??)'),
+    oper_local_est: Yup.string().required('(??)'),
   });
 
   // #endregion
@@ -93,13 +112,11 @@ export default function SUPR2() {
     setDataGridPesqSelected(selectedRows);
   };
 
-  // fazer consulta dos fornecedores
-  async function listaFornecedor() {
+  // fazer consulta das operaçoes
+  async function listaOperacao() {
     try {
       setLoading(true);
-      const response = await api.get(
-        `v1/supr/fornec?forn_id=${pesq_forn_id.value || ''}`
-      );
+      const response = await api.get(`v1/supr/operest`);
       const dados = response.data.retorno;
       if (dados) {
         setGridPesquisa(dados);
@@ -107,38 +124,22 @@ export default function SUPR2() {
       setLoading(false);
     } catch (error) {
       setLoading(false);
-      toast.error(`Erro ao consultar fornecedor\n${error}`);
-    }
-  }
-
-  async function handleCep(cep) {
-    if (cep.target.value.length > 7) {
-      const cepVaidar = RetirarMascara(cep.target.value, '.-');
-      const response = await apiGeral.get(
-        `https://viacep.com.br/ws/${cepVaidar}/json`
-      );
-      const dados = response.data;
-      frmCadastro.current.setFieldValue('forn_logradouro', dados.logradouro);
-      frmCadastro.current.setFieldValue('forn_bairro', dados.bairro);
-      frmCadastro.current.setFieldValue('forn_cidade', dados.localidade);
-
-      setUf(optUf.find((op) => op.value === dados.uf));
+      toast.error(`Erro ao consultar operação de estoque\n${error}`);
     }
   }
 
   const limpaForm = () => {
-    frmCadastro.current.setFieldValue('forn_id', '');
-    frmCadastro.current.setFieldValue('forn_razao_social', '');
-    frmCadastro.current.setFieldValue('forn_cnpj', '');
-    frmCadastro.current.setFieldValue('forn_telefone', '');
-    frmCadastro.current.setFieldValue('forn_email', '');
-    frmCadastro.current.setFieldValue('forn_cep', '');
-    frmCadastro.current.setFieldValue('forn_logradouro', '');
-    frmCadastro.current.setFieldValue('forn_bairro', '');
-    frmCadastro.current.setFieldValue('forn_cidade', '');
-    frmCadastro.current.setFieldValue('forn_complemento', '');
-    frmCadastro.current.setFieldValue('forn_ie', '');
-    frmCadastro.current.setFieldValue('forn_numero', '');
+    frmCadastro.current.setFieldValue('oper_id', '');
+    frmCadastro.current.setFieldValue('oper_descricao', '');
+    frmCadastro.current.setFieldValue('oper_situacao', '');
+    frmCadastro.current.setFieldValue('oper_tipo', '');
+    frmCadastro.current.setFieldValue('oper_cfop_interestadual', '');
+    frmCadastro.current.setFieldValue('oper_cfop_estadual', '');
+    frmCadastro.current.setFieldValue('oper_cfop_import', '');
+    frmCadastro.current.setFieldValue('oper_local_est', '');
+
+    document.getElementById('oper_gera_financeiro').checked = false;
+    document.getElementById('oper_movimenta_estoque').checked = false;
   };
 
   async function handleEdit() {
@@ -146,60 +147,59 @@ export default function SUPR2() {
       if (dataGridPesqSelected.length > 0) {
         setLoading(true);
         frmCadastro.current.setFieldValue(
-          'forn_id',
-          dataGridPesqSelected[0].forn_id
+          'oper_id',
+          dataGridPesqSelected[0].oper_id
         );
         frmCadastro.current.setFieldValue(
-          'forn_razao_social',
-          dataGridPesqSelected[0].forn_razao_social
-        );
-        frmCadastro.current.setFieldValue(
-          'forn_cnpj',
-          dataGridPesqSelected[0].forn_cnpj
-        );
-        frmCadastro.current.setFieldValue(
-          'forn_telefone',
-          dataGridPesqSelected[0].forn_telefone
-        );
-        frmCadastro.current.setFieldValue(
-          'forn_email',
-          dataGridPesqSelected[0].forn_email
-        );
-        frmCadastro.current.setFieldValue(
-          'forn_cep',
-          dataGridPesqSelected[0].forn_cep
-        );
-        frmCadastro.current.setFieldValue(
-          'forn_logradouro',
-          dataGridPesqSelected[0].forn_logradouro
-        );
-        frmCadastro.current.setFieldValue(
-          'forn_bairro',
-          dataGridPesqSelected[0].forn_bairro
-        );
-        frmCadastro.current.setFieldValue(
-          'forn_cidade',
-          dataGridPesqSelected[0].forn_cidade
-        );
-        frmCadastro.current.setFieldValue(
-          'forn_numero',
-          dataGridPesqSelected[0].forn_numero
-        );
-        frmCadastro.current.setFieldValue(
-          'forn_complemento',
-          dataGridPesqSelected[0].forn_complemento
-        );
-        frmCadastro.current.setFieldValue(
-          'forn_ie',
-          dataGridPesqSelected[0].forn_ie
+          'oper_descricao',
+          dataGridPesqSelected[0].oper_descricao
         );
 
-        const x = optUf.find(
-          (op) =>
-            op.value.toString() ===
-            dataGridPesqSelected[0].forn_estado.toString()
+        frmCadastro.current.setFieldValue(
+          'oper_situacao',
+          optSituacao.find(
+            (op) =>
+              op.value.toString() ===
+              dataGridPesqSelected[0].oper_situacao.toString()
+          )
         );
-        frmCadastro.current.setFieldValue('forn_estado', x);
+
+        frmCadastro.current.setFieldValue(
+          'oper_tipo',
+          optTipo.find(
+            (op) =>
+              op.value.toString() ===
+              dataGridPesqSelected[0].oper_tipo.toString()
+          )
+        );
+        frmCadastro.current.setFieldValue(
+          'oper_local_est',
+          optLocalEst.find(
+            (op) =>
+              op.value.toString() ===
+              dataGridPesqSelected[0].oper_local_est.toString()
+          )
+        );
+
+        await loadOptionsCfopEst(
+          dataGridPesqSelected[0].oper_cfop_interestadual,
+          setCfopEst
+        );
+
+        await loadOptionsCfopEst(
+          dataGridPesqSelected[0].oper_cfop_estadual,
+          setCfop
+        );
+
+        await loadOptionsCfopEst(
+          dataGridPesqSelected[0].oper_cfop_import,
+          setCfopImp
+        );
+
+        document.getElementById('oper_gera_financeiro').checked =
+          dataGridPesqSelected[0].oper_gera_financeiro === 'S';
+        document.getElementById('oper_movimenta_estoque').checked =
+          dataGridPesqSelected[0].oper_movimenta_estoque === 'S';
 
         setValueTab(1);
         setLoading(false);
@@ -219,7 +219,7 @@ export default function SUPR2() {
 
   async function handleSubmit() {
     try {
-      if (parseInt(valueTab) > 0) {
+      if (parseInt(valueTab, 10) > 0) {
         const formData = frmCadastro.current.getData();
         frmCadastro.current.setErrors({});
         await schemaCad.validate(formData, {
@@ -228,28 +228,32 @@ export default function SUPR2() {
 
         setLoading(true);
 
-        const fornec = {
-          forn_emp_id: null,
-          forn_id: formData.forn_id ? formData.forn_id : null,
-          forn_razao_social: formData.forn_razao_social.toUpperCase(),
-          forn_cnpj: formData.forn_cnpj,
-          forn_telefone: formData.forn_telefone,
-          forn_email: formData.forn_email,
-          forn_cep: formData.forn_cep,
-          forn_logradouro: formData.forn_logradouro.toUpperCase(),
-          forn_bairro: formData.forn_bairro.toUpperCase(),
-          forn_cidade: formData.forn_cidade.toUpperCase(),
-          forn_estado: formData.forn_estado,
-          forn_numero: formData.forn_numero,
-          forn_complemento: formData.forn_complemento.toUpperCase(),
-          forn_ie: formData.forn_ie,
+        const objCad = {
+          oper_emp_id: null,
+          oper_id: formData.oper_id ? parseInt(formData.oper_id, 10) : null,
+          oper_descricao: formData.oper_descricao.toUpperCase(),
+          oper_situacao: formData.oper_situacao,
+          oper_tipo: formData.oper_tipo,
+          oper_gera_financeiro: document.getElementById('oper_gera_financeiro')
+            .checked
+            ? 'S'
+            : 'N',
+          oper_movimenta_estoque: document.getElementById(
+            'oper_movimenta_estoque'
+          ).checked
+            ? 'S'
+            : 'N',
+          oper_cfop_interestadual: formData.oper_cfop_interestadual,
+          oper_cfop_estadual: formData.oper_cfop_estadual,
+          oper_cfop_import: formData.oper_cfop_import,
+          oper_local_est: parseInt(formData.oper_local_est, 10),
         };
 
-        const retorno = await api.post('v1/supr/fornec', fornec);
+        const retorno = await api.post('v1/supr/operest', objCad);
         if (retorno.data.success) {
           frmCadastro.current.setFieldValue(
-            'forn_id',
-            retorno.data.retorno.forn_id
+            'oper_id',
+            retorno.data.retorno.oper_id
           );
           toast.info('Cadastro atualizado com sucesso!!!', toastOptions);
         } else {
@@ -274,24 +278,28 @@ export default function SUPR2() {
       }
 
       frmCadastro.current.setFieldError(
-        'forn_razao_social',
-        validationErrors.forn_razao_social
+        'oper_descricao',
+        validationErrors.oper_descricao
       );
       frmCadastro.current.setFieldError(
-        'forn_cnpj',
-        validationErrors.forn_cnpj
+        'oper_tipo',
+        validationErrors.oper_tipo
+      );
+      frmCadastro.current.setFieldError(
+        'oper_local_est',
+        validationErrors.oper_local_est
       );
     }
   }
 
   const handleChangeTab = async (event, newValue) => {
     if (newValue === 0) {
-      frmCadastro.current.setFieldValue('forn_id', '');
+      limpaForm();
       setValueTab(newValue);
-      await listaFornecedor();
+      await listaOperacao();
     } else if (newValue === 1) {
       const cadastro = frmCadastro.current.getData();
-      if (cadastro.forn_id) {
+      if (cadastro.oper_id) {
         setValueTab(newValue);
       } else {
         await handleEdit();
@@ -300,7 +308,8 @@ export default function SUPR2() {
   };
 
   useEffect(() => {
-    listaFornecedor();
+    listaOperacao();
+    comboGeral(16);
     setValueTab(0);
   }, []);
 
@@ -308,36 +317,28 @@ export default function SUPR2() {
 
   const gridColumnPesquisa = [
     {
-      field: 'forn_id',
-      headerName: 'COD. FORNECEDOR',
-      width: 120,
+      field: 'oper_id',
+      headerName: 'COD. OPERAÇÀO',
+      width: 180,
       sortable: true,
       resizable: true,
       filter: true,
       lockVisible: true,
     },
     {
-      field: 'forn_razao_social',
-      headerName: 'RAZÃO SOCIAL',
-      width: 450,
+      field: 'oper_descricao',
+      headerName: 'DESCRIÇÃO',
+      width: 500,
       sortable: true,
       resizable: true,
       filter: true,
       lockVisible: true,
     },
     {
-      field: 'forn_cnpj',
-      headerName: 'CNPJ',
-      width: 160,
-      sortable: false,
-      resizable: true,
-      lockVisible: true,
-    },
-    {
-      field: 'forn_email',
-      headerName: 'E-MAIL',
-      width: 130,
-      sortable: false,
+      field: 'tipo',
+      headerName: 'TIPO DE OPERAÇÃO',
+      width: 170,
+      sortable: true,
       resizable: true,
       filter: true,
       lockVisible: true,
@@ -350,8 +351,8 @@ export default function SUPR2() {
   return (
     <>
       <ToolBar hg="100%" wd="40px">
-        <BootstrapTooltip title="Consultar FORNECEDOR" placement="right">
-          <button type="button" onClick={listaFornecedor}>
+        <BootstrapTooltip title="Consultar Operaçòes" placement="right">
+          <button type="button" onClick={listaOperacao}>
             <FaSearch size={28} color="#fff" />
           </button>
         </BootstrapTooltip>
@@ -372,7 +373,7 @@ export default function SUPR2() {
       <Container>
         <Scroll>
           <TitleBar bckgnd="#dae2e5">
-            <h1>CADASTRO DE FORNECEDOR</h1>
+            <h1>CADASTRO DE OPERAÇÃO DE ESTOQUE</h1>
             <BootstrapTooltip title="Voltar para Dashboard" placement="top">
               <button type="button" onClick={handleDashboard}>
                 <MdClose size={30} color="#244448" />
@@ -391,22 +392,22 @@ export default function SUPR2() {
               textColor="primary"
             >
               <BootstrapTooltip
-                title="Consultar Fornecedor Cadastrado"
+                title="Consultar Operações Cadastradas"
                 placement="top-start"
               >
                 <Tab
-                  label="CONSULTAR FORNECEDOR"
+                  label="CONSULTAR OPERAÇÃO"
                   {...a11yProps(0)}
                   icon={<FaSearch size={29} color="#244448" />}
                 />
               </BootstrapTooltip>
               <BootstrapTooltip
-                title="Tela de cadastro de fornecedores"
+                title="ABRE O CADASTRO DA OPERAÇÃO"
                 placement="top-end"
               >
                 <Tab
                   disabled={false}
-                  label="CADASTRAR FORNECEDOR"
+                  label="CADASTRAR OPERAÇÃO"
                   {...a11yProps(1)}
                   icon={<FaFolderPlus size={26} color="#244448" />}
                 />
@@ -418,25 +419,8 @@ export default function SUPR2() {
           <TabPanel value={valueTab} index={0}>
             <Panel lefth1="left" bckgnd="#dae2e5">
               <Form id="frmPesquisa" ref={frmPesquisa}>
-                <h1>PARÂMETROS DE PESQUISA</h1>
-                <BoxItemCadNoQuery fr="1fr">
-                  <AreaComp wd="100">
-                    <KeyboardEventHandler
-                      handleKeys={['enter', 'tab']}
-                      onKeyEvent={() => listaFornecedor()}
-                    >
-                      <AsyncSelectForm
-                        name="pesq_forn_id"
-                        label="Informe CNPJ ou Razão Social do fornecedor para pesquisar"
-                        value={pesq_forn_id}
-                        placeholder="PESQUISAR FORNECEDOR"
-                        onChange={(f) => setPesq_forn_id(f || [])}
-                        loadOptions={loadOptionsFornec}
-                        isClearable
-                      />
-                    </KeyboardEventHandler>
-                  </AreaComp>
-                </BoxItemCadNoQuery>
+                <h1>OPERAÇÕES DE ESTOQUE CADASTRADAS</h1>
+
                 <BoxItemCadNoQuery fr="1fr">
                   <GridContainerMain className="ag-theme-balham">
                     <AgGridReact
@@ -460,132 +444,124 @@ export default function SUPR2() {
           <TabPanel value={valueTab} index={1}>
             <Panel lefth1="left" bckgnd="#dae2e5">
               <Form id="frmCadastro" ref={frmCadastro}>
-                <h1>IDENTIFICAÇÃO DO FORNECEDOR</h1>
-                <BoxItemCad fr="1fr 2fr 1fr">
+                <h1>OPERAÇÃO DE ESTOQUE</h1>
+                <BoxItemCad fr="1fr 3fr 1fr">
                   <AreaComp wd="100">
                     <label>Código</label>
                     <Input
                       type="number"
-                      name="forn_id"
+                      name="oper_id"
                       readOnly
                       className="input_cad"
                     />
                   </AreaComp>
                   <AreaComp wd="100">
-                    <label>Razão Social</label>
+                    <label>Descrição</label>
                     <Input
                       type="text"
-                      name="forn_razao_social"
+                      name="oper_descricao"
                       className="input_cad"
                     />
                   </AreaComp>
-                  <AreaComp wd="100">
-                    <label>CNPJ</label>
-                    <Input
-                      type="text"
-                      name="forn_cnpj"
-                      maxlength="18"
-                      className="input_cad"
-                      onChange={maskCNPJCPF}
-                    />
-                  </AreaComp>
-                </BoxItemCad>
-                <BoxItemCad fr="1fr 1fr 2fr">
-                  <AreaComp wd="100">
-                    <label>Inscrição Estadual</label>
-                    <Input type="text" name="forn_ie" className="input_cad" />
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <label>Fone</label>
-                    <Input
-                      type="text"
-                      name="forn_telefone"
-                      className="input_cad"
-                      onChange={maskFone}
-                    />
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <label>E-mail</label>
-                    <Input
-                      type="text"
-                      name="forn_email"
-                      className="input_cad"
-                    />
-                  </AreaComp>
-                </BoxItemCad>
-                <h1>ENDEREÇO FORNECEDOR</h1>
-                <BoxItemCad fr="1fr 2fr 1fr">
-                  <AreaComp wd="100">
-                    <label>CEP</label>
-                    <Input
-                      type="text"
-                      name="forn_cep"
-                      onKeyPress={(event) => {
-                        if (event.key === 'Enter') {
-                          document.getElementsByName('forn_numero')[0].focus();
-                        }
-                      }}
-                      onBlur={handleCep}
-                      className="input_cad"
-                    />
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <label>Logradouro</label>
-                    <Input
-                      type="text"
-                      name="forn_logradouro"
-                      className="input_cad"
-                    />
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <label>Bairro</label>
-                    <Input
-                      type="text"
-                      name="forn_bairro"
-                      className="input_cad"
-                    />
-                  </AreaComp>
-                </BoxItemCad>
-                <BoxItemCad fr="1fr 1fr 1fr">
-                  <AreaComp wd="100">
-                    <label>CIDADE</label>
-                    <Input
-                      type="text"
-                      name="forn_cidade"
-                      className="input_cad"
-                    />
-                  </AreaComp>
-
                   <AreaComp wd="100">
                     <FormSelect
-                      label="UF"
-                      name="forn_estado"
-                      optionsList={optUf}
-                      value={uf}
-                      onChange={(u) => setUf([u])}
-                      placeholder="Informe"
-                    />
-                  </AreaComp>
-
-                  <AreaComp wd="100">
-                    <label>NÚMERO</label>
-                    <Input
-                      type="text"
-                      name="forn_numero"
-                      className="input_cad"
+                      label="SITUAÇÃO"
+                      name="oper_situacao"
+                      optionsList={optSituacao}
+                      placeholder="NÃO INFORMADO"
+                      zindex="153"
                     />
                   </AreaComp>
                 </BoxItemCad>
-                <BoxItemCadNoQuery fr="1fr">
+                <BoxItemCad fr="1fr 3fr">
                   <AreaComp wd="100">
-                    <label>COMPLEMENTO</label>
-                    <Input
-                      type="text"
-                      name="forn_complemento"
-                      className="input_cad"
+                    <FormSelect
+                      label="TIPO DE OPERAÇÃO"
+                      name="oper_tipo"
+                      optionsList={optTipo}
+                      placeholder="NÃO INFORMADO"
+                      zindex="153"
                     />
                   </AreaComp>
-                </BoxItemCadNoQuery>
+                  <AreaComp wd="100">
+                    <AsyncSelectForm
+                      name="oper_cfop_estadual"
+                      label="CFOP PARA COMPRA NO ESTADO"
+                      placeholder="NÃO INFORMADO"
+                      defaultOptions
+                      cacheOptions
+                      loadOptions={loadOptionsCfopEst}
+                      isClearable
+                      value={cfop}
+                      onChange={(c) => setCfop(c || [])}
+                      zindex="152"
+                    />
+                  </AreaComp>
+                </BoxItemCad>
+                <BoxItemCad fr="1fr 3fr">
+                  <AreaComp wd="100">
+                    <FormSelect
+                      label="LOCAL DE ESTOQUE"
+                      name="oper_local_est"
+                      optionsList={optLocalEst}
+                      placeholder="NÃO INFORMADO"
+                      zindex="151"
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <AsyncSelectForm
+                      name="oper_cfop_interestadual"
+                      label="CFOP PARA COMPRA FORA DO ESTADO"
+                      placeholder="NÃO INFORMADO"
+                      defaultOptions
+                      cacheOptions
+                      loadOptions={loadOptionsCfopEst}
+                      isClearable
+                      value={cfopEst}
+                      onChange={(c) => setCfopEst(c || [])}
+                      zindex="151"
+                    />
+                  </AreaComp>
+                </BoxItemCad>
+                <BoxItemCad fr="1fr 3fr">
+                  <AreaComp wd="100">
+                    <CCheck>
+                      <input
+                        type="checkbox"
+                        id="oper_gera_financeiro"
+                        name="oper_gera_financeiro"
+                        value="S"
+                      />
+                      <label htmlFor="oper_gera_financeiro">
+                        Gera Financeiro
+                      </label>
+
+                      <input
+                        type="checkbox"
+                        id="oper_movimenta_estoque"
+                        name="oper_movimenta_estoque"
+                        value="S"
+                      />
+                      <label htmlFor="oper_movimenta_estoque">
+                        Movimenta Estoque
+                      </label>
+                    </CCheck>
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <AsyncSelectForm
+                      name="oper_cfop_import"
+                      label="CFOP PARA IMPORTAÇÃO"
+                      placeholder="NÃO INFORMADO"
+                      defaultOptions
+                      cacheOptions
+                      loadOptions={loadOptionsCfopEst}
+                      isClearable
+                      value={cfopImp}
+                      onChange={(c) => setCfopImp(c || [])}
+                      zindex="150"
+                    />
+                  </AreaComp>
+                </BoxItemCad>
               </Form>
             </Panel>
           </TabPanel>
@@ -597,7 +573,7 @@ export default function SUPR2() {
         closeDialogFn={() => {
           setLoading(false);
         }}
-        title="CADASTRO DE FORNECEDOR"
+        title="OPERAÇÃO DE ESTOQUE"
         message="Aguarde Processamento..."
       />
     </>
