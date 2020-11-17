@@ -368,6 +368,16 @@ export default function SUPR6() {
       lockVisible: true,
     },
     {
+      field: 'prode_saldo',
+      headerName: 'SALDO ATUAL',
+      width: 140,
+      sortable: true,
+      resizable: true,
+      filter: true,
+      lockVisible: true,
+      cellStyle: { color: '#06B453', fontWeight: 'bold' },
+    },
+    {
       field: 'classific1',
       headerName: 'CLASSIFIC. 1',
       width: 150,
