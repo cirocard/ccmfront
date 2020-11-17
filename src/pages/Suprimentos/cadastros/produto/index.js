@@ -575,7 +575,7 @@ export default function SUPR4() {
         }
         setValueTab(1);
         setLoading(false);
-      } else {
+      } else if (valueTab === 0) {
         setValueTab(0);
         toast.info(
           `Selecione um produto para consultar o cadastro ou Adicionar novo para um novo cadastro`,
@@ -753,6 +753,8 @@ export default function SUPR4() {
             `Houve erro no processamento!! ${retorno.data.message}`,
             toastOptions
           );
+          setLoading(false);
+          return;
         }
         setLoading(false);
       } else {
@@ -812,55 +814,59 @@ export default function SUPR4() {
   }
 
   const handleChangeTab = async (event, newValue) => {
-    let cadastro = frmCadastro.current.getData();
-    if (newValue === 0) {
-      await listarProduto(50);
-      setValueTab(newValue);
-      frmCadastro.current.setFieldValue('prod_id', '');
-    } else if (newValue === 1) {
-      if (cadastro.prod_id) setValueTab(newValue);
-      else await handleEdit();
-    } else if (newValue === 2) {
-      if (valueTab !== 2) {
-        if (cadastro.prod_id) {
-          setValueTab(newValue);
-        } else {
-          if (cadastro.prod_descricao) {
-            await handleSubmit();
+    try {
+      let cadastro = frmCadastro.current.getData();
+      if (newValue === 0) {
+        await listarProduto(50);
+        setValueTab(newValue);
+        frmCadastro.current.setFieldValue('prod_id', '');
+      } else if (newValue === 1) {
+        if (cadastro.prod_id) setValueTab(newValue);
+        else await handleEdit();
+      } else if (newValue === 2) {
+        if (valueTab !== 2) {
+          if (cadastro.prod_id) {
+            setValueTab(newValue);
+          } else {
+            if (cadastro.prod_descricao) {
+              await handleSubmit();
+            }
+            await handleEdit();
+            cadastro = frmCadastro.current.getData();
+            if (cadastro.prod_id) setValueTab(newValue);
           }
-          await handleEdit();
-          cadastro = frmCadastro.current.getData();
-          if (cadastro.prod_id) setValueTab(newValue);
         }
-      }
-    } else if (newValue === 3) {
-      if (valueTab !== 3) {
-        if (cadastro.prod_id) {
-          setValueTab(newValue);
-        } else {
-          if (cadastro.prod_descricao) {
-            await handleSubmit();
+      } else if (newValue === 3) {
+        if (valueTab !== 3) {
+          if (cadastro.prod_id) {
+            setValueTab(newValue);
+          } else {
+            if (cadastro.prod_descricao) {
+              await handleSubmit();
+            }
+            await handleEdit();
+            cadastro = frmCadastro.current.getData();
+            if (cadastro.prod_id) setValueTab(newValue);
           }
-          await handleEdit();
-          cadastro = frmCadastro.current.getData();
-          if (cadastro.prod_id) setValueTab(newValue);
         }
-      }
-    } else if (newValue === 4) {
-      if (valueTab !== 4) {
-        setDataValidade(moment(new Date()).add(1, 'years'));
-        if (cadastro.prod_id) {
-          setValueTab(newValue);
-        } else {
-          if (cadastro.prod_descricao) {
-            await handleSubmit();
+      } else if (newValue === 4) {
+        if (valueTab !== 4) {
+          setDataValidade(moment(new Date()).add(1, 'years'));
+          if (cadastro.prod_id) {
+            setValueTab(newValue);
+          } else {
+            if (cadastro.prod_descricao) {
+              await handleSubmit();
+            }
+            await handleEdit();
+            cadastro = frmCadastro.current.getData();
+            if (cadastro.prod_id) setValueTab(newValue);
           }
-          await handleEdit();
-          cadastro = frmCadastro.current.getData();
-          if (cadastro.prod_id) setValueTab(newValue);
         }
-      }
-    } else setValueTab(newValue);
+      } else setValueTab(newValue);
+    } catch (error) {
+      toast.error(`${error}`, toastOptions);
+    }
   };
 
   async function handleExcluirClassific(prm) {
