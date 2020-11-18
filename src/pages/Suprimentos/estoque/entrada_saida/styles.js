@@ -188,13 +188,17 @@ export const GridContainerMain = styled.div`
   width: 100%;
   padding: 8px 5px 0 0;
 
-  .warn-finalizado {
+  .warn-cadastrado {
     background-color: #f3ff33 !important;
   }
 
   .warn-cancelado {
     background-color: #d81e00 !important;
     color: #fff !important;
+  }
+
+  .warn-atualizado {
+    background-color: #0dd100 !important;
   }
 
   @media (min-height: 300px) {

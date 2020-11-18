@@ -1760,17 +1760,19 @@ export default function FAT2() {
       width: 95,
       sortable: false,
       resizable: true,
-      filter: true,
+      filter: false,
       lockVisible: true,
     },
     {
       field: 'prod_referencia',
       headerName: 'REFERÊNCIA',
       sortable: true,
-      width: 120,
+      width: 130,
       resizable: true,
       editable: true,
-      filter: true,
+      filter: 'agTextColumnFilter',
+      floatingFilter: true,
+      floatingFilterComponentParams: { suppressFilterButton: true },
       lockVisible: true,
     },
     {
@@ -1780,8 +1782,10 @@ export default function FAT2() {
       sortable: true,
       resizable: true,
       editable: true,
+      floatingFilter: true,
       filter: true,
       lockVisible: true,
+      floatingFilterComponentParams: { suppressFilterButton: true },
     },
     {
       field: 'classific1',
@@ -2484,27 +2488,23 @@ export default function FAT2() {
           {/* ABA ITENS DO PEDIDO */}
           <TabPanel value={valueTab} index={2}>
             <Panel lefth1="left" bckgnd="#dae2e5">
-              <h1>ITENS DO PEDIDO</h1>
-              <BoxItemCadNoQuery fr="1fr 1fr">
-                <AreaComp wd="100">
-                  <CCheck>
-                    <input
-                      type="checkbox"
-                      id="chbBonificar"
-                      name="chbBonificar"
-                      value="S"
-                    />
-                    <label htmlFor="chbBonificar">
-                      Lançar item como brinde (bonificação)
-                    </label>
-                  </CCheck>
-                </AreaComp>
-                <AreaComp wd="100" h3talign="center" bckgndh3="#fff">
-                  <h3>{labelSaldo}</h3>
-                </AreaComp>
-              </BoxItemCadNoQuery>
+              <h1>{`ITENS DO PEDIDO   -  ${labelSaldo}`}</h1>
+
               <Form id="frmItens" ref={frmItens}>
-                <BoxItemCad fr="1fr 2fr 1fr">
+                <BoxItemCad fr="1fr 1fr 2fr 1fr">
+                  <AreaComp wd="100">
+                    <CCheck>
+                      <input
+                        type="checkbox"
+                        id="chbBonificar"
+                        name="chbBonificar"
+                        value="S"
+                      />
+                      <label htmlFor="chbBonificar">
+                        Lançar item como brinde (bonificação)
+                      </label>
+                    </CCheck>
+                  </AreaComp>
                   <AreaComp wd="100">
                     <FormSelect
                       name="item_tab_preco_id"
