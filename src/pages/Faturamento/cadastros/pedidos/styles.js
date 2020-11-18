@@ -60,7 +60,7 @@ export const Panel = styled.div`
   margin-top: -10px;
 
   h1 {
-    width: 100%;
+    width: ${(props) => props.wdh1 || '100%'};
     margin-top: 0px;
     text-align: ${(props) => props.lefth1 || 'center'};
     font-size: 16px;
@@ -137,23 +137,23 @@ export const GridContainerItens = styled.div`
   }
 
   @media (min-height: 300px) {
-    height: 29vh;
-  }
-
-  @media (min-height: 600px) {
     height: 32vh;
   }
 
+  @media (min-height: 600px) {
+    height: 34vh;
+  }
+
   @media (min-height: 680px) {
-    height: 36vh;
+    height: 38vh;
   }
 
   @media (min-height: 780px) {
-    height: 42vh;
+    height: 44vh;
   }
 
   @media (min-height: 880px) {
-    height: 47vh;
+    height: 49vh;
   }
 `;
 
