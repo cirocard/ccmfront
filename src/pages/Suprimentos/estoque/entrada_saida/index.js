@@ -16,6 +16,7 @@ import {
   FaPlusCircle,
   FaFolderPlus,
   FaCheck,
+  FaTrashAlt,
 } from 'react-icons/fa';
 import DatePickerInput from '~/componentes/DatePickerInput';
 import AsyncSelectForm from '~/componentes/Select/selectAsync';
@@ -26,12 +27,7 @@ import TabPanel from '~/componentes/TabPanel';
 import Input from '~/componentes/Input';
 import { BootstrapTooltip } from '~/componentes/ToolTip';
 import history from '~/services/history';
-import {
-  a11yProps,
-  FormataData,
-  RetirarMascara,
-  toDecimal,
-} from '~/services/func.uteis';
+import { a11yProps, FormataData } from '~/services/func.uteis';
 import { ApiService, ApiTypes } from '~/services/api';
 import {
   Container,
@@ -564,6 +560,30 @@ export default function SUPR8() {
     window.open('/supr4', '_blank');
   }
 
+  async function handleExcluir(prm) {
+    try {
+      if (prm.ent_situacao === '1') {
+        const response = await api.delete(
+          `v1/supr/estoque/entrada_estoque?ent_id=${prm.ent_id}&ent_itens_id=${prm.ent_itens_id}`
+        );
+        if (response.data.success) {
+          toast.success('ITEM EXCLUÍDO COM SUCESSO!!!', toastOptions);
+          await getItensMov();
+        } else {
+          toast.error(response.data.message);
+        }
+      } else {
+        toast.warning(
+          'ESTA MOVIMENTAÇÃO NAO PODE MAIS SER ALTERADA.  VERIQUE A SITUAÇÃO',
+          toastOptions
+        );
+      }
+    } catch (error) {
+      setLoading(false);
+      toast.error(`Erro ao excluír item \n${error}`, toastOptions);
+    }
+  }
+
   useEffect(() => {
     listaMovimentacoes();
     getComboOperEst('E');
@@ -728,6 +748,23 @@ export default function SUPR8() {
   // #region GRID ITENS  =========================
 
   const gridColumnItens = [
+    {
+      field: 'ent_itens_id',
+      headerName: 'AÇÕES',
+      width: 70,
+      lockVisible: true,
+      cellRendererFramework(prm) {
+        return (
+          <>
+            <BootstrapTooltip title="EXCLUIR ITEM" placement="top">
+              <button type="button" onClick={() => handleExcluir(prm.data)}>
+                <FaTrashAlt size={18} color="#253739" />
+              </button>
+            </BootstrapTooltip>
+          </>
+        );
+      },
+    },
     {
       field: 'ent_itens_id',
       headerName: 'CÓDIGO',
