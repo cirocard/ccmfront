@@ -522,13 +522,29 @@ export default function SUPR8() {
   async function handleAtualizarMov() {
     try {
       if (dataGridPesqSelected.length > 0) {
-        setLoading(true);
+        if (dataGridPesqSelected[0].ent_situacao === 'CADASTRADO') {
+          setLoading(true);
 
-        const url = `/v1/supr/estoque/rel_entrada_saida?ent_id=${dataGridPesqSelected[0].ent_id}`;
-
-        const response = await api.get(url);
-        const link = response.data;
-        setLoading(false);
+          const url = `/v1/supr/estoque/entrada_estoque?ent_id=${dataGridPesqSelected[0].ent_id}`;
+          const response = await api.put(url);
+          if (response.data.success) {
+            await listaMovimentacoes();
+            toast.success(
+              'MOVIMENTAÇÃO ATUALIZADA COM SUCESSO!!!',
+              toastOptions
+            );
+          } else
+            toast.info(
+              'MOVIMENTAÇÃO NÃO ATUALIZADA... VERIFIQUE!!!',
+              toastOptions
+            );
+          setLoading(false);
+        } else {
+          toast.info(
+            'ESTA MOVIMENTAÇÃO NÃO PODE MAIS SER ALTERADA...',
+            toastOptions
+          );
+        }
       } else {
         toast.info(
           'Selecione uma movimentação cadastrada para atualizar',
@@ -542,6 +558,10 @@ export default function SUPR8() {
         toastOptions
       );
     }
+  }
+
+  function handleProduto() {
+    window.open('/supr4', '_blank');
   }
 
   useEffect(() => {
@@ -810,14 +830,14 @@ export default function SUPR8() {
           title="CONFIRMAR E ATUALIZAR MOVIMENTAÇÃO"
           placement="left"
         >
-          <button type="button" onClick={null}>
+          <button type="button" onClick={handleAtualizarMov}>
             <FaCheck size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
         <DivLimitador hg="10px" />
         <BootstrapTooltip title="CONSULTAR PRODUTOS" placement="left">
           <button type="button">
-            <FaCubes size={25} color="#fff" />
+            <FaCubes size={25} color="#fff" onClick={handleProduto} />
           </button>
         </BootstrapTooltip>
         <DivLimitador hg="10px" />
@@ -873,7 +893,7 @@ export default function SUPR8() {
             <Panel lefth1="left" bckgnd="#dae2e5">
               <Form id="frmPesquisa" ref={frmPesquisa}>
                 <h1>PARÂMETROS DE PESQUISA</h1>
-                <BoxItemCadNoQuery fr="3fr 1fr 1fr 1fr 1fr 1fr">
+                <BoxItemCad fr="3fr 1fr 1fr 1fr 1fr 1fr">
                   <AreaComp wd="100">
                     <KeyboardEventHandler
                       handleKeys={['enter', 'tab']}
@@ -932,7 +952,7 @@ export default function SUPR8() {
                       zindex="153"
                     />
                   </AreaComp>
-                </BoxItemCadNoQuery>
+                </BoxItemCad>
                 <BoxItemCadNoQuery fr="1fr">
                   <GridContainerMain className="ag-theme-balham">
                     <AgGridReact

@@ -1574,7 +1574,7 @@ export default function SUPR4() {
     <>
       <ToolBar hg="100%" wd="40px">
         <BootstrapTooltip title="CONSULTAR PRODUTO" placement="right">
-          <button type="button" onClick={() => listarProduto(200)}>
+          <button type="button" onClick={() => listarProduto(800)}>
             <FaSearch size={28} color="#fff" />
           </button>
         </BootstrapTooltip>

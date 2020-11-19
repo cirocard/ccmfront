@@ -771,6 +771,17 @@ export default function FAT2() {
   async function handleCancelar() {
     try {
       if (dataGridPesqSelected.length > 0) {
+        if (
+          dataGridPesqSelected[0].situacao === '3' ||
+          dataGridPesqSelected[0].situacao === '10'
+        ) {
+          toast.warning(
+            'ATENÇÃO!! ESTE PEDIDO NÃO PODE MAIS SER ALTERADO.  VERIFIQUE A SITUACÃO!!!',
+            toastOptions
+          );
+          return;
+        }
+
         const confirmation = await Confirmation.show(
           'VOCÊ TEM CERTEZA QUE QUER CANCEALR O PEDIDO???'
         );
@@ -800,7 +811,7 @@ export default function FAT2() {
     if (dataGridPesqSelected.length > 0) {
       if (dataGridPesqSelected[0].situacao === '3') {
         toast.warning(
-          'Atenção!! Este Pedido está cancelado. A nota não poderá ser gerada',
+          'ATENÇÃO!! Este Pedido está cancelado. A nota não poderá ser gerada',
           toastOptions
         );
       } else {
@@ -830,7 +841,7 @@ export default function FAT2() {
         dataGridPesqSelected[0].situacao === '10'
       ) {
         toast.warning(
-          'Atenção!! Este Pedido não pode ser validado. Verifique se não está cancelado ou finalizado',
+          'ATENÇÃO!! ESTE PEDIDO NÃO PODE MAIS SER ALTERADO.  VERIFIQUE A SITUACÃO!!!',
           toastOptions
         );
       } else {
@@ -890,6 +901,14 @@ export default function FAT2() {
   // adiconar itens
   async function handleSubmitItens(gridItensSelected) {
     try {
+      if (situacaoPedido !== '1' && valueTab.toString() !== '3') {
+        toast.warning(
+          'ATENÇÃO!! ESTE PEDIDO NÃO PODE MAIS SER ALTERADO. VERIFIQUE A SITUACÃO!!!',
+          toastOptions
+        );
+        return;
+      }
+
       await totalItem();
       const formItens = frmItens.current.getData();
       const formCapa = frmCapa.current.getData();
@@ -1042,6 +1061,13 @@ export default function FAT2() {
   async function handleDesconto(formData) {
     try {
       if (formData.perc_desconto || formData.vlr_desconto) {
+        if (situacaoPedido !== '1') {
+          toast.warning(
+            'ATENÇÃO!! ESTE PEDIDO NÃO PODE MAIS SER ALTERADO. VERIFIQUE A SITUAÇÃO!!!',
+            toastOptions
+          );
+          return;
+        }
         setLoading(true);
         const formCapa = frmCapa.current.getData();
         const response = await api.put(
@@ -1128,6 +1154,13 @@ export default function FAT2() {
     try {
       const formCapa = frmCapa.current.getData();
       if (valueTab == '1' && formCapa.cp_id) {
+        if (situacaoPedido !== '1') {
+          toast.warning(
+            'ATENÇÃO!! ESTE PEDIDO NÃO PODE MAIS SER ALTERADO. VERIFIQUE A SITUAÇÃO!!!',
+            toastOptions
+          );
+          return;
+        }
         if (toDecimal(formCapa.cp_credito_cli) === 0) {
           setLoading(true);
           if (pesqCli_id.value) {
@@ -1620,6 +1653,10 @@ export default function FAT2() {
     }
   };
 
+  function handleProduto() {
+    window.open('/supr4', '_blank');
+  }
+
   useEffect(() => {
     if (params.tipo === '2') {
       setTitlePg('CADASTRO PEDIDOS - PRÉ-VENDA');
@@ -2107,13 +2144,6 @@ export default function FAT2() {
         </BootstrapTooltip>
         <DivLimitador hg="10px" />
 
-        <BootstrapTooltip title="Consultar Produto" placement="left">
-          <button type="button">
-            <FaCubes size={25} color="#fff" />
-          </button>
-        </BootstrapTooltip>
-        <DivLimitador hg="10px" />
-
         <BootstrapTooltip title="Finalizar Pedido" placement="left">
           <button type="button" onClick={handleFinalizarPedido}>
             <FaRegCheckSquare size={25} color="#fff" />
@@ -2121,6 +2151,12 @@ export default function FAT2() {
         </BootstrapTooltip>
         <DivLimitador hg="20px" />
         <Linha />
+        <DivLimitador hg="10px" />
+        <BootstrapTooltip title="Consultar Produto" placement="left">
+          <button type="button" onClick={handleProduto}>
+            <FaCubes size={25} color="#fff" />
+          </button>
+        </BootstrapTooltip>
         <DivLimitador hg="10px" />
         <BootstrapTooltip title="ABRIR CADASTRO DE CLIENTES" placement="left">
           <button type="button" onClick={handleCliente}>
