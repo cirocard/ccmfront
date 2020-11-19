@@ -925,7 +925,7 @@ export default function FAT2() {
       // verificar bordero
       if (existeBordero === 'S') {
         toast.warning(
-          'Atenção!! Este Pedido não pode mais ser alterado. Verifique a situaçao!!!',
+          'Atenção!! Este Pedido não pode mais ser alterado. Verifique a existência de borderô!!!',
           toastOptions
         );
         return;
