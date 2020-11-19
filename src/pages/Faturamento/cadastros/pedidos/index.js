@@ -901,14 +901,6 @@ export default function FAT2() {
   // adiconar itens
   async function handleSubmitItens(gridItensSelected) {
     try {
-      if (situacaoPedido !== '1' && valueTab.toString() !== '3') {
-        toast.warning(
-          'ATENÇÃO!! ESTE PEDIDO NÃO PODE MAIS SER ALTERADO. VERIFIQUE A SITUACÃO!!!',
-          toastOptions
-        );
-        return;
-      }
-
       await totalItem();
       const formItens = frmItens.current.getData();
       const formCapa = frmCapa.current.getData();
