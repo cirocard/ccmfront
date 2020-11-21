@@ -27,7 +27,7 @@ import TabPanel from '~/componentes/TabPanel';
 import Input from '~/componentes/Input';
 import { BootstrapTooltip } from '~/componentes/ToolTip';
 import history from '~/services/history';
-import { a11yProps, FormataData } from '~/services/func.uteis';
+import { a11yProps, FormataData, toDecimal } from '~/services/func.uteis';
 import { ApiService, ApiTypes } from '~/services/api';
 import {
   Container,
@@ -584,6 +584,35 @@ export default function SUPR8() {
     }
   }
 
+  const handleEditarQuantidade = async (prm) => {
+    try {
+      if (prm.data.ent_situacao === '1') {
+        const response = await api.put(
+          `v1/supr/estoque/entrada_estoque_quant?ent_id=${
+            prm.data.ent_id
+          }&ent_itens_id=${prm.data.ent_itens_id}&ent_quantidade=${toDecimal(
+            prm.data.ent_quantidade
+          )}`
+        );
+        if (response.data.success) {
+          toast.success('QUANTIDADE ATUALIZADA!!!', toastOptions);
+          await getItensMov();
+        } else {
+          toast.error(response.data.message);
+        }
+      } else {
+        toast.warning(
+          'ESTA MOVIMENTAÇÃO NAO PODE MAIS SER ALTERADA.  VERIQUE A SITUAÇÃO',
+          toastOptions
+        );
+        return;
+      }
+    } catch (err) {
+      setLoading(false);
+      toast.error(`Erro ao alterar quantidade: ${err}`, toastOptions);
+    }
+  };
+
   useEffect(() => {
     listaMovimentacoes();
     getComboOperEst('E');
@@ -808,6 +837,8 @@ export default function SUPR8() {
       resizable: true,
       lockVisible: true,
       cellStyle: { color: '#DB0505', fontWeight: 'bold' },
+      editable: true,
+      onCellValueChanged: handleEditarQuantidade,
     },
 
     {

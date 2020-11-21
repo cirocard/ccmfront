@@ -1,26 +1,18 @@
 import React, { useEffect, useState, useRef } from 'react';
-import * as Yup from 'yup';
+
 import KeyboardEventHandler from 'react-keyboard-event-handler';
 import { Form } from '@unform/web';
 import { toast } from 'react-toastify';
 import { AgGridReact } from 'ag-grid-react';
 import { MdClose } from 'react-icons/md';
-import {
-  FaSave,
-  FaSearch,
-  FaPlusCircle,
-  FaTrashAlt,
-  FaRegAddressCard,
-} from 'react-icons/fa';
+import { FaSave, FaPlusCircle, FaTrashAlt } from 'react-icons/fa';
 import AsyncSelectForm from '~/componentes/Select/selectAsync';
 import FormSelect from '~/componentes/Select';
 import DialogInfo from '~/componentes/DialogInfo';
 import { gridTraducoes } from '~/services/gridTraducoes';
 import Popup from '~/componentes/Popup';
-import Input from '~/componentes/Input';
 import { BootstrapTooltip } from '~/componentes/ToolTip';
 import history from '~/services/history';
-import { RetirarMascara, maskDecimal, toDecimal } from '~/services/func.uteis';
 import { ApiService, ApiTypes } from '~/services/api';
 import {
   Container,
