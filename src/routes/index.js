@@ -28,6 +28,10 @@ import FAT2 from '~/pages/Faturamento/cadastros/pedidos';
 import FAT3 from '~/pages/Faturamento/cadastros/ecommerce';
 import FAT4 from '~/pages/Faturamento/cadastros/pedidos/config';
 
+// FINANCEIRO
+import FINA1 from '~/pages/Financeiro/dashboard';
+import FINA3 from '~/pages/Financeiro/grupo_recdesp';
+
 // SUPRIMENTOS
 import SUPR1 from '~/pages/Suprimentos/dashboard';
 import SUPR2 from '~/pages/Suprimentos/cadastros/fornecedor';
@@ -67,6 +71,10 @@ export default function Routes() {
       <Route path="/fat2/:tipo" component={FAT2} isPrivate />
       <Route path="/fat3" component={FAT3} isPrivate />
       <Route path="/fat4" component={FAT4} isPrivate />
+
+      {/* MÓDULO FINANCEIRO */}
+      <Route path="/fina1" component={FINA1} isPrivate />
+      <Route path="/fina3/:tipo" component={FINA3} isPrivate />
 
       {/* MÓDULO SUPRIMENTOS */}
       <Route path="/supr1" component={SUPR1} isPrivate />
