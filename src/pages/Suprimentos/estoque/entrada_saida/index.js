@@ -844,7 +844,7 @@ export default function SUPR8() {
     {
       field: 'classific1',
       headerName: 'CLASSIFIC. 1',
-      width: 150,
+      width: 160,
       sortable: false,
       resizable: true,
       lockVisible: true,
@@ -852,7 +852,7 @@ export default function SUPR8() {
     {
       field: 'classific2',
       headerName: 'CLASSIFIC. 2',
-      width: 150,
+      width: 160,
       sortable: false,
       resizable: true,
       lockVisible: true,
@@ -860,10 +860,12 @@ export default function SUPR8() {
     {
       field: 'classific3',
       headerName: 'CLASSIFIC. 3',
-      width: 150,
+      width: 160,
       sortable: false,
       resizable: true,
       lockVisible: true,
+    },
+    {
       flex: 1,
     },
   ];

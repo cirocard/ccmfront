@@ -60,20 +60,26 @@ export default function FINA3() {
     history.push('/fina1', '_blank');
   }
 
-  async function listarGeral(tab) {
+  async function listarGeral() {
     try {
-      const response = await api.get(`v1/shared/consulta/geral/${tab}`);
+      const tpgrupo = params.tipo === 'R' ? '1' : '2';
+      const response = await api.get(
+        `v1/shared/consulta/geral_by_param?ger_tab_id=20&ger_descricao=&ger_numerico3=${tpgrupo}`
+      );
       const dados = response.data.retorno;
       if (dados) {
         setGridPesquisa(dados);
       }
     } catch (error) {
-      toast.error(`Erro ao carregar equipe \n${error}`);
+      toast.error(`Erro ao Grupos \n${error}`);
     }
   }
 
   const limpaForm = () => {
     frmCadastro.current.setFieldValue('ger_descricao', '');
+    frmCadastro.current.setFieldValue('ger_texto1', '');
+    frmCadastro.current.setFieldValue('agrupador', '');
+    frmCadastro.current.setFieldValue('tipocad', '');
   };
 
   const handleEdit = async (prm) => {
@@ -119,6 +125,10 @@ export default function FINA3() {
         ger_emp_id: '',
         ger_id: codigo || null,
         ger_descricao: formData.ger_descricao.toUpperCase(),
+        ger_numerico1: formData.agrupador || null,
+        ger_numerico2: formData.tipocad,
+        ger_numerico3: tipoCad,
+        ger_texto1: formData.ger_texto1,
       };
 
       frmCadastro.current.setErrors({});
@@ -131,27 +141,32 @@ export default function FINA3() {
       if (retorno.data.success) {
         toast.info('Cadastro atualizado com sucesso!!!', toastOptions);
         limpaForm();
+        await listarGeral();
       } else {
         toast.error(
           `Houve erro no processamento!! ${retorno.data.message}`,
           toastOptions
         );
       }
-      await listarGeral(tabId);
+
       setLoading(false);
     } catch (err) {
+      setLoading(false);
       const validationErrors = {};
       if (err instanceof Yup.ValidationError) {
         err.inner.forEach((error) => {
           validationErrors[error.path] = error.message;
         });
       } else {
-        setLoading(false);
         toast.error(`Erro salvar parametros: ${err}`, toastOptions);
       }
       frmCadastro.current.setFieldError(
         'ger_descricao',
         validationErrors.ger_descricao
+      );
+      frmCadastro.current.setFieldError(
+        'ger_texto1',
+        validationErrors.ger_texto1
       );
     }
   }
@@ -186,8 +201,9 @@ export default function FINA3() {
     try {
       setLoading(true);
       if (value === '1') {
+        // agrupador
         const response = await api.get(
-          `v1/fina/parametros/referencia?tipo=${value}`
+          `v1/fina/parametros/referencia?tipo=${value}&tipocad=${tipoCad}&tiporef=REFCAD&agrupador_id=`
         );
         if (response.data.success) {
           frmCadastro.current.setFieldValue(
@@ -201,9 +217,11 @@ export default function FINA3() {
         const response = await api.get(
           `v1/combos/agrupador_recdesp/${tipoCad}`
         );
+
         setOptAgrupador(response.data.retorno);
       } else {
         frmCadastro.current.setFieldValue('ger_texto1', '');
+        frmCadastro.current.setFieldValue('agrupador', '');
       }
       setLoading(false);
     } catch (error) {
@@ -212,43 +230,45 @@ export default function FINA3() {
     }
   }
 
+  async function handleAgrupador(value) {
+    try {
+      if (value) {
+        setLoading(true);
+        const response = await api.get(
+          `v1/fina/parametros/referencia?tipo=&tiporef=REFAGRUPADOR&agrupador_id=${value}`
+        );
+        if (response.data.success) {
+          frmCadastro.current.setFieldValue(
+            'ger_texto1',
+            response.data.retorno
+          );
+        }
+        setLoading(false);
+      }
+    } catch (error) {
+      setLoading(false);
+      toast.error(
+        `Erro ao gerar referencia agrupadora \n${error}`,
+        toastOptions
+      );
+    }
+  }
+
   useEffect(() => {
     if (params.tipo === 'R') {
       setTituloCadastro('CADASTRO DE GRUPO DE RECEITA');
       setTabId(20);
       setTipoCad('1');
-      listarGeral(20);
+      listarGeral();
     } else if (params.tipo === 'D') {
       setTituloCadastro('CADASTRO DE GRUPO DE DESPESAS');
       setTabId(20);
       setTipoCad('2');
-      listarGeral(20);
+      listarGeral();
     }
   }, []);
 
   const gridListaCadastro = [
-    {
-      field: 'ger_id',
-      headerName: 'DEL',
-      width: 80,
-      lockVisible: true,
-      cellRendererFramework(prms) {
-        return (
-          <>
-            <BootstrapTooltip title="Excluir Registro" placement="top">
-              <button
-                className="grid-button"
-                type="button"
-                onClick={() => handleDelete(prms.data)}
-              >
-                <MdDelete size={20} color="#253739" />
-              </button>
-            </BootstrapTooltip>
-          </>
-        );
-      },
-    },
-
     {
       field: 'ger_id',
       headerName: 'CÓDIGO',
@@ -261,7 +281,7 @@ export default function FINA3() {
     {
       field: 'ger_texto1',
       headerName: 'REFERÊNCIA',
-      width: 140,
+      width: 180,
       sortable: true,
       resizable: false,
       filter: true,
@@ -345,8 +365,9 @@ export default function FINA3() {
                 <AreaComp wd="100">
                   <FormSelect
                     label="Agrupador do grupo"
-                    name="tipocad"
+                    name="agrupador"
                     optionsList={optAgrupador}
+                    onChange={(p) => handleAgrupador(p ? p.value : '')}
                     placeholder="NÃO INFORMADO"
                     zindex="152"
                   />
@@ -378,6 +399,12 @@ export default function FINA3() {
                   rowSelection="single"
                   animateRows
                   gridOptions={{ localeText: gridTraducoes }}
+                  rowClassRules={{
+                    'warn-agrupador': function (p) {
+                      const agrupador = p.data.ger_numerico2;
+                      return agrupador.toString() === '1';
+                    },
+                  }}
                 />
               </GridContainerMain>
             </BoxItemCadNoQuery>

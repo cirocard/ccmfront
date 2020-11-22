@@ -112,6 +112,12 @@ export const GridContainerMain = styled.div`
     cursor: pointer;
   }
 
+  .warn-agrupador {
+    font-weight: bold !important;
+    color: #000 !important;
+    background-color: #ebf1ec !important;
+  }
+
   @media (min-height: 300px) {
     height: 40vh;
   }
