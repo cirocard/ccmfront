@@ -234,7 +234,7 @@ export default createGlobalStyle`
 
 
   /* ========= Customizações AG-Grid ============ */
-div.ag-root .ag-cell-focus {
+div.ag-root .ag-cell-focus { /* permitir seleçao na gride */
   -webkit-user-select: text;
   -moz-user-select: text;
   -ms-user-select: text;
@@ -254,7 +254,7 @@ div.ag-root .ag-cell-focus {
 }
 
 .ag-theme-balham .ag-row-selected {
-  background-color: #264224 !important;
+  background-color: #FA6505 !important;
 }
 
 .ag-theme-balham  .ag-row-selected .ag-cell {
@@ -269,7 +269,7 @@ div.ag-root .ag-cell-focus {
   color: #000;
 }
 
-.ag-header-cell-text {
+.ag-header-cell-text {  /* fonte e cor do header da gride */
   font-weight: bold;
   font-size: 12px;
   color: #ECF9EF;
@@ -277,13 +277,21 @@ div.ag-root .ag-cell-focus {
 }
 
 .ag-header-cell-label, .ag-cell-label-container, .ag-header-cell-sorted-none, 
-.ag-header-cell{
+.ag-header-cell{ /* cor do header */
   background-color: #3E5171;
   color: #ECF9EF; 
 }
 
-.ag-icon, .ag-icon-menu{
+.ag-icon, .ag-icon-menu{  /* indicadores na barra de titulo */
   color: #ECF9EF; 
+}
+
+.ag-input-id-54, .ag-input-field-input, .ag-text-field-input{
+  color: #2D3137 !important;
+  font-size: 12px !important;
+  font-weight: bold !important;
+  padding: 3px 2px 3px 3px !important;
+  
 }
 
 `;
