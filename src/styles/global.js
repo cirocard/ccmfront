@@ -232,4 +232,58 @@ export default createGlobalStyle`
     margin-top: -12px !important;
   }
 
+
+  /* ========= Customizações AG-Grid ============ */
+div.ag-root .ag-cell-focus {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+.grid-red-row {
+  background-color: #e42a3c !important;
+}
+
+.ag-theme-balham .grid-red-row.ag-row-selected {
+  background-color: #e42a3c !important;
+}
+
+.ag-theme-balham {
+  font-family: 'Roboto',sans-serif !important;
+}
+
+.ag-theme-balham .ag-row-selected {
+  background-color: #264224 !important;
+}
+
+.ag-theme-balham  .ag-row-selected .ag-cell {
+  color: #fff;
+}
+
+.ag-theme-balham  .ag-row-selected .ag-cell .ag-cell-editor {
+  color: #000;
+}
+
+.ag-theme-balham .ag-select .ag-picker-field-wrapper {
+  color: #000;
+}
+
+.ag-header-cell-text {
+  font-weight: bold;
+  font-size: 12px;
+  color: #ECF9EF;
+
+}
+
+.ag-header-cell-label, .ag-cell-label-container, .ag-header-cell-sorted-none, 
+.ag-header-cell{
+  background-color: #3E5171;
+  color: #ECF9EF; 
+}
+
+.ag-icon, .ag-icon-menu{
+  color: #ECF9EF; 
+}
+
 `;
