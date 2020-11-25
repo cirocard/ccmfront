@@ -255,10 +255,8 @@ export default function Crm9() {
   async function handleCep(cep) {
     if (cep.target.value.length > 7) {
       const cepVaidar = RetirarMascara(cep.target.value, '.-');
-      const response = await apiGeral.get(
-        `https://viacep.com.br/ws/${cepVaidar}/json`
-      );
-      const dados = response.data;
+      const response = await api.get(`v1/crm/consulta/cep?cep=${cepVaidar}`);
+      const dados = response.data.retorno;
       frmEndereco.current.setFieldValue('clie_logradouro', dados.logradouro);
       frmEndereco.current.setFieldValue('clie_bairro', dados.bairro);
       frmEndereco.current.setFieldValue('clie_cidade', dados.localidade);

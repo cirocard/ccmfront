@@ -193,7 +193,7 @@ export default function FINA3() {
   };
 
   function handleParametros(prm) {
-    history.push(`/supr3/${prm}`);
+    history.push(`/fina3/${prm}`);
     window.location.reload(false);
   }
 
@@ -309,13 +309,13 @@ export default function FINA3() {
       <ToolBar hg="100%" wd="40px">
         <DivLimitador hg="10px" />
         <BootstrapTooltip title="ACESSAR GRUPO DE RECEITA" placement="left">
-          <button type="button" onClick={() => handleParametros('16')}>
+          <button type="button" onClick={() => handleParametros('R')}>
             <FaArrowUp size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
         <DivLimitador hg="20px" />
         <BootstrapTooltip title="ACESSAR GRUPO DE DESPESA" placement="left">
-          <button type="button" onClick={() => handleParametros('9')}>
+          <button type="button" onClick={() => handleParametros('D')}>
             <FaArrowDown size={25} color="#fff" />
           </button>
         </BootstrapTooltip>

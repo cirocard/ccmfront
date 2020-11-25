@@ -68,10 +68,11 @@ export const CustomSelect = styled(Select)`
   & .Select__control {
     background-color: #eef3f5;
   }
-  & .Select__single-value {
+  & .Select__single-value,
+  .css-1uccc91-singleValue {
     font-weight: bold;
-    color: #495057;
-    font-size: 14px;
+    color: #243043;
+    font-size: 14px !important;
   }
 
   @media ${device.mobileS} {
