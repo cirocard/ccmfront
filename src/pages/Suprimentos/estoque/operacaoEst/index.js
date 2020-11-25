@@ -1,13 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
 import * as Yup from 'yup';
-import axios from 'axios';
 import { Form } from '@unform/web';
 import { toast } from 'react-toastify';
 import { AgGridReact } from 'ag-grid-react';
 import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
-import KeyboardEventHandler from 'react-keyboard-event-handler';
 
 import { MdClose } from 'react-icons/md';
 import { FaSave, FaSearch, FaPlusCircle, FaFolderPlus } from 'react-icons/fa';
@@ -19,7 +17,7 @@ import TabPanel from '~/componentes/TabPanel';
 import Input from '~/componentes/Input';
 import { BootstrapTooltip } from '~/componentes/ToolTip';
 import history from '~/services/history';
-import { a11yProps, RetirarMascara, toDecimal } from '~/services/func.uteis';
+import { a11yProps } from '~/services/func.uteis';
 import { ApiService, ApiTypes } from '~/services/api';
 import { Container, Panel, ToolBar, GridContainerMain } from './styles';
 import {

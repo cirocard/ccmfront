@@ -67,7 +67,7 @@ export default createGlobalStyle`
       border: solid 1px #ccc;
       border-radius: 4px;
       height: 30px;
-      padding: 5px 10px 5px 10px;
+      padding: 5px 7px 5px 7px;
       color: #243043;
       font-size: 14px;
       font-weight: 700;

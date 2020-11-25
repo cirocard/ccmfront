@@ -24,7 +24,7 @@ export const ToolBar = styled.div`
   flex-direction: column;
   padding-top: 120px;
   width: ${(props) => props.wd};
-  height: ${(props) => props.hg} !important;
+  height: ${(props) => props.hg};
   margin-left: ${(props) => props.mleft || -10}px;
   margin-top: 0px;
   background: #244448;
@@ -54,19 +54,16 @@ export const Panel = styled.div`
   width: 100%;
   border-radius: 4px;
   margin-left: 0px;
-  margin-top: -10px;
+  margin-top: px;
 
-  h1 {
-    width: 100%;
-    margin-top: 0px;
-    text-align: ${(props) => props.lefth1 || 'center'};
-    font-size: 16px;
-    font-weight: 700;
-    padding: 5px;
-    margin-left: 0px;
-    color: ${(props) => props.fontcolor || '#244448'};
-    background: ${(props) => props.bckgnd || '#244448'};
-  }
+  padding: 10px 0 0 5px;
+`;
+
+export const Popcontent = styled.div`
+  display: flex;
+  width: 100%;
+  height: 100%;
+  padding: 1px 1px 1px 13px;
 `;
 
 export const Content = styled.div`
@@ -110,39 +107,6 @@ export const BoxPesquisa = styled.div`
   border-radius: 5px;
 `;
 
-export const GridContainerItens = styled.div`
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  padding: 8px 5px 0 0;
-
-  button {
-    border: 0;
-    background: none;
-    cursor: pointer;
-  }
-
-  @media (min-height: 300px) {
-    height: 29vh;
-  }
-
-  @media (min-height: 600px) {
-    height: 32vh;
-  }
-
-  @media (min-height: 680px) {
-    height: 36vh;
-  }
-
-  @media (min-height: 780px) {
-    height: 42vh;
-  }
-
-  @media (min-height: 880px) {
-    height: 53vh;
-  }
-`;
-
 export const GridContainerMain = styled.div`
   display: flex;
   flex-direction: column;
@@ -150,7 +114,7 @@ export const GridContainerMain = styled.div`
   padding: 8px 5px 0 0;
 
   button {
-    border: 0;
+    border: none;
     background: none;
     cursor: pointer;
   }
@@ -160,51 +124,18 @@ export const GridContainerMain = styled.div`
   }
 
   @media (min-height: 600px) {
-    height: 45vh;
+    height: 55vh;
   }
 
   @media (min-height: 680px) {
-    height: 50vh;
+    height: 60vh;
   }
 
   @media (min-height: 780px) {
-    height: 57vh;
+    height: 65vh;
   }
 
   @media (min-height: 880px) {
-    height: 67vh;
-  }
-`;
-
-export const GridContainerEnd = styled.div`
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  padding: 8px 5px 0 0;
-
-  button {
-    border: 0;
-    background: none;
-    cursor: pointer;
-  }
-
-  @media (min-height: 300px) {
-    height: 29vh;
-  }
-
-  @media (min-height: 600px) {
-    height: 32vh;
-  }
-
-  @media (min-height: 680px) {
-    height: 36vh;
-  }
-
-  @media (min-height: 780px) {
-    height: 40vh;
-  }
-
-  @media (min-height: 880px) {
-    height: 46vh;
+    height: 75vh;
   }
 `;

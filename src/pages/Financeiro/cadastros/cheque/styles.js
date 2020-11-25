@@ -12,7 +12,6 @@ export const ContentBar = styled.div`
   flex-direction: row;
   justify-content: center;
   align-items: center;
-
   width: 100%;
 
   margin: 0 auto;
@@ -24,7 +23,7 @@ export const ToolBar = styled.div`
   flex-direction: column;
   padding-top: 120px;
   width: ${(props) => props.wd};
-  height: ${(props) => props.hg} !important;
+  height: ${(props) => props.hg};
   margin-left: ${(props) => props.mleft || -10}px;
   margin-top: 0px;
   background: #244448;
@@ -143,40 +142,7 @@ export const GridContainerItens = styled.div`
   }
 `;
 
-export const GridContainerMain = styled.div`
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  padding: 8px 5px 0 0;
-
-  button {
-    border: 0;
-    background: none;
-    cursor: pointer;
-  }
-
-  @media (min-height: 300px) {
-    height: 40vh;
-  }
-
-  @media (min-height: 600px) {
-    height: 45vh;
-  }
-
-  @media (min-height: 680px) {
-    height: 50vh;
-  }
-
-  @media (min-height: 780px) {
-    height: 57vh;
-  }
-
-  @media (min-height: 880px) {
-    height: 67vh;
-  }
-`;
-
-export const GridContainerEnd = styled.div`
+export const GridContainerGrade = styled.div`
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -201,10 +167,52 @@ export const GridContainerEnd = styled.div`
   }
 
   @media (min-height: 780px) {
-    height: 40vh;
+    height: 42vh;
   }
 
   @media (min-height: 880px) {
-    height: 46vh;
+    height: 53vh;
+  }
+
+  h3 {
+    font-size: 18px;
+    color: #4d2679;
+    margin-bottom: 16px;
+  }
+`;
+
+export const GridContainerMain = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 8px 5px 0 0;
+
+  .warn-finalizado {
+    background-color: #f3ff33 !important;
+  }
+
+  .warn-cancelado {
+    background-color: #d81e00 !important;
+    color: #fff !important;
+  }
+
+  @media (min-height: 300px) {
+    height: 40vh;
+  }
+
+  @media (min-height: 600px) {
+    height: 45vh;
+  }
+
+  @media (min-height: 680px) {
+    height: 50vh;
+  }
+
+  @media (min-height: 780px) {
+    height: 55vh;
+  }
+
+  @media (min-height: 880px) {
+    height: 65vh;
   }
 `;

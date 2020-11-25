@@ -219,7 +219,7 @@ export default function SUPR2() {
 
   async function handleSubmit() {
     try {
-      if (parseInt(valueTab) > 0) {
+      if (parseInt(valueTab, 10) > 0) {
         const formData = frmCadastro.current.getData();
         frmCadastro.current.setErrors({});
         await schemaCad.validate(formData, {
