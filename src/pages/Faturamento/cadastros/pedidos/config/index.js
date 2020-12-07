@@ -1,52 +1,24 @@
 import React, { useEffect, useState, useRef } from 'react';
-
 import { Form } from '@unform/web';
 import { toast } from 'react-toastify';
 import { AgGridReact } from 'ag-grid-react';
-import { format, parse } from 'date-fns';
 import moment from 'moment';
 import Select from 'react-select';
-import AppBar from '@material-ui/core/AppBar';
-import Tabs from '@material-ui/core/Tabs';
-import Tab from '@material-ui/core/Tab';
 import { MdClose } from 'react-icons/md';
 import {
   FaUserEdit,
-  FaThList,
-  FaSearchDollar,
-  FaClipboardList,
-  FaSave,
-  FaPercent,
   FaSearch,
-  FaPlusCircle,
-  FaCheck,
-  FaTrashAlt,
-  FaBan,
-  FaBarcode,
-  FaPrint,
   FaRegCheckSquare,
-  FaCartPlus,
-  FaCubes,
   FaDollarSign,
 } from 'react-icons/fa';
 import Dialog from '@material-ui/core/Dialog';
 import { Slide } from '@material-ui/core';
-import KeyboardEventHandler from 'react-keyboard-event-handler';
 import DialogInfo from '~/componentes/DialogInfo';
 import { gridTraducoes } from '~/services/gridTraducoes';
 import DatePickerInput from '~/componentes/DatePickerInput';
-import TabPanel from '~/componentes/TabPanel';
-import Input from '~/componentes/Input';
-import TextArea from '~/componentes/TextArea';
 import FormSelect from '~/componentes/Select';
 import AsyncSelectForm from '~/componentes/Select/selectAsync';
-import {
-  Container,
-  Panel,
-  GridContainerItens,
-  ToolBar,
-  GridContainerMain,
-} from './styles';
+import { Container, Panel, ToolBar, GridContainerMain } from './styles';
 import {
   TitleBar,
   AreaComp,
