@@ -121,6 +121,7 @@ export default function FAT2() {
   const [situacaoPedido, setSituacaoPedido] = useState('');
   const [existeBordero, setExisteBordero] = useState('');
   const [gridApiPesquisa, setGridApiPesquisa] = useState([]);
+  const [colunaItens, setColunaItens] = useState([]);
   const [desableSave, setDesableSave] = useState(true);
   const [inputDesable, setInputDesable] = useState(true);
   const [disableBtnGrid, setDisableBtnGrid] = useState(false);
@@ -344,14 +345,17 @@ export default function FAT2() {
   }
 
   // fazer consulta dos itens
-  async function listaItens(limit) {
+  async function listaItens(limit, detalhar) {
     try {
       setLoading(true);
+      if (detalhar !== 'S')
+        document.getElementById('chbDetalhar').checked = false;
+
       const formData = frmCapa.current.getData();
 
       const url = `v1/fat/itens_pedido?cp_id=${formData.cp_id}&item_id=&limit=${
         limit || ''
-      }&prod_id=`;
+      }&prod_id=&detalhar=${detalhar || ''}`;
 
       let response = await api.get(url);
       const dados = response.data.retorno;
@@ -680,6 +684,10 @@ export default function FAT2() {
               'cp_vlr_nf',
               retorno.data.retorno.cp_vlr_nf
             );
+            if (valueTab.toString() === '3') {
+              setValueTab(0);
+              await listaPedido();
+            }
           }
         } else {
           toast.error(
@@ -901,6 +909,11 @@ export default function FAT2() {
   // adiconar itens
   async function handleSubmitItens(gridItensSelected) {
     try {
+      document.getElementById('chbDetalhar').checked = false;
+      gridColumnItens.push({
+        flex: 1,
+      });
+      setColunaItens(gridColumnItens);
       await totalItem();
       const formItens = frmItens.current.getData();
       const formCapa = frmCapa.current.getData();
@@ -1110,7 +1123,7 @@ export default function FAT2() {
               &cli_id=${formCapa.cp_cli_id}&cp_perfil=${params.tipo}`
             );
             if (response.data.success) {
-              await listaItens(formCapa.cp_id, '');
+              await listaItens(1000, 'N');
             } else {
               toast.error(
                 `Erro ao excluir item do pedido: ${response.data.message}`
@@ -1300,7 +1313,7 @@ export default function FAT2() {
             'O VALOR UNITÁRIO NÃO PODE SER ALTERADO, POIS JÁ EXISTE PREÇO INFORMADO NA TABELA DE PREÇOS',
             toastOptions
           );
-          await listaItens();
+          await listaItens(1000, 'N');
           return;
         }
       }
@@ -1326,7 +1339,7 @@ export default function FAT2() {
               &cli_id=${formCapa.cp_cli_id}&cp_perfil=${params.tipo}`
             );
             if (response.data.success) {
-              await listaItens(formCapa.cp_id, '');
+              await listaItens(1000, '');
             } else {
               toast.error(
                 `Erro ao excluir item do pedido: ${response.data.message}`
@@ -1501,7 +1514,6 @@ export default function FAT2() {
           `v1/fat/excluir_aba_financeiro?cp_id=${prm.fina_cp_id}`
         );
         if (response.data.success) {
-          await handleSubmitCapa();
           setGridFinanceiro([]);
           excluiu = true;
         }
@@ -1531,6 +1543,10 @@ export default function FAT2() {
 
         setInfoVlrPedidoNegociado('');
       }
+      toast.info(
+        'ATENÇÃO!! APÓS EXCLUIR UMA NEGOCIAÇÃO É NECESSÁRIO SALVAR TODO O PEDIDO, SEM SAIR DA ABA FINANCEIRO...',
+        toastOptions
+      );
       setLoading(false);
     } catch (err) {
       setLoading(false);
@@ -1601,14 +1617,14 @@ export default function FAT2() {
       limpaItens();
       if (dataGridPesqSelected.length > 0) {
         await handleEdit();
-        await listaItens();
+        await handleDetalhar();
         setInputDesable(false);
         setValueTab(newValue);
       } else if (valueTab === 1) {
         const formData = frmCapa.current.getData();
         if (formData.cp_id) {
           // se ja existe o pedido
-          await listaItens();
+          await handleDetalhar();
           setInputDesable(false);
           setValueTab(newValue);
         } else {
@@ -1644,26 +1660,6 @@ export default function FAT2() {
       }
     }
   };
-
-  function handleProduto() {
-    window.open('/supr4', '_blank');
-  }
-
-  useEffect(() => {
-    if (params.tipo === '2') {
-      setTitlePg('CADASTRO PEDIDOS - PRÉ-VENDA');
-    } else {
-      setTitlePg('CADASTRO PEDIDOS - CONSIGNADO');
-    }
-    getComboFpgto();
-    getComboOperFat();
-    listaPedido();
-    getComboCondVcto();
-    getComboTabPreco();
-    getParamSistema();
-    setDesableSave(true);
-    setValueTab(0);
-  }, []);
 
   // #region GRID CONSULTA PEDIDO =========================
 
@@ -1886,9 +1882,6 @@ export default function FAT2() {
       lockVisible: true,
       cellClass: 'cell_total',
     },
-    {
-      flex: 1,
-    },
   ];
 
   // #endregion
@@ -2065,6 +2058,53 @@ export default function FAT2() {
   ];
 
   // #endregion
+
+  async function handleDetalhar() {
+    if (document.getElementById('chbDetalhar').checked) {
+      gridColumnItens.push({
+        field: 'data_cadastro',
+        headerName: 'DATA/HORA',
+        width: 190,
+        sortable: true,
+        resizable: true,
+        filter: true,
+        lockVisible: true,
+      });
+
+      gridColumnItens.push({
+        flex: 1,
+      });
+      setColunaItens(gridColumnItens);
+      await listaItens(1000, 'S');
+    } else {
+      gridColumnItens.push({
+        flex: 1,
+      });
+      setColunaItens(gridColumnItens);
+      await listaItens(1000, 'N');
+    }
+  }
+
+  function handleProduto() {
+    window.open('/supr4', '_blank');
+  }
+
+  useEffect(() => {
+    setColunaItens(gridColumnItens);
+    if (params.tipo === '2') {
+      setTitlePg('CADASTRO PEDIDOS - PRÉ-VENDA');
+    } else {
+      setTitlePg('CADASTRO PEDIDOS - CONSIGNADO');
+    }
+    getComboFpgto();
+    getComboOperFat();
+    listaPedido();
+    getComboCondVcto();
+    getComboTabPreco();
+    getParamSistema();
+    setDesableSave(true);
+    setValueTab(0);
+  }, []);
 
   return (
     <>
@@ -2529,8 +2569,18 @@ export default function FAT2() {
                         value="S"
                       />
                       <label htmlFor="chbBonificar">
-                        Lançar item como brinde (bonificação)
+                        Lançar item como brinde
                       </label>
+                    </CCheck>
+                    <CCheck>
+                      <input
+                        type="checkbox"
+                        id="chbDetalhar"
+                        name="chbDetalhar"
+                        value="S"
+                        onClick={handleDetalhar}
+                      />
+                      <label htmlFor="chbDetalhar">Detalhar Lançamentos</label>
                     </CCheck>
                   </AreaComp>
                   <AreaComp wd="100">
@@ -2653,7 +2703,7 @@ export default function FAT2() {
                 <BoxItemCadNoQuery fr="1fr">
                   <GridContainerItens className="ag-theme-balham">
                     <AgGridReact
-                      columnDefs={gridColumnItens}
+                      columnDefs={colunaItens}
                       rowData={gridItens}
                       rowSelection="single"
                       animateRows
