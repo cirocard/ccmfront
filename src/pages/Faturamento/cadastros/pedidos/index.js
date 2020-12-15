@@ -2263,7 +2263,7 @@ export default function FAT2() {
           {/* ABA PESQUISA */}
           <TabPanel value={valueTab} index={0}>
             <Panel lefth1="left" bckgnd="#dae2e5">
-              <Form id="frmCapa" ref={frmPesquisa}>
+              <Form id="frmPesquisa" ref={frmPesquisa}>
                 <h1>PARÂMETROS DE PESQUISA</h1>
                 <BoxItemCad fr="2fr 0.8fr 0.8fr 0.8fr 1fr 1.2fr">
                   <AreaComp wd="100">
