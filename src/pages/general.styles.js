@@ -110,6 +110,7 @@ export const AreaComp = styled.div`
   justify-content: center;
   justify-items: left;
   border-radius: ${(props) => props.radius || '0px'};
+  border-right: ${(props) => props.bordr || 'none'};
   align-self: ${(props) => props.alself || 'center'};
   padding-left: ${(props) => props.pleft};
   padding-top: ${(props) => props.ptop};

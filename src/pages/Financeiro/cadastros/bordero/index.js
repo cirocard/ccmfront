@@ -27,6 +27,7 @@ import Input from '~/componentes/Input';
 import TextArea from '~/componentes/TextArea';
 import { BootstrapTooltip } from '~/componentes/ToolTip';
 import history from '~/services/history';
+import Popup from '~/componentes/Popup';
 import {
   a11yProps,
   maskDecimal,
@@ -46,19 +47,31 @@ import {
   Linha,
 } from '~/pages/general.styles';
 
-export default function FINA5() {
+export default function FINA6() {
   const api = ApiService.getInstance(ApiTypes.API1);
   const [valueTab, setValueTab] = useState(0);
   const frmPesquisa = useRef(null);
   const frmCadastro = useRef(null);
+  const frmPesqCheque = useRef(null);
+  const frmPesqPedido = useRef(null);
   const [loading, setLoading] = useState(false);
   const [gridPesquisa, setGridPesquisa] = useState([]);
+  const [gridPedido, setGridPedido] = useState([]);
+  const [gridCheque, setGridCheque] = useState([]);
   const [dataGridPesqSelected, setDataGridPesqSelected] = useState([]);
+  const [dataGridPedido, setDataGridPedido] = useState([]);
   const [gridApiPesquisa, setGridApiPesquisa] = useState([]);
-  const [optBanco, setOptBanco] = useState([]);
-  const [sacado, setSacado] = useState([]);
-  const [optSituacao, setOptSituacao] = useState([]);
-  const [dataVencimento, setDataVencimento] = useState(moment());
+  const [optGrpRec, setOptGrprec] = useState([]);
+  const [optConta, setOptCona] = useState([]);
+  const [vendedor, setVendedor] = useState([]);
+  const [optSituacaoCheque, setOptSituacaoCheque] = useState([]);
+  const [dataIni, setDataIni] = useState(moment());
+  const [dataFin, setDataFin] = useState(moment());
+  const [titleCheque, setTitleCheque] = useState(
+    'CHEQUES DO BORDERÔ - SELECIONE UM PEDIDO'
+  );
+  const [dlgPedido, setDlgPedido] = useState(false);
+  const [dlgCheque, setDlgCheque] = useState(false);
 
   const toastOptions = {
     autoClose: 4000,
@@ -67,10 +80,10 @@ export default function FINA5() {
 
   // #region COMBO ========================
 
-  const optTipoCheque = [
-    { value: '1', label: 'CHEQUE PRÓPRIO' },
-    { value: '2', label: 'CHEQUE RECEBIDO' },
-    { value: '3', label: 'CHEQUE RECEBIDO DE TERCEIROS' },
+  const optSituacao = [
+    { value: '1', label: 'EM ABERTO' },
+    { value: '2', label: 'BAIXADO' },
+    { value: '3', label: 'CANCELADO' },
   ];
 
   const loadOptionsRepresentante = async (inputText, callback) => {
@@ -102,14 +115,28 @@ export default function FINA5() {
       const response = await api.get(`v1/combos/geral/${tab_id}`);
       const dados = response.data.retorno;
       if (dados) {
-        if (tab_id === 24) {
-          setOptBanco(dados);
-        } else if (tab_id === 25) {
-          setOptSituacao(dados);
+        if (tab_id === 25) {
+          setOptSituacaoCheque(dados);
         }
       }
     } catch (error) {
       toast.error(`Erro ao carregar registro \n${error}`);
+    }
+  }
+
+  async function handleGrupoRec() {
+    try {
+      const response = await api.get(`v1/combos/agrupador_recdesp/1/2`);
+      const dados = response.data.retorno;
+      if (dados) {
+        setOptGrprec(dados);
+      }
+    } catch (error) {
+      setLoading(false);
+      toast.error(
+        `Erro ao gerar referencia agrupadora \n${error}`,
+        toastOptions
+      );
     }
   }
 
@@ -138,6 +165,12 @@ export default function FINA5() {
     const gridApi = prmGridPesq.api;
     const selectedRows = gridApi.getSelectedRows();
     setDataGridPesqSelected(selectedRows);
+  };
+
+  const handleSelectGridPedido = (prmGridPed) => {
+    const gridApi = prmGridPed.api;
+    const selectedRows = gridApi.getSelectedRows();
+    setDataGridPedido(selectedRows);
   };
 
   // fazer consulta das operaçoes
@@ -185,7 +218,6 @@ export default function FINA5() {
     frmCadastro.current.setFieldValue('chq_situacao_id', '');
     frmCadastro.current.setFieldValue('chq_sacado_id', '');
     frmCadastro.current.setFieldValue('chq_observacao', '');
-    setDataVencimento(new Date());
   };
 
   async function handleEdit() {
@@ -196,12 +228,7 @@ export default function FINA5() {
           'chq_id',
           dataGridPesqSelected[0].chq_id
         );
-        frmCadastro.current.setFieldValue(
-          'chq_bco_id',
-          optBanco.find(
-            (op) => op.value.toString() === dataGridPesqSelected[0].chq_bco_id
-          )
-        );
+
         frmCadastro.current.setFieldValue(
           'chq_agencia',
           dataGridPesqSelected[0].chq_agencia
@@ -231,9 +258,7 @@ export default function FINA5() {
           'chq_valor',
           dataGridPesqSelected[0].chq_valor
         );
-        setDataVencimento(
-          parse(dataGridPesqSelected[0].vencimento, 'dd/MM/yyyy', new Date())
-        );
+
         frmCadastro.current.setFieldValue(
           'chq_cta_id',
           dataGridPesqSelected[0].chq_cta_id
@@ -266,8 +291,8 @@ export default function FINA5() {
           dataGridPesqSelected[0].chq_observacao
         );
         await loadOptionsRepresentante(
-          dataGridPesqSelected[0].chq_sacado_id,
-          setSacado
+          dataGridPesqSelected[0].bc_vendedor_id,
+          setVendedor
         );
         setValueTab(1);
         setLoading(false);
@@ -307,7 +332,7 @@ export default function FINA5() {
           chq_emitente: formData.chq_emitente.toUpperCase(),
           chq_mc7: formData.chq_mc7,
           chq_valor: toDecimal(formData.chq_valor),
-          chq_vencimento: format(dataVencimento, 'yyyy-MM-dd HH:mm:ss'),
+
           chq_cta_id: null,
           chq_ctap_id: null,
           chq_rec_id: null,
@@ -383,6 +408,8 @@ export default function FINA5() {
       } else {
         await handleEdit();
       }
+    } else if (newValue === 2) {
+      setValueTab(newValue);
     }
   };
 
@@ -391,9 +418,10 @@ export default function FINA5() {
   }
 
   useEffect(() => {
-    listarCheque();
-    comboGeral(24);
+    // listarCheque();
+
     comboGeral(25);
+    handleGrupoRec();
     setValueTab(0);
   }, []);
 
@@ -401,7 +429,7 @@ export default function FINA5() {
 
   const gridColumnPesquisa = [
     {
-      field: 'chq_id',
+      field: 'bc_id',
       headerName: 'CÓDIGO',
       width: 140,
       sortable: true,
@@ -410,17 +438,44 @@ export default function FINA5() {
       lockVisible: true,
     },
     {
-      field: 'chq_numero',
-      headerName: 'Nº CHEQUE',
-      width: 140,
+      field: 'bc_descricao',
+      headerName: 'DESCRIÇÃO',
+      width: 340,
       sortable: true,
       resizable: true,
       filter: false,
       lockVisible: true,
     },
     {
-      field: 'chq_valor',
-      headerName: 'VALOR',
+      field: 'grupo_receita',
+      headerName: 'GRUPO DE RECEITA',
+      width: 240,
+      sortable: true,
+      resizable: true,
+      filter: false,
+      lockVisible: true,
+    },
+    {
+      field: 'sacado',
+      headerName: 'SACADO/RECEBEDOR',
+      width: 300,
+      sortable: true,
+      resizable: true,
+      filter: true,
+      lockVisible: true,
+    },
+    {
+      field: 'bc_cp_dataemis',
+      headerName: 'DATA EMISSÃO',
+      width: 140,
+      sortable: true,
+      resizable: true,
+      filter: true,
+      lockVisible: true,
+    },
+    {
+      field: 'bc_valor_pedido',
+      headerName: 'VALOR DO BORDERÔ',
       width: 140,
       sortable: true,
       resizable: true,
@@ -431,22 +486,103 @@ export default function FINA5() {
       cellStyle: { color: '#000', fontWeight: 'bold' },
     },
     {
-      field: 'vencimento',
-      headerName: 'VENCIMENTO',
+      field: 'bc_valor_cheque',
+      headerName: 'VALOR EM CHEQUE',
       width: 140,
+      sortable: true,
+      resizable: true,
+      filter: false,
+      lockVisible: true,
+      type: 'rightAligned',
+      valueFormatter: GridCurrencyFormatter,
+      cellStyle: { color: '#000', fontWeight: 'bold' },
+    },
+    {
+      field: 'situacao',
+      headerName: 'SITUAÇÃO BORDERÔ',
+      width: 300,
+      sortable: true,
+      resizable: true,
+      filter: true,
+      lockVisible: true,
+      cellStyle: { color: '#000', fontWeight: 'bold' },
+    },
+  ];
+
+  // #endregion
+
+  // #region GRID CONSULTA PEDIDO =========================
+
+  const gridColumnPedido = [
+    {
+      field: 'cp_id',
+      headerName: 'Nº PEDIDO',
+      width: 120,
       sortable: true,
       resizable: true,
       filter: true,
       lockVisible: true,
     },
     {
-      field: 'banco',
-      headerName: 'BANCO',
-      width: 200,
+      field: 'cli_razao_social',
+      headerName: 'DESTINATÁRIO',
+      width: 350,
       sortable: true,
       resizable: true,
       filter: true,
       lockVisible: true,
+    },
+    {
+      field: 'cp_data_emis',
+      headerName: 'DTA. EMISSÃO',
+      width: 130,
+      sortable: true,
+      resizable: true,
+      lockVisible: true,
+    },
+
+    {
+      field: 'cp_vlr_nf',
+      headerName: 'VLR. PEDIDO',
+      width: 120,
+      sortable: true,
+      resizable: true,
+      filter: true,
+      lockVisible: true,
+      type: 'rightAligned',
+      valueFormatter: GridCurrencyFormatter,
+      cellClass: 'cell_valor',
+    },
+    {
+      flex: 1,
+    },
+  ];
+
+  // #endregion
+
+  // #region GRID CHEQUE  =========================
+
+  const gridColumnCheque = [
+    {
+      field: 'chq_numero',
+      headerName: 'Nº CHEQUE',
+      width: 130,
+      sortable: true,
+      resizable: true,
+      filter: false,
+      lockVisible: true,
+    },
+    {
+      field: 'chq_valor',
+      headerName: 'VALOR',
+      width: 130,
+      sortable: true,
+      resizable: true,
+      filter: false,
+      lockVisible: true,
+      type: 'rightAligned',
+      valueFormatter: GridCurrencyFormatter,
+      cellStyle: { color: '#000', fontWeight: 'bold' },
     },
     {
       field: 'chq_emitente',
@@ -503,8 +639,8 @@ export default function FINA5() {
         <DivLimitador hg="20px" />
         <Linha />
         <DivLimitador hg="20px" />
-        <BootstrapTooltip title="ABRIR BORDERÔ DE CHEQUE" placement="left">
-          <button type="button" onClick={() => null}>
+        <BootstrapTooltip title="ABRIR CADASTRO DE CHEQUE" placement="left">
+          <button type="button" onClick={() => window.open('/fina5', '_blank')}>
             <FaMoneyCheckAlt size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
@@ -519,7 +655,7 @@ export default function FINA5() {
       <Container>
         <Scroll>
           <TitleBar bckgnd="#dae2e5">
-            <h1>CADASTRO DE CHEQUES</h1>
+            <h1>BORDERÔ DE CHEQUE</h1>
             <BootstrapTooltip title="Voltar para Dashboard" placement="top">
               <button type="button" onClick={handleDashboard}>
                 <MdClose size={30} color="#244448" />
@@ -538,17 +674,17 @@ export default function FINA5() {
               textColor="primary"
             >
               <BootstrapTooltip
-                title="Consultar Operações Cadastradas"
+                title="Consultar Cadastro"
                 placement="top-start"
               >
                 <Tab
-                  label="CONSULTAR CHEQUES"
+                  label="CONSULTAR BORDERÔ"
                   {...a11yProps(0)}
                   icon={<FaSearch size={29} color="#244448" />}
                 />
               </BootstrapTooltip>
               <BootstrapTooltip
-                title="ABRE O CADASTRO DE CHEQUE"
+                title="ABRE O CADASTRO DE BORDERÔ"
                 placement="top-end"
               >
                 <Tab
@@ -558,6 +694,17 @@ export default function FINA5() {
                   icon={<FaFolderPlus size={26} color="#244448" />}
                 />
               </BootstrapTooltip>
+              <BootstrapTooltip
+                title="LANÇAMENTO DE CHEQUES NO BORDERÔ"
+                placement="top-end"
+              >
+                <Tab
+                  disabled={false}
+                  label="CHEQUES"
+                  {...a11yProps(2)}
+                  icon={<FaMoneyCheckAlt size={26} color="#244448" />}
+                />
+              </BootstrapTooltip>
             </Tabs>
           </AppBar>
 
@@ -565,56 +712,44 @@ export default function FINA5() {
           <TabPanel value={valueTab} index={0}>
             <Panel lefth1="left" bckgnd="#dae2e5">
               <Form id="frmPesquisa" ref={frmPesquisa}>
-                <h1>CHEQUES CADASTRADAS - PESQUISAR</h1>
-                <BoxItemCad fr="2fr 2fr 1fr 1fr 1fr">
+                <h1>REGISTROS CADASTRADOS - PESQUISAR</h1>
+                <BoxItemCad fr="3fr 1fr 1fr 1fr">
                   <AreaComp wd="100">
                     <AsyncSelectForm
-                      name="pesq_chq_sacado_id"
-                      label="SACADO/RECEBEDOR"
+                      name="pesq_bc_vendedor_id"
+                      label="SACADO/RECEBEDOR/VENDEDOR"
                       placeholder="NÃO INFORMADO"
                       defaultOptions
                       cacheOptions
-                      value={sacado}
-                      onChange={(c) => setSacado(c || [])}
+                      value={vendedor}
+                      onChange={(c) => setVendedor(c || [])}
                       loadOptions={loadOptionsRepresentante}
                       isClearable
                       zindex="153"
                     />
                   </AreaComp>
                   <AreaComp wd="100">
-                    <label>emitente de cheque</label>
-                    <Input
-                      type="text"
-                      name="pesq_emitente"
-                      placeholder="INFORME NOME OU CPF/CNPJ DO EMITENTE"
-                      className="input_cad"
-                    />
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <label>Nº Cheque</label>
-                    <Input
-                      type="text"
-                      name="pesq_chq_numero"
-                      placeholder="Nº CHEQUE"
-                      className="input_cad"
-                    />
-                  </AreaComp>
-                  <AreaComp wd="100">
                     <FormSelect
-                      label="tipo de cheque"
-                      name="pesq_chq_tipo"
-                      optionsList={optTipoCheque}
-                      placeholder="NÃO INFORMADO"
-                      zindex="153"
-                    />
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <FormSelect
-                      label="situação do cheque"
-                      name="pesq_chq_situacao_id"
+                      label="Situação Borderô"
+                      name="pesq_bc_situacao"
                       optionsList={optSituacao}
-                      placeholder="NÃO INFORMADO"
+                      isClearable
+                      placeholder="INFORME"
                       zindex="153"
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <DatePickerInput
+                      onChangeDate={(date) => setDataIni(new Date(date))}
+                      value={dataIni}
+                      label="Emissão Inicial"
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <DatePickerInput
+                      onChangeDate={(date) => setDataFin(new Date(date))}
+                      value={dataFin}
+                      label="Emissão Final"
                     />
                   </AreaComp>
                 </BoxItemCad>
@@ -642,25 +777,54 @@ export default function FINA5() {
             <Panel lefth1="left" bckgnd="#dae2e5">
               <Form id="frmCadastro" ref={frmCadastro}>
                 <h1>CADASTRO DE CHEQUE</h1>
-                <BoxItemCad fr="1fr 2fr 2fr">
+                <BoxItemCad fr="1fr 3fr 1fr">
                   <AreaComp wd="100">
                     <label>Código</label>
                     <Input
                       type="number"
-                      name="chq_id"
+                      name="bc_id"
                       readOnly
                       className="input_cad"
                     />
                   </AreaComp>
                   <AreaComp wd="100">
+                    <label>descrição</label>
+                    <Input
+                      type="text"
+                      name="bc_descricao"
+                      className="input_cad"
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <label>data cadastro</label>
+                    <Input
+                      type="text"
+                      name="bc_datacad"
+                      readOnly
+                      className="input_cad"
+                    />
+                  </AreaComp>
+                </BoxItemCad>
+                <BoxItemCad fr="1fr 2fr 1fr 1fr">
+                  <AreaComp wd="100">
+                    <FormSelect
+                      label="grupo de receita"
+                      name="bc_grupo_receita"
+                      optionsList={optGrpRec}
+                      isClearable
+                      placeholder="INFORME"
+                      zindex="153"
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100">
                     <AsyncSelectForm
-                      name="chq_sacado_id"
-                      label="SACADO/RECEBEDOR"
+                      name="bc_vendedor_id"
+                      label="vendedor/representante"
                       placeholder="NÃO INFORMADO"
                       defaultOptions
                       cacheOptions
-                      value={sacado}
-                      onChange={(c) => setSacado(c || [])}
+                      value={vendedor}
+                      onChange={(c) => setVendedor(c || [])}
                       loadOptions={loadOptionsRepresentante}
                       isClearable
                       zindex="153"
@@ -668,118 +832,106 @@ export default function FINA5() {
                   </AreaComp>
                   <AreaComp wd="100">
                     <FormSelect
-                      label="Banco"
-                      name="chq_bco_id"
-                      optionsList={optBanco}
+                      label="situação"
+                      name="bc_situacao"
+                      optionsList={optSituacao}
                       isClearable
                       placeholder="INFORME"
                       zindex="153"
                     />
                   </AreaComp>
-                </BoxItemCad>
-                <BoxItemCad fr="1fr 1fr 1fr 1fr">
                   <AreaComp wd="100">
-                    <label>Agência</label>
+                    <label>data baixa</label>
                     <Input
                       type="text"
-                      name="chq_agencia"
+                      name="bc_databaixa"
+                      readOnly
                       className="input_cad"
-                    />
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <label>Conta Corrente</label>
-                    <Input type="text" name="chq_conta" className="input_cad" />
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <label>Nº Cheque</label>
-                    <Input
-                      type="number"
-                      name="chq_numero"
-                      className="input_cad"
-                    />
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <label>CNPJ/CPF emitente</label>
-                    <Input
-                      type="text"
-                      name="chq_cnpj_cpf_emit"
-                      maxlength="18"
-                      className="input_cad"
-                      onChange={maskCNPJCPF}
-                    />
-                  </AreaComp>
-                </BoxItemCad>
-                <BoxItemCad fr="1fr 1fr">
-                  <AreaComp wd="100">
-                    <label>Emitente do cheque</label>
-                    <Input
-                      type="text"
-                      name="chq_emitente"
-                      className="input_cad"
-                    />
-                  </AreaComp>
-
-                  <AreaComp wd="100">
-                    <label>código mc7</label>
-                    <Input type="text" name="chq_mc7" className="input_cad" />
-                  </AreaComp>
-                </BoxItemCad>
-                <BoxItemCad fr="1fr 1fr 1fr 1fr">
-                  <AreaComp wd="100">
-                    <DatePickerInput
-                      onChangeDate={(date) => setDataVencimento(new Date(date))}
-                      value={dataVencimento}
-                      label="Data Vencimento"
-                    />
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <label>valor do cheque</label>
-                    <Input
-                      type="text"
-                      name="chq_valor"
-                      className="input_cad"
-                      onChange={maskDecimal}
-                    />
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <FormSelect
-                      label="tipo de cheque"
-                      name="chq_tipo"
-                      optionsList={optTipoCheque}
-                      isClearable
-                      placeholder="INFORME"
-                      zindex="152"
-                    />
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <FormSelect
-                      label="situação do cheque"
-                      name="chq_situacao_id"
-                      optionsList={optSituacao}
-                      isClearable
-                      placeholder="INFORME"
-                      zindex="152"
                     />
                   </AreaComp>
                 </BoxItemCad>
                 <BoxItemCadNoQuery>
                   <AreaComp wd="100">
-                    <label>Observações do cheque</label>
-                    <TextArea type="text" name="chq_observacao" rows="4" />
+                    <label>Observações adicionais</label>
+                    <TextArea type="text" name="bc_observacao" rows="4" />
                   </AreaComp>
                 </BoxItemCadNoQuery>
+                <BoxItemCad fr="1fr 1fr 1fr 1fr">
+                  <AreaComp wd="100">
+                    <label>valor do borderô</label>
+                    <Input
+                      type="text"
+                      name="bc_valor_pedido"
+                      readOnly
+                      className="input_cad"
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <label>valor recebido em cheque</label>
+                    <Input
+                      type="text"
+                      name="bc_valor_cheque"
+                      readOnly
+                      className="input_cad"
+                    />
+                  </AreaComp>
+                </BoxItemCad>
+              </Form>
+            </Panel>
+          </TabPanel>
+
+          {/* ABA CHEQUES */}
+          <TabPanel value={valueTab} index={2}>
+            <Panel lefth1="left" bckgnd="#dae2e5">
+              <Form id="frmCadastro" ref={frmCadastro}>
+                <BoxItemCad fr="1fr 1fr">
+                  <AreaComp wd="100">
+                    <h1>INFORME O PEDIDO - PRESSIOINE (F2) PARA LOCALIZAR</h1>
+                    <GridContainerMain className="ag-theme-balham">
+                      <AgGridReact
+                        columnDefs={gridColumnPedido}
+                        rowData={gridPedido}
+                        rowSelection="single"
+                        animateRows
+                        gridOptions={{ localeText: gridTraducoes }}
+                        onSelectionChanged={handleSelectGridPedido}
+                      />
+                    </GridContainerMain>
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <h1>{titleCheque}</h1>
+                    <GridContainerMain className="ag-theme-balham">
+                      <AgGridReact
+                        columnDefs={gridColumnCheque}
+                        rowData={gridCheque}
+                        rowSelection="single"
+                        animateRows
+                        gridOptions={{ localeText: gridTraducoes }}
+                      />
+                    </GridContainerMain>
+                  </AreaComp>
+                </BoxItemCad>
               </Form>
             </Panel>
           </TabPanel>
         </Scroll>
       </Container>
+
+      {/* popup CARREGAR CHEQUE... */}
+      <Popup
+        isOpen={dlgPedido}
+        closeDialogFn={() => setDlgPedido(false)}
+        title=""
+        size="xl"
+      />
+
       {/* popup para aguarde... */}
       <DialogInfo
         isOpen={loading}
         closeDialogFn={() => {
           setLoading(false);
         }}
-        title="CADASTRO DE CHEQUE"
+        title="BORDERÔ DE CHEQUE"
         message="Aguarde Processamento..."
       />
     </>

@@ -28,6 +28,7 @@ import {
 import { BootstrapTooltip } from '~/componentes/ToolTip';
 import history from '~/services/history';
 import { ApiService, ApiTypes } from '~/services/api';
+import CHEQUE from '~/pages/Financeiro/cadastros/cheque';
 
 // classificaçao de produto
 export default function FINA2() {
@@ -170,7 +171,8 @@ export default function FINA2() {
   };
 
   function handleParametros(prm) {
-    history.push(`/fina2/${prm}`);
+    // history.push(`/fina5/${prm}`);
+    setDlgPopup(true);
     window.location.reload(false);
   }
 
@@ -285,14 +287,16 @@ export default function FINA2() {
         </Scroll>
       </Container>
 
-      {/* popup para aguarde... */}
+      {/* popup CARREGAR CHEQUE... */}
       <Popup
         isOpen={dlgPopup}
         closeDialogFn={() => setDlgPopup(false)}
         title=""
         size="xl"
       >
-        <Popcontent />
+        <Popcontent>
+          <CHEQUE />
+        </Popcontent>
       </Popup>
 
       {/* popup para aguarde... */}

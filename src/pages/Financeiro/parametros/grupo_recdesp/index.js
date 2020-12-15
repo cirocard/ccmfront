@@ -4,13 +4,7 @@ import * as Yup from 'yup';
 import { Form } from '@unform/web';
 import { toast } from 'react-toastify';
 import { MdClose, MdDelete } from 'react-icons/md';
-import {
-  FaArrowUp,
-  FaTicketAlt,
-  FaArrowDown,
-  FaListOl,
-  FaBuromobelexperte,
-} from 'react-icons/fa';
+import { FaArrowUp, FaArrowDown } from 'react-icons/fa';
 import { AgGridReact } from 'ag-grid-react';
 import KeyboardEventHandler from 'react-keyboard-event-handler';
 import FormSelect from '~/componentes/Select';
@@ -215,7 +209,7 @@ export default function FINA3() {
       } else if (value === '2') {
         frmCadastro.current.setFieldValue('ger_texto1', '');
         const response = await api.get(
-          `v1/combos/agrupador_recdesp/${tipoCad}`
+          `v1/combos/agrupador_recdesp/${tipoCad}/1`
         );
 
         setOptAgrupador(response.data.retorno);
