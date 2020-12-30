@@ -39,6 +39,16 @@ export const Container = styled.div`
     width: 25px;
   }
 
+  .pda1 {
+    padding-right: 5px;
+    margin-left: 15px;
+    width: 25px;
+  }
+
+  .sub1 {
+    margin-left: 10px;
+  }
+
   .itens_menu {
     padding-left: 15px;
   }

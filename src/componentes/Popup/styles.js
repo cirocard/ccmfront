@@ -74,7 +74,7 @@ export const TitleBar = styled.div`
   width: ${(props) => props.wd};
   height: 30px;
   background-color: #244448;
-  border-bottom: solid 1px #ccc;
+  border-bottom: solid 1px #244448;
   cursor: move;
 
   h1 {

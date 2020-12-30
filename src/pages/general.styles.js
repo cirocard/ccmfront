@@ -100,7 +100,7 @@ export const ToolBarGrid = styled.div`
   align-items: center;
   height: 100%;
   width: 100%;
-  margin-left: 1px;
+  margin-left: 0px;
   margin-top: 0px;
 `;
 
