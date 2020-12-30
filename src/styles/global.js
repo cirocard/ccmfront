@@ -66,8 +66,8 @@ export default createGlobalStyle`
     background: #EEF3F5;
       border: solid 1px #ccc;
       border-radius: 4px;
-      height: 30px;
-      padding: 5px 7px 5px 7px;
+      height: 27px;
+      padding: 3px 5px 3px 5px;
       color: #243043;
       font-size: 14px;
       font-weight: 700;
@@ -85,7 +85,7 @@ export default createGlobalStyle`
   }
   .btnGeral {
       margin: 5px 0 0;
-      height: 40px;
+      height: 35px;
       background: #3b535f;;
       text-align:center;
       font-weight: bold;

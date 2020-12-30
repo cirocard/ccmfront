@@ -33,6 +33,7 @@ import {
   GridCurrencyFormatter,
   maskCNPJCPF,
   toDecimal,
+  RetirarMascara,
 } from '~/services/func.uteis';
 import { ApiService, ApiTypes } from '~/services/api';
 import { Container, Panel, ToolBar, GridContainerMain } from './styles';
@@ -59,6 +60,8 @@ export default function FINA5() {
   const [sacado, setSacado] = useState([]);
   const [optSituacao, setOptSituacao] = useState([]);
   const [dataVencimento, setDataVencimento] = useState(moment());
+  const [dataIni, setDataIni] = useState(moment());
+  const [dataFin, setDataFin] = useState(moment().add(60, 'day'));
 
   const toastOptions = {
     autoClose: 4000,
@@ -125,6 +128,7 @@ export default function FINA5() {
     chq_cnpj_cpf_emit: Yup.string().required('(??)'),
     chq_emitente: Yup.string().required('(??)'),
     chq_valor: Yup.string().required('(??)'),
+    chq_situacao_id: Yup.string().required('(??)'),
   });
 
   // #endregion
@@ -152,6 +156,8 @@ export default function FINA5() {
         chq_tipo: formPesq.pesq_chq_tipo,
         chq_situacao_id: formPesq.pesq_chq_situacao_id,
         chq_sacado_id: formPesq.pesq_chq_sacado_id,
+        chq_datacad: moment(dataIni).format('YYYY-MM-DD'),
+        chq_vencimento: moment(dataFin).format('YYYY-MM-DD'),
       };
       const response = await api.post('v1/fina/cheque/listar_cheque', objPesq);
       const dados = response.data.retorno;
@@ -258,7 +264,8 @@ export default function FINA5() {
           'chq_situacao_id',
           optSituacao.find(
             (op) =>
-              op.value.toString() === dataGridPesqSelected[0].chq_situacao_id
+              op.value.toString() ===
+              dataGridPesqSelected[0].chq_situacao_id.toString()
           )
         );
         frmCadastro.current.setFieldValue(
@@ -303,7 +310,7 @@ export default function FINA5() {
           chq_agencia: formData.chq_agencia,
           chq_conta: formData.chq_conta,
           chq_numero: formData.chq_numero,
-          chq_cnpj_cpf_emit: formData.chq_cnpj_cpf_emit,
+          chq_cnpj_cpf_emit: RetirarMascara(formData.chq_cnpj_cpf_emit, '-./'),
           chq_emitente: formData.chq_emitente.toUpperCase(),
           chq_mc7: formData.chq_mc7,
           chq_valor: toDecimal(formData.chq_valor),
@@ -315,7 +322,7 @@ export default function FINA5() {
           chq_tipo: formData.chq_tipo,
           chq_situacao_id: formData.chq_situacao_id,
           chq_usr_id: null,
-          chq_sacado_id: formData.chq_sacado_id || null,
+          chq_sacado_id: parseInt(formData.chq_sacado_id, 10) || null,
           chq_observacao: formData.chq_observacao,
         };
 
@@ -367,6 +374,10 @@ export default function FINA5() {
       frmCadastro.current.setFieldError(
         'chq_numero',
         validationErrors.chq_numero
+      );
+      frmCadastro.current.setFieldError(
+        'chq_situacao_id',
+        validationErrors.chq_situacao_id
       );
     }
   }
@@ -566,7 +577,7 @@ export default function FINA5() {
             <Panel lefth1="left" bckgnd="#dae2e5">
               <Form id="frmPesquisa" ref={frmPesquisa}>
                 <h1>CHEQUES CADASTRADAS - PESQUISAR</h1>
-                <BoxItemCad fr="2fr 2fr 1fr 1fr 1fr">
+                <BoxItemCad fr="2fr 2fr 1fr">
                   <AreaComp wd="100">
                     <AsyncSelectForm
                       name="pesq_chq_sacado_id"
@@ -591,6 +602,17 @@ export default function FINA5() {
                     />
                   </AreaComp>
                   <AreaComp wd="100">
+                    <FormSelect
+                      label="situação do cheque"
+                      name="pesq_chq_situacao_id"
+                      optionsList={optSituacao}
+                      placeholder="NÃO INFORMADO"
+                      zindex="153"
+                    />
+                  </AreaComp>
+                </BoxItemCad>
+                <BoxItemCad fr="1fr 1fr 1fr 1fr">
+                  <AreaComp wd="100">
                     <label>Nº Cheque</label>
                     <Input
                       type="text"
@@ -609,12 +631,17 @@ export default function FINA5() {
                     />
                   </AreaComp>
                   <AreaComp wd="100">
-                    <FormSelect
-                      label="situação do cheque"
-                      name="pesq_chq_situacao_id"
-                      optionsList={optSituacao}
-                      placeholder="NÃO INFORMADO"
-                      zindex="153"
+                    <DatePickerInput
+                      onChangeDate={(date) => setDataIni(new Date(date))}
+                      value={dataIni}
+                      label="Vencimento Inicial"
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <DatePickerInput
+                      onChangeDate={(date) => setDataFin(new Date(date))}
+                      value={dataFin}
+                      label="Vencimento Final"
                     />
                   </AreaComp>
                 </BoxItemCad>

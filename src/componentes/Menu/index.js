@@ -1,3 +1,5 @@
+/* eslint-disable no-await-in-loop */
+/* eslint-disable no-restricted-syntax */
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
@@ -42,9 +44,16 @@ export function Menu() {
               icon: 'fas fa-caret-right',
             },
             {
-              route: '/adm5',
-              title: 'Cadastro de usuários',
-              icon: 'fas fa-caret-right',
+              opcoes: 'SUBMENU',
+              icon: 'fas fa-folder pda1',
+              name: 'sub1Menu',
+              valor: [
+                {
+                  route: '/adm3',
+                  title: 'TESTE SUBNIVEL',
+                  icon: 'fas fa-caret-right sub1',
+                },
+              ],
             },
           ],
         },
@@ -234,13 +243,25 @@ export function Menu() {
     if (response.data.success) {
       const { retorno } = response.data;
       const subNivel = [];
-      retorno.map(async (n) => {
-        subNivel.push({
-          route: n.rota,
-          title: n.nome,
-          icon: n.icone,
-        });
-      });
+      for (const n of retorno) {
+        if (n.rota) {
+          subNivel.push({
+            route: n.rota,
+            title: n.nome,
+            icon: n.icone,
+          });
+        } else {
+          // nesse caso existe outro subnivel
+          const sub = await getSubMenu(n.item_id);
+
+          subNivel.push({
+            opcoes: n.nome,
+            icon: n.icone,
+            name: n.item_id,
+            valor: sub,
+          });
+        }
+      }
       return subNivel;
     }
     return [];
@@ -259,7 +280,7 @@ export function Menu() {
 
     const menuMod = await Promise.all(
       arr.map(async (it) => {
-        if (!it.rota) {
+        if (!it.rota && !it.codigo_pai) {
           const auxSubNivel = await getSubMenu(it.item_id);
           auxNivel = {
             opcoes: it.nome,
@@ -286,7 +307,10 @@ export function Menu() {
     let tree = {};
     const modulo = await Promise.all(
       dados.map(async (d) => {
-        const itensMenu = await getMenu(d.modulo_itens);
+        const itens = d.modulo_itens.filter(
+          (i) => i.rota || (!i.rota && !i.codigo_pai)
+        );
+        const itensMenu = await getMenu(itens);
         tree = {
           modulo: d.nome,
           name: d.modulo_id,
@@ -383,16 +407,45 @@ export function Menu() {
                           {i.opcoes}
                         </a>
                         <ul className="collapse list-unstyled" id={`${i.name}`}>
-                          {i.valor.map((v) => (
-                            <li key={v.route} className="itens_menu">
-                              <a href={v.route}>
-                                <i className={`${v.icon}`} />
-                                <label className="itens_menu_label">
-                                  {v.title}
-                                </label>
-                              </a>
-                            </li>
-                          ))}
+                          {i.valor.map((v) =>
+                            v.route ? (
+                              <li key={v.route} className="itens_menu">
+                                <a href={v.route}>
+                                  <i className={`${v.icon}`} />
+                                  <label className="itens_menu_label">
+                                    {v.title}
+                                  </label>
+                                </a>
+                              </li>
+                            ) : (
+                              <li key={v.opcoes}>
+                                <a
+                                  href={`#${v.name}`}
+                                  data-toggle="collapse"
+                                  aria-expanded="false"
+                                  className="dropdown-toggle"
+                                >
+                                  <i className={`${v.icon}`} />
+                                  {v.opcoes}
+                                </a>
+                                <ul
+                                  className="collapse list-unstyled"
+                                  id={`${v.name}`}
+                                >
+                                  {v.valor.map((x) => (
+                                    <li key={x.route} className="itens_menu">
+                                      <a href={x.route}>
+                                        <i className={`${x.icon}`} />
+                                        <label className="itens_menu_label">
+                                          {x.title}
+                                        </label>
+                                      </a>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </li>
+                            )
+                          )}
                         </ul>
                       </li>
                     )

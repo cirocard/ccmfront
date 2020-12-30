@@ -93,6 +93,7 @@ const Popup = ({
             isParent={isParent}
           >
             <TitleBar wd="100%" id="draggable-dialog">
+              <h1>.</h1>
               <h1>{title}</h1>
               <button type="button" onClick={resetAndClose}>
                 <MdClose size={30} color="#fff" />

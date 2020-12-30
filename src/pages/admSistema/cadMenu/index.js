@@ -1,3 +1,5 @@
+/* eslint-disable no-await-in-loop */
+/* eslint-disable no-restricted-syntax */
 import React, { useEffect, useState } from 'react';
 import { MdClose, MdAddCircle, MdSave } from 'react-icons/md';
 import CheckboxTree from 'react-checkbox-tree';
@@ -38,12 +40,25 @@ export default function Adm1() {
     if (response.data.success) {
       const { retorno } = response.data;
       const subNivel = [];
-      retorno.map(async (n) => {
-        subNivel.push({
-          value: n.item_id,
-          label: n.nome,
-        });
-      });
+
+      for (const n of retorno) {
+        if (n.rota) {
+          subNivel.push({
+            value: n.item_id,
+            label: n.nome,
+          });
+        } else {
+          // nesse caso existe outro subnivel
+          const sub = await getSubMenu(n.item_id);
+
+          subNivel.push({
+            value: n.item_id,
+            label: n.nome,
+            children: sub,
+          });
+        }
+      }
+      // console.log('SUB MENU ', subNivel);
       return subNivel;
     }
     return [];
@@ -54,14 +69,14 @@ export default function Adm1() {
     const arr = [];
     // gerar um novo array sem os itens de submenu q virao da api depois
     m.forEach((i) => {
-      if (!i.codigo_pai) {
+      if (!i.codigo_pai || !i.rota) {
         arr.push(i);
       }
     });
 
     const menuMod = await Promise.all(
       arr.map(async (it) => {
-        if (!it.rota) {
+        if (!it.rota && !it.codigo_pai) {
           const auxSubNivel = await getSubMenu(it.item_id);
           auxNivel = {
             value: it.item_id,
@@ -84,15 +99,21 @@ export default function Adm1() {
     let tree = {};
     const modulo = await Promise.all(
       dados.map(async (d) => {
-        const itensMenu = await getMenu(d.modulo_itens);
+        const itens = d.modulo_itens.filter(
+          (i) => i.rota || (!i.rota && !i.codigo_pai)
+        );
+
+        const itensMenu = await getMenu(itens);
         tree = {
           value: d.modulo_id,
           label: d.nome,
           children: itensMenu,
         };
+
         return tree;
       })
     );
+
     setMenuGerado(modulo);
   }
 

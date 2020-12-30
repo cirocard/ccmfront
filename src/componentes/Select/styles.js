@@ -48,8 +48,8 @@ export const AsyncCustomSelect = styled(AsyncSelect)`
 
   @media ${device.mobileS} {
     & .Select__control {
-      height: 30px;
-      min-height: 30px;
+      height: 27px;
+      min-height: 27px;
     }
     & .css-tlfecz-indicatorContainer {
       margin-top: -6px;
@@ -77,8 +77,8 @@ export const CustomSelect = styled(Select)`
 
   @media ${device.mobileS} {
     & .Select__control {
-      height: 30px;
-      min-height: 30px;
+      height: 27px;
+      min-height: 27px;
     }
     & .css-tlfecz-indicatorContainer {
       margin-top: -6px;
