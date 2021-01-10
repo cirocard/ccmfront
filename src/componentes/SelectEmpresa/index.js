@@ -5,7 +5,6 @@ import Select from 'react-select';
 import { AreaComp, BoxMenu } from './styles';
 import { store } from '~/store';
 import { selectEmpRequest } from '~/store/modules/auth/actions';
-import history from '~/services/history';
 
 export function BotaoEmpresa() {
   const dispatch = useDispatch();
@@ -32,8 +31,6 @@ export function BotaoEmpresa() {
       )
     );
     toast.success(`Empresa selecionada: ${event.label}`);
-    history.push('/');
-    history.go(0);
   };
 
   return (
