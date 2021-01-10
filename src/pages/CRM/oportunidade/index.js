@@ -21,7 +21,6 @@ import {
   BoxControles,
   Controles,
   Space,
-  FiltroNeg,
 } from './styles';
 import {
   maskDecimal,
@@ -49,7 +48,6 @@ export default function Crm5() {
   const [openCadastro, setOpenCadastro] = useState(false);
   const [sitNegocio, setSitNegocio] = useState([]);
   const [oportunityPanel, setOportunityPanel] = useState([]);
-  const [neg_id, setNeg_id] = useState('');
   const [pesqCli_id, setPesqCliId] = useState([]);
   const [optSituacao, setOptSituacao] = useState([]);
   const [optClassificacao, setOptClassificacao] = useState([]);
@@ -81,6 +79,7 @@ export default function Crm5() {
   }
   function handleDashboard() {
     history.push('/crm1', '_blank');
+    history.go(0);
   }
 
   async function listaOpPainel(classific, sitNeg, nome) {
@@ -204,6 +203,7 @@ export default function Crm5() {
   async function handleActivity(id, nome) {
     if (id) {
       history.push(`/crm6?neg_id=${id}&neg_nome=${nome}`, '_blank');
+      history.go(0);
     } else {
       toast.info(`Selecione uma oportunidade para continuar... `, toastOptions);
     }
@@ -284,6 +284,7 @@ export default function Crm5() {
     }
   }
 
+  /*
   async function handleOportunity(id) {
     let obj;
     if (neg_id) {
@@ -295,7 +296,7 @@ export default function Crm5() {
     obj.style.border = 'solid 2px #49FF43';
     setNeg_id(id);
   }
-
+  */
   async function listaGeral(tab_id) {
     try {
       const response = await api.get(`v1/shared/consulta/geral/${tab_id}`);
@@ -339,7 +340,7 @@ export default function Crm5() {
         callback(
           response.data.retorno.map((i) => ({ value: i.value, label: i.label }))
         );
-      } else if (!isNaN(descricao)) {
+      } else if (!Number.isNaN(descricao)) {
         // consultar com menos de 3 digitos só se for numerico como codigo do cliente
         const response = await api.get(
           `v1/combos/combo_cliente?perfil=10&nome=${descricao}`
@@ -454,7 +455,7 @@ export default function Crm5() {
               {sitNegocio.map((sit) => (
                 <>
                   {limpaRaia()}
-                  {oportunityPanel.map((o) => {
+                  {oportunityPanel.forEach((o) => {
                     if (o.neg_situacao.toString() === sit.ger_id.toString()) {
                       oportunityRaia.push(o);
                     }

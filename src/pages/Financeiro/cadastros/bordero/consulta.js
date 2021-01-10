@@ -65,7 +65,7 @@ export default function CONULTA_PEDIDO({ getPedido, borderoCheque, cli_id }) {
         callback(
           response.data.retorno.map((i) => ({ value: i.value, label: i.label }))
         );
-      } else if (!isNaN(descricao)) {
+      } else if (!Number.isNaN(descricao)) {
         // consultar com menos de 3 digitos só se for numerico como codigo do cliente
         const response = await api.get(
           `v1/combos/combo_cliente?perfil=23&nome=${descricao}`

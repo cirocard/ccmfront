@@ -1,3 +1,5 @@
+/* eslint-disable no-await-in-loop */
+/* eslint-disable no-restricted-syntax */
 /* eslint-disable radix */
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
@@ -70,12 +72,25 @@ export default function Adm4() {
     if (response.data.success) {
       const { retorno } = response.data;
       const subNivel = [];
-      retorno.map(async (n) => {
-        subNivel.push({
-          value: n.item_id,
-          label: n.nome,
-        });
-      });
+
+      for (const n of retorno) {
+        if (n.rota) {
+          subNivel.push({
+            value: n.item_id,
+            label: n.nome,
+          });
+        } else {
+          // nesse caso existe outro subnivel
+          const sub = await getSubMenu(n.item_id);
+
+          subNivel.push({
+            value: n.item_id,
+            label: n.nome,
+            children: sub,
+          });
+        }
+      }
+
       return subNivel;
     }
     return [];
@@ -87,7 +102,7 @@ export default function Adm4() {
     // gerar um novo array sem os itens de submenu q virao da api depois
 
     m.forEach((i) => {
-      if (!i.codigo_pai) {
+      if (!i.codigo_pai || !i.rota) {
         arr.push(i);
       }
     });
@@ -117,7 +132,11 @@ export default function Adm4() {
 
     const modulo = await Promise.all(
       dados.map(async (d) => {
-        const itensMenu = await getMenu(d.modulo_itens, grupo);
+        const itens = d.modulo_itens.filter(
+          (i) => i.rota || (!i.rota && !i.codigo_pai)
+        );
+
+        const itensMenu = await getMenu(itens, grupo);
 
         tree = {
           value: d.modulo_id,
@@ -155,9 +174,28 @@ export default function Adm4() {
     }
   }
 
-  function onCheck(chk) {
-    setChecked(chk);
-  }
+  const onCheck = (itens, nodeClicked) => {
+    const todos = [];
+
+    if (nodeClicked.children) {
+      nodeClicked.children.forEach((e) => {
+        todos.push(e.value);
+        if (e.children) {
+          todos.push(e.value);
+
+          e.children.forEach((f) => {
+            todos.push(f.value);
+          });
+        }
+      });
+    } else {
+      itens.forEach((i) => {
+        todos.push(i);
+      });
+    }
+
+    setChecked(todos);
+  };
 
   function onCheckGrupo(chk) {
     setCheckedGrupo(chk);
@@ -183,6 +221,7 @@ export default function Adm4() {
 
   function handleDashboard() {
     history.push('/', '_blank');
+    history.go(0);
   }
 
   // novo grupo
@@ -351,7 +390,7 @@ export default function Adm4() {
                   checked={checked}
                   expanded={expanded}
                   iconsClass="fa5"
-                  onCheck={(chk) => onCheck(chk)}
+                  onCheck={onCheck}
                   onExpand={(exp) => onExpand(exp)}
                   showExpandAll
                   showNodeIcon={false}

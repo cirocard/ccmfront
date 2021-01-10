@@ -48,6 +48,7 @@ export default function Crm8() {
 
   function handleDashboard() {
     history.push('/crm1', '_blank');
+    history.go(0);
   }
 
   async function listarGeral(tab) {
@@ -170,6 +171,7 @@ export default function Crm8() {
   function handleParametros(prm) {
     history.push(`/crm8/${prm}`);
     window.location.reload(false);
+    history.go(0);
   }
 
   useEffect(() => {
@@ -242,7 +244,13 @@ export default function Crm8() {
       <ToolBar hg="100%" wd="40px">
         <DivLimitador hg="10px" />
         <BootstrapTooltip title="Cadastro de Cliente" placement="left">
-          <button type="button" onClick={() => history.push(`/crm9/`)}>
+          <button
+            type="button"
+            onClick={() => {
+              history.push(`/crm9/`);
+              history.go(0);
+            }}
+          >
             <FaUserTie size={25} color="#fff" />
           </button>
         </BootstrapTooltip>

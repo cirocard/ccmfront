@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
 import * as Yup from 'yup';
-import axios from 'axios';
 import { Form } from '@unform/web';
 import { toast } from 'react-toastify';
 import { AgGridReact } from 'ag-grid-react';
@@ -64,7 +63,7 @@ export default function Crm9() {
   const [loading, setLoading] = useState(false);
   const [gridPesquisa, setGridPesquisa] = useState([]);
   const [dataGridPesqSelected, setDataGridPesqSelected] = useState([]);
-  const [gridApiPesquisa, setGridApiPesquisa] = useState([]);
+
   const [gridEndereco, setGridEndereco] = useState([]);
   const [optTipoCliente, setOptTipoCliente] = useState([]);
   const [optSegmento, setOptSegmento] = useState([]);
@@ -74,7 +73,6 @@ export default function Crm9() {
   const [optPais, setOptPais] = useState([]);
   const [representante, setRepresentante] = useState([]);
   const [perfil, setPerfil] = useState('0');
-  const apiGeral = axios.create();
 
   const toastOptions = {
     autoClose: 4000,
@@ -180,7 +178,7 @@ export default function Crm9() {
         callback(
           response.data.retorno.map((i) => ({ value: i.value, label: i.label }))
         );
-      } else if (!isNaN(descricao)) {
+      } else if (!Number.isNaN(descricao)) {
         // consultar com menos de 3 digitos só se for numerico como codigo do cliente
         const response = await api.get(
           `v1/combos/combo_cliente?perfil=0&nome=${descricao}`
@@ -217,7 +215,8 @@ export default function Crm9() {
   // #endregion
 
   function handleDashboard() {
-    history.push('/supr1', '_blank');
+    history.push('/crm1');
+    history.go(0);
   }
 
   // grid pesquisa
@@ -1025,9 +1024,6 @@ export default function Crm9() {
                       rowSelection="single"
                       animateRows
                       gridOptions={{ localeText: gridTraducoes }}
-                      onGridReady={(params) => {
-                        setGridApiPesquisa(params.api);
-                      }}
                       onSelectionChanged={handleSelectGridPesquisa}
                     />
                   </GridContainerMain>

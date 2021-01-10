@@ -49,6 +49,7 @@ export default function SUPR3() {
 
   function handleDashboard() {
     history.push('/supr1', '_blank');
+    history.go(0);
   }
 
   async function listarGeral(tab) {
@@ -170,6 +171,7 @@ export default function SUPR3() {
 
   function handleParametros(prm) {
     history.push(`/supr3/${prm}`);
+    history.go(0);
     window.location.reload(false);
   }
 

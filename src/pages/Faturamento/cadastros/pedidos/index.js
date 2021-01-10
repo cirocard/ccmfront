@@ -1,3 +1,4 @@
+/* eslint-disable eqeqeq */
 import React, { useEffect, useState, useRef } from 'react';
 import { useRouteMatch } from 'react-router-dom';
 import * as Yup from 'yup';
@@ -120,11 +121,10 @@ export default function FAT2() {
   const [selectedProduto, setSelectedProduto] = useState([]);
   const [situacaoPedido, setSituacaoPedido] = useState('');
   const [existeBordero, setExisteBordero] = useState('');
-  const [gridApiPesquisa, setGridApiPesquisa] = useState([]);
   const [colunaItens, setColunaItens] = useState([]);
   const [desableSave, setDesableSave] = useState(true);
   const [inputDesable, setInputDesable] = useState(true);
-  const [disableBtnGrid, setDisableBtnGrid] = useState(false);
+
   const [representante, setRepresentante] = useState([]);
 
   const toastOptions = {
@@ -169,7 +169,7 @@ export default function FAT2() {
         callback(
           response.data.retorno.map((i) => ({ value: i.value, label: i.label }))
         );
-      } else if (!isNaN(descricao)) {
+      } else if (!Number.isNaN(descricao)) {
         // consultar com menos de 3 digitos só se for numerico como codigo do cliente
         const response = await api.get(
           `v1/combos/combo_cliente?perfil=${tipo}&nome=${descricao}`
@@ -192,7 +192,7 @@ export default function FAT2() {
         callback(
           response.data.retorno.map((i) => ({ value: i.value, label: i.label }))
         );
-      } else if (!isNaN(descricao)) {
+      } else if (!Number.isNaN(descricao)) {
         // consultar com menos de 3 digitos só se for numerico como codigo do cliente
         const response = await api.get(
           `v1/combos/combo_cliente?perfil=23&nome=${descricao}`
@@ -382,6 +382,7 @@ export default function FAT2() {
 
   function handleDashboard() {
     history.push('/fat1', '_blank');
+    history.go(0);
   }
 
   // grid pesquisa
@@ -1402,6 +1403,7 @@ export default function FAT2() {
   function handleCliente() {
     // history.push('/crm9', '_blank');
     window.open('/crm9', '_blank');
+    history.go(0);
   }
 
   // alimenta grid financeiro
@@ -1900,7 +1902,7 @@ export default function FAT2() {
             <BootstrapTooltip title="Selecionar Produto" placement="top">
               <button
                 type="button"
-                disabled={disableBtnGrid}
+                disabled={false}
                 onClick={() => handleSelectItemGrade(prm.data)}
               >
                 <FaCheck size={18} color="#253739" />
@@ -2005,7 +2007,7 @@ export default function FAT2() {
             >
               <button
                 type="button"
-                disabled={disableBtnGrid}
+                disabled={false}
                 onClick={() => handleExcluirFina(prm.data)}
               >
                 <FaTrashAlt size={18} color="#253739" />
@@ -2352,9 +2354,6 @@ export default function FAT2() {
                           const cancelado = p.data.cp_situacao;
                           return cancelado === 'CANCELADO';
                         },
-                      }}
-                      onGridReady={(prm) => {
-                        setGridApiPesquisa(prm.api);
                       }}
                       onSelectionChanged={handleSelectGridPesquisa}
                     />

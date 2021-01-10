@@ -12,7 +12,9 @@ function PopupContainer({ children, isOpen }) {
     } else {
       try {
         modalContainer.removeChild(el);
-      } catch (err) {}
+      } catch (err) {
+        //
+      }
     }
   }, [isOpen]);
 

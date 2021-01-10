@@ -51,7 +51,6 @@ export default function SUPR5() {
   const [gridPesquisa, setGridPesquisa] = useState([]);
   const [dataGridPesqSelected, setDataGridPesqSelected] = useState([]);
   const [gridItens, setGridItens] = useState([]);
-  const [gridApiPesquisa, setGridApiPesquisa] = useState([]);
   const [produto, setProduto] = useState([]);
   const [infoTabela, setInfoTabela] = useState('');
   const [dataVigencia, setDataVigencia] = useState(new Date());
@@ -141,6 +140,7 @@ export default function SUPR5() {
 
   function handleDashboard() {
     history.push('/supr1', '_blank');
+    history.go(0);
   }
 
   // grid pesquisa
@@ -717,9 +717,6 @@ export default function SUPR5() {
                       rowSelection="single"
                       animateRows
                       gridOptions={{ localeText: gridTraducoes }}
-                      onGridReady={(params) => {
-                        setGridApiPesquisa(params.api);
-                      }}
                       onSelectionChanged={handleSelectGridPesquisa}
                     />
                   </GridContainerMain>
@@ -777,9 +774,6 @@ export default function SUPR5() {
                       rowSelection="single"
                       animateRows
                       gridOptions={{ localeText: gridTraducoes }}
-                      onGridReady={(params) => {
-                        setGridApiPesquisa(params.api);
-                      }}
                     />
                   </GridContainerMain>
                 </BoxItemCadNoQuery>

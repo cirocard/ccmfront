@@ -6,9 +6,7 @@ import { AgGridReact } from 'ag-grid-react';
 import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
-import { format, parse } from 'date-fns';
 import { MdClose } from 'react-icons/md';
-import KeyboardEventHandler from 'react-keyboard-event-handler';
 import {
   FaSave,
   FaSearch,
@@ -21,6 +19,7 @@ import {
   FaSearchMinus,
   FaSearchPlus,
   FaCheckDouble,
+  FaPrint,
 } from 'react-icons/fa';
 import moment from 'moment';
 import Confirmation from '~/componentes/DialogChoice';
@@ -37,7 +36,6 @@ import history from '~/services/history';
 import Popup from '~/componentes/Popup';
 import {
   a11yProps,
-  maskDecimal,
   GridCurrencyFormatter,
   FormataMoeda,
   toDecimal,
@@ -74,11 +72,9 @@ export default function FINA6() {
   const [gridPesquisa, setGridPesquisa] = useState([]);
   const [gridPedido, setGridPedido] = useState([]);
   const [gridCheque, setGridCheque] = useState([]);
-  const [chequesBordero, setChequesBordero] = useState([]);
   const [dataGridPesqSelected, setDataGridPesqSelected] = useState([]);
   const [dataGridPedido, setDataGridPedido] = useState([]);
   const [dataGridCheque, setDataGridCheque] = useState([]);
-  const [gridApiPesquisa, setGridApiPesquisa] = useState([]);
   const [optGrpRec, setOptGrprec] = useState([]);
   const [optContas, setOptContas] = useState([]);
   const [vendedor, setVendedor] = useState([]);
@@ -115,7 +111,7 @@ export default function FINA6() {
         callback(
           response.data.retorno.map((i) => ({ value: i.value, label: i.label }))
         );
-      } else if (!isNaN(descricao)) {
+      } else if (!Number.isNaN(descricao)) {
         // consultar com menos de 3 digitos só se for numerico como codigo do cliente
         const response = await api.get(
           `v1/combos/combo_cliente?perfil=0&nome=${descricao}`
@@ -185,6 +181,7 @@ export default function FINA6() {
 
   function handleDashboard() {
     history.push('/fina1', '_blank');
+    history.go(0);
   }
 
   // grid pesquisa
@@ -686,6 +683,7 @@ export default function FINA6() {
             bci_bc_id: formData.bc_id,
             bci_cheque_id: c.chq_id,
             bci_situacao: '2',
+            bci_databaixa: new Date(), // moment(new Date()).format('YYYY-MM-DD'),
           };
           itens.push(cheque);
         });
@@ -708,6 +706,31 @@ export default function FINA6() {
     } catch (error) {
       setLoading(false);
       toast.error(`${error}`);
+    }
+  }
+
+  async function handleImpressao() {
+    try {
+      if (dataGridPesqSelected.length > 0) {
+        setLoading(true);
+        const url = `v1/fina/report/bordero_cheque?bc_id=${dataGridPesqSelected[0].bc_id}`;
+
+        const response = await api.get(url);
+        const link = response.data;
+        setLoading(false);
+
+        if (link.toString() === '0')
+          toast.info(
+            'NÃO HÁ INFORMAÇÕES PARA GERAR O RELATÓRIO!!!',
+            toastOptions
+          );
+        else window.open(link, '_blank');
+      } else {
+        toast.error(`SELECIONE UM BORDERÔ PARA IMPRIMIR`, toastOptions);
+      }
+    } catch (err) {
+      setLoading(false);
+      toast.error(`Erro ao gerar relatório: ${err}`, toastOptions);
     }
   }
 
@@ -968,6 +991,12 @@ export default function FINA6() {
             <FaSave size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
+        <DivLimitador hg="10px" />
+        <BootstrapTooltip title="IMPRESSÃO DO BORDERÔ" placement="left">
+          <button type="button" onClick={handleImpressao}>
+            <FaPrint size={25} color="#fff" />
+          </button>
+        </BootstrapTooltip>
         <DivLimitador hg="20px" />
         <Linha />
         <DivLimitador hg="20px" />
@@ -1082,8 +1111,11 @@ export default function FINA6() {
                       rowSelection="single"
                       animateRows
                       gridOptions={{ localeText: gridTraducoes }}
-                      onGridReady={(params) => {
-                        setGridApiPesquisa(params.api);
+                      rowClassRules={{
+                        'warn-baixado': function (p) {
+                          const baixado = p.data.situacao;
+                          return baixado === 'BAIXADO';
+                        },
                       }}
                       onSelectionChanged={handleSelectGridPesquisa}
                     />

@@ -117,6 +117,7 @@ export default function Crm4() {
 
   function handleDashboard() {
     history.push('/crm1', '_blank');
+    history.go(0);
   }
 
   async function handleCep(cep) {
@@ -365,16 +366,7 @@ export default function Crm4() {
     }
   }
 
-  const [gridPrincipalInstance, setGridPrincipalInstance] = useState({
-    api: {},
-    columnApi: {},
-  });
-
   const onGridPrincipalReady = (params) => {
-    setGridPrincipalInstance({
-      api: params.api,
-      columnApi: params.columnApi,
-    });
     params.api.sizeColumnsToFit();
   };
 

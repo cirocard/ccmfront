@@ -1,15 +1,11 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 
 // import { Container } from './styles';
 
 export default function Main() {
-  useEffect(() => {
-    window.loadMenu();
-  }, []);
-
   return (
     <div>
-      <h1 />
+      <h1>CCM GESTÃO</h1>
     </div>
   );
 }

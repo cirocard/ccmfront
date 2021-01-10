@@ -16,7 +16,7 @@ export default function AsyncSelectForm({
   const { fieldName, defaultValue, registerField, error } = useField(name);
 
   const selectStyles = {
-    container: (base, state) => ({
+    container: (base) => ({
       ...base,
       // opacity: state.isDisabled ? '.5' : '1',
       backgroundColor: 'transparent',

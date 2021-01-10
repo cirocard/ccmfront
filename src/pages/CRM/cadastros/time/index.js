@@ -54,6 +54,7 @@ export default function Crm2() {
 
   function handleDashboard() {
     history.push('/crm1', '_blank');
+    history.go(0);
   }
 
   async function handleEdit(id) {
@@ -154,14 +155,8 @@ export default function Crm2() {
   }
 
   // ======= Colunas e APIs das grids ========
-  const [gridPrincipalInstance, setGridPrincipalInstance] = useState({
-    api: {},
-    columnApi: {},
-  });
 
   const onGridPrincipalReady = (params) => {
-    /* obtem acesso às APIs da Ag-grid */
-    setGridPrincipalInstance({ api: params.api, columnApi: params.columnApi });
     /* ajusta as colunas da grid para preencher todo o espaço disponível */
     params.api.sizeColumnsToFit();
   };

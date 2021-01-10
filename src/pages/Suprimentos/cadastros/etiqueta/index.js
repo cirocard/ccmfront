@@ -115,6 +115,7 @@ export default function SUPR6() {
 
   function handleDashboard() {
     history.push('/supr1', '_blank');
+    history.go(0);
   }
 
   async function handleNovoCadastro() {

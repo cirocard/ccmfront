@@ -38,7 +38,6 @@ export default function SUPR7() {
   const [loading, setLoading] = useState(false);
   const [gridPesquisa, setGridPesquisa] = useState([]);
   const [dataGridPesqSelected, setDataGridPesqSelected] = useState([]);
-  const [gridApiPesquisa, setGridApiPesquisa] = useState([]);
   const [cfop, setCfop] = useState([]);
   const [cfopEst, setCfopEst] = useState([]);
   const [cfopImp, setCfopImp] = useState([]);
@@ -101,6 +100,7 @@ export default function SUPR7() {
 
   function handleDashboard() {
     history.push('/supr1', '_blank');
+    history.go(0);
   }
 
   // grid pesquisa
@@ -427,9 +427,6 @@ export default function SUPR7() {
                       rowSelection="single"
                       animateRows
                       gridOptions={{ localeText: gridTraducoes }}
-                      onGridReady={(params) => {
-                        setGridApiPesquisa(params.api);
-                      }}
                       onSelectionChanged={handleSelectGridPesquisa}
                     />
                   </GridContainerMain>

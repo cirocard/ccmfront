@@ -35,8 +35,8 @@ export default function CONSULTA_CHEQUE({ getCheque, cli_id, bordero_id }) {
   const [loading, setLoading] = useState(false);
   const [gridPesquisa, setGridPesquisa] = useState([]);
   const [dataGridPesqSelected, setDataGridPesqSelected] = useState([]);
-  const [gridApiPesquisa, setGridApiPesquisa] = useState([]);
-  const [optBanco, setOptBanco] = useState([]);
+  // const [gridApiPesquisa, setGridApiPesquisa] = useState([]);
+  // const [optBanco, setOptBanco] = useState([]);
   const [sacado, setSacado] = useState([]);
   const [optSituacao, setOptSituacao] = useState([]);
   const [dataIni, setDataIni] = useState(moment());
@@ -66,7 +66,7 @@ export default function CONSULTA_CHEQUE({ getCheque, cli_id, bordero_id }) {
         callback(
           response.data.retorno.map((i) => ({ value: i.value, label: i.label }))
         );
-      } else if (!isNaN(descricao)) {
+      } else if (!Number.isNaN(descricao)) {
         // consultar com menos de 3 digitos só se for numerico como codigo do cliente
         const response = await api.get(
           `v1/combos/combo_cliente?perfil=0&nome=${descricao}`
@@ -85,7 +85,7 @@ export default function CONSULTA_CHEQUE({ getCheque, cli_id, bordero_id }) {
       const dados = response.data.retorno;
       if (dados) {
         if (tab_id === 24) {
-          setOptBanco(dados);
+          // setOptBanco(dados);
         } else if (tab_id === 25) {
           setOptSituacao(dados);
         }
@@ -334,9 +334,6 @@ export default function CONSULTA_CHEQUE({ getCheque, cli_id, bordero_id }) {
                     rowSelection="multiple"
                     animateRows
                     gridOptions={{ localeText: gridTraducoes }}
-                    onGridReady={(params) => {
-                      setGridApiPesquisa(params.api);
-                    }}
                     onSelectionChanged={handleSelectGridPesquisa}
                   />
                 </GridContainerMain>

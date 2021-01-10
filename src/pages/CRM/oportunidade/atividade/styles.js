@@ -1,6 +1,6 @@
-import styled, { css } from 'styled-components';
+import styled from 'styled-components';
 import PerfectScrollbar from 'react-perfect-scrollbar';
-import { lighten, darken } from 'polished';
+import { lighten } from 'polished';
 
 export const Scroll = styled(PerfectScrollbar)`
   width: 100%;

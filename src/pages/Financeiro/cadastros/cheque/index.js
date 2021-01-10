@@ -55,7 +55,6 @@ export default function FINA5() {
   const [loading, setLoading] = useState(false);
   const [gridPesquisa, setGridPesquisa] = useState([]);
   const [dataGridPesqSelected, setDataGridPesqSelected] = useState([]);
-  const [gridApiPesquisa, setGridApiPesquisa] = useState([]);
   const [optBanco, setOptBanco] = useState([]);
   const [sacado, setSacado] = useState([]);
   const [optSituacao, setOptSituacao] = useState([]);
@@ -87,7 +86,7 @@ export default function FINA5() {
         callback(
           response.data.retorno.map((i) => ({ value: i.value, label: i.label }))
         );
-      } else if (!isNaN(descricao)) {
+      } else if (!Number.isNaN(descricao)) {
         // consultar com menos de 3 digitos só se for numerico como codigo do cliente
         const response = await api.get(
           `v1/combos/combo_cliente?perfil=0&nome=${descricao}`
@@ -135,6 +134,7 @@ export default function FINA5() {
 
   function handleDashboard() {
     history.push('/fina1', '_blank');
+    history.go(0);
   }
 
   // grid pesquisa
@@ -653,9 +653,6 @@ export default function FINA5() {
                       rowSelection="single"
                       animateRows
                       gridOptions={{ localeText: gridTraducoes }}
-                      onGridReady={(params) => {
-                        setGridApiPesquisa(params.api);
-                      }}
                       onSelectionChanged={handleSelectGridPesquisa}
                     />
                   </GridContainerMain>

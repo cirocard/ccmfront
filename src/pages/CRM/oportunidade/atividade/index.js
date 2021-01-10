@@ -185,6 +185,7 @@ export default function Crm6() {
 
   function handleOportunidade() {
     history.push('/crm5', '_blank');
+    history.go(0);
   }
 
   async function handleContato(id) {

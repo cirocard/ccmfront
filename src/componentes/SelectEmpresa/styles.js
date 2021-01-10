@@ -8,7 +8,7 @@ export const BoxMenu = styled.div`
 export const AreaComp = styled.div`
   display: flex;
   flex-direction: column;
-  width: ${props => props.wd};
+  width: ${(props) => props.wd};
   font-size: 14px;
   font-weight: 700;
   color: #fafafa;

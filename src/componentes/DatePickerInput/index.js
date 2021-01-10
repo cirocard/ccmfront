@@ -71,22 +71,23 @@ function DatePickerInput({ onChangeDate, value, dateAndTime, label }) {
         arrDate = arrDate.join('/');
         arrDate += ` ${arrDateAndTime[1]}`;
 
-        const date = moment(arrDate);
-        onChangeDate(date);
+        const dt = moment(arrDate);
+        onChangeDate(dt);
       } else {
         let arrDate = dateInput.split('/');
         arrDate = arrDate.reverse();
         arrDate = arrDate.join('/');
 
-        const date = moment(arrDate);
-        onChangeDate(date);
+        const dt = moment(arrDate);
+        onChangeDate(dt);
       }
-    } catch (err) {}
+    } catch (err) {
+      //
+    }
   };
 
   const handleInput = (event) => {
-    const { value } = event.target;
-    setDateFormated(value);
+    setDateFormated(event.target.value);
 
     const regex = new RegExp(
       /^(\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}|\d{2}\/\d{2}\/\d{4})$/

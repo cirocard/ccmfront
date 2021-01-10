@@ -1,3 +1,5 @@
+/* eslint-disable no-await-in-loop */
+/* eslint-disable no-restricted-syntax */
 /* eslint-disable radix */
 import React, { useEffect, useState } from 'react';
 import { MdClose, MdDelete, MdSave } from 'react-icons/md';
@@ -32,7 +34,7 @@ export default function Adm6() {
   const [selectedEmp, setSelectedEmp] = useState(0);
   const [optUsers, setOptUsers] = useState([]); // usuarios de uma empresa
   const [optUserGroup, setOptUserGroup] = useState([]); // usuarios de um grupo
-  const [selectedUser, setSelectedUser] = useState(0);
+
   const [grupoAdmId, setGrupoAdmId] = useState('');
 
   const toastOptions = {
@@ -105,12 +107,25 @@ export default function Adm6() {
     if (response.data.success) {
       const { retorno } = response.data;
       const subNivel = [];
-      retorno.map(async (n) => {
-        subNivel.push({
-          value: n.item_id,
-          label: n.nome,
-        });
-      });
+
+      for (const n of retorno) {
+        if (n.rota) {
+          subNivel.push({
+            value: n.item_id,
+            label: n.nome,
+          });
+        } else {
+          // nesse caso existe outro subnivel
+          const sub = await getSubMenu(n.item_id);
+
+          subNivel.push({
+            value: n.item_id,
+            label: n.nome,
+            children: sub,
+          });
+        }
+      }
+
       return subNivel;
     }
     return [];
@@ -121,7 +136,7 @@ export default function Adm6() {
     const arr = [];
     // gerar um novo array sem os itens de submenu q virao da api depois
     m.forEach((i) => {
-      if (!i.codigo_pai) {
+      if (!i.codigo_pai || !i.rota) {
         arr.push(i);
       }
     });
@@ -148,9 +163,14 @@ export default function Adm6() {
   // monta o treeview
   async function montaTreeMenu(dados, tpEmpresa) {
     let tree = {};
+
     const modulo = await Promise.all(
       dados.map(async (d) => {
-        const itensMenu = await getMenu(d.modulo_itens, tpEmpresa);
+        const itens = d.modulo_itens.filter(
+          (i) => i.rota || (!i.rota && !i.codigo_pai)
+        );
+
+        const itensMenu = await getMenu(itens, tpEmpresa);
         tree = {
           value: d.modulo_id,
           label: d.nome,
@@ -187,9 +207,28 @@ export default function Adm6() {
     }
   }
 
-  function onCheck(chk) {
-    setChecked(chk);
-  }
+  const onCheck = (itens, nodeClicked) => {
+    const todos = [];
+
+    if (nodeClicked.children) {
+      nodeClicked.children.forEach((e) => {
+        todos.push(e.value);
+        if (e.children) {
+          todos.push(e.value);
+
+          e.children.forEach((f) => {
+            todos.push(f.value);
+          });
+        }
+      });
+    } else {
+      itens.forEach((i) => {
+        todos.push(i);
+      });
+    }
+
+    setChecked(todos);
+  };
 
   function onCheckEmp(chk) {
     setCheckedEmp(chk);
@@ -198,12 +237,14 @@ export default function Adm6() {
   function onExpand(exp) {
     setExpanded(exp);
   }
+
   function onExpandEmp(exp) {
     setExpandedEmp(exp);
   }
 
   function handleDashboard() {
     history.push('/', '_blank');
+    history.go(0);
   }
 
   const handleEmpresa = async (e) => {
@@ -217,7 +258,6 @@ export default function Adm6() {
 
   const handleUsers = async (e) => {
     if (e) {
-      setSelectedUser(e);
       // vincular usuario ao grupo
       const grpusr = await api.put(
         `v1/users/update_user_group/${e.value}/${grupoAdmId}`
@@ -237,6 +277,7 @@ export default function Adm6() {
         checked.forEach((c) => {
           menuGravar.push({ emp_id: selectedEmp, item_id: c });
         });
+
         const retorno = await api.post('v1/accounts/menu_empresa', menuGravar);
         if (retorno.data.success) {
           await montaTreeMenu(retorno.data.retorno, selectedEmp);
@@ -387,7 +428,7 @@ export default function Adm6() {
                   checked={checked}
                   expanded={expanded}
                   iconsClass="fa5"
-                  onCheck={(chk) => onCheck(chk)}
+                  onCheck={onCheck}
                   onExpand={(exp) => onExpand(exp)}
                   showExpandAll
                   showNodeIcon={false}
