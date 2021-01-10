@@ -138,7 +138,7 @@ export function* setNewEmp({ payload }) {
       );
 
       history.push('/');
-      history.go(0);
+      history.go('/');
     }
   } catch (err) {
     yield put(signFailure());
