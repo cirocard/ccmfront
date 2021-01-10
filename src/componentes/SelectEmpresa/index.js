@@ -33,6 +33,7 @@ export function BotaoEmpresa() {
     );
     toast.success(`Empresa selecionada: ${event.label}`);
     history.push('/');
+    history.go(0);
   };
 
   return (
