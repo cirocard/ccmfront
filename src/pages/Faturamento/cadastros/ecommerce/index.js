@@ -58,6 +58,7 @@ export default function FAT3() {
 
   function handleDashboard() {
     history.push('/crm1', '_blank');
+    history.go(0);
   }
 
   async function getComboOperFat() {
@@ -291,7 +292,7 @@ export default function FAT3() {
         };
 
         let referencias = '';
-        pedido.line_items.map((i) => {
+        pedido.line_items.forEach((i) => {
           referencias += `'${i.meta_data._id_exportacao}',`;
         });
 
@@ -303,7 +304,7 @@ export default function FAT3() {
 
         const itens = [];
 
-        pedido.line_items.map((i) => {
+        pedido.line_items.forEach((i) => {
           const p = refs.data.retorno.find(
             (op) => op.prod_referencia.toString() === i.meta_data._id_exportacao
           );
@@ -393,16 +394,7 @@ export default function FAT3() {
     }
   }
 
-  const [gridPrincipalInstance, setGridPrincipalInstance] = useState({
-    api: {},
-    columnApi: {},
-  });
-
   const onGridPrincipalReady = (params) => {
-    setGridPrincipalInstance({
-      api: params.api,
-      columnApi: params.columnApi,
-    });
     params.api.sizeColumnsToFit();
   };
 

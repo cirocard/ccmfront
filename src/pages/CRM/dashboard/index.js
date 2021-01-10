@@ -3,12 +3,7 @@ import { Chart } from 'react-google-charts';
 import { toast } from 'react-toastify';
 import KeyboardEventHandler from 'react-keyboard-event-handler';
 import { Container, TitleBar, AreaComp } from './styles';
-import {
-  BoxItemCad,
-  BoxItemCadNoQuery,
-  Scroll,
-  Linha,
-} from '~/pages/general.styles';
+import { BoxItemCad, BoxItemCadNoQuery, Scroll } from '~/pages/general.styles';
 import { ApiService, ApiTypes } from '~/services/api';
 
 export default function Crm1() {

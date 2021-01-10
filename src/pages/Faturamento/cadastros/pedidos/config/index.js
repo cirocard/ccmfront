@@ -76,7 +76,7 @@ export default function FAT4() {
         callback(
           response.data.retorno.map((i) => ({ value: i.value, label: i.label }))
         );
-      } else if (!isNaN(descricao)) {
+      } else if (!Number.isNaN(descricao)) {
         // consultar com menos de 3 digitos só se for numerico como codigo do cliente
         const response = await api.get(
           `v1/combos/combo_cliente?perfil=${tipo}&nome=${descricao}`
@@ -103,6 +103,7 @@ export default function FAT4() {
 
   function handleDashboard() {
     history.push('/fat1', '_blank');
+    history.go(0);
   }
 
   const handleSelectGridPesquisa = (prmGridPesq) => {

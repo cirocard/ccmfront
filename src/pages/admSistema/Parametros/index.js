@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import WindowSizeListener from 'react-window-size-listener';
+
 import Select from 'react-select';
 import { MdClose } from 'react-icons/md';
 import Dialog from '@material-ui/core/Dialog';
@@ -31,8 +31,7 @@ import { FormataData } from '~/services/func.uteis';
 
 export default function Parametros() {
   const api = ApiService.getInstance(ApiTypes.API1);
-  const data = new Date();
-  const [Altura, setAltura] = React.useState(0);
+
   const [loading, setLoading] = useState(false);
   const [msgGeral, setMsgGeral] = useState('');
   const [titleMsg, setTitleMsg] = useState('');
@@ -165,6 +164,7 @@ export default function Parametros() {
 
   function handlePgMain() {
     history.push('/', '_blank');
+    history.go(0);
   }
 
   // certificado
@@ -270,11 +270,6 @@ export default function Parametros() {
   return (
     <>
       <Container id="pgparam">
-        <WindowSizeListener
-          onResize={(windowSize) => {
-            setAltura(windowSize.windowHeight - 6);
-          }}
-        />
         <TitleBar wd="100%">
           <h1>CONFIGURAÇÕES GERAIS DO SISTEMA</h1>
           <BootstrapTooltip title="Voltar para Dashboard" placement="top">

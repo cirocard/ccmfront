@@ -45,7 +45,6 @@ export default function SUPR2() {
   const [loading, setLoading] = useState(false);
   const [gridPesquisa, setGridPesquisa] = useState([]);
   const [dataGridPesqSelected, setDataGridPesqSelected] = useState([]);
-  const [gridApiPesquisa, setGridApiPesquisa] = useState([]);
   const [pesq_forn_id, setPesq_forn_id] = useState([]);
   const [uf, setUf] = useState([]);
   const apiGeral = axios.create();
@@ -84,6 +83,7 @@ export default function SUPR2() {
 
   function handleDashboard() {
     history.push('/supr1', '_blank');
+    history.go(0);
   }
 
   // grid pesquisa
@@ -445,9 +445,6 @@ export default function SUPR2() {
                       rowSelection="single"
                       animateRows
                       gridOptions={{ localeText: gridTraducoes }}
-                      onGridReady={(params) => {
-                        setGridApiPesquisa(params.api);
-                      }}
                       onSelectionChanged={handleSelectGridPesquisa}
                     />
                   </GridContainerMain>

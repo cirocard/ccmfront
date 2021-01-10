@@ -1,3 +1,5 @@
+/* eslint-disable no-plusplus */
+/* eslint-disable consistent-return */
 exports.getSiglaUf = (cUf) => {
   switch (cUf) {
     case '12':
@@ -138,12 +140,10 @@ exports.GridDateFormatter = (params) => {
   return value;
 };
 
-exports.a11yProps = (index) => {
-  return {
-    id: `scrollable-auto-tab-${index}`,
-    'aria-controls': `scrollable-auto-tabpanel-${index}`,
-  };
-};
+exports.a11yProps = (index) => ({
+  id: `scrollable-auto-tab-${index}`,
+  'aria-controls': `scrollable-auto-tabpanel-${index}`,
+});
 
 exports.maskFone = (fone) => {
   document.getElementsByName(fone.target.name)[0].value = fone.target.value
@@ -191,12 +191,11 @@ exports.formataCNPJCPF = (valor) => {
   // .replace(/(-\d{2})\d+?$/, '$1'); // captura 2 numeros seguidos de um traço e não deixa ser digitado mais nada
 };
 
-exports.FormataMoeda = (valor) => {
-  return `${parseFloat(valor).toLocaleString('pt-BR', {
+exports.FormataMoeda = (valor) =>
+  `${parseFloat(valor).toLocaleString('pt-BR', {
     style: 'currency',
     currency: 'BRL',
   })}`;
-};
 
 exports.FormataNumeroBd = (valor) => {
   const v = valor.replace('.', '');
@@ -240,9 +239,8 @@ exports.SeNull = (entrada, saida) => {
   return entrada;
 };
 
-exports.ArredondaValorDecimal = (valor) => {
-  return Math.round((valor + Number.EPSILON) * 100) / 100;
-};
+exports.ArredondaValorDecimal = (valor) =>
+  Math.round((valor + Number.EPSILON) * 100) / 100;
 
 exports.toDecimal = (valor) => {
   if (valor) {
@@ -265,6 +263,5 @@ exports.toDecimal = (valor) => {
   }
 };
 
-exports.GridCurrencyFormatter = (params) => {
-  return `R$ ${parseFloat(params.value).toLocaleString('pt')}`;
-};
+exports.GridCurrencyFormatter = (params) =>
+  `R$ ${parseFloat(params.value).toLocaleString('pt')}`;

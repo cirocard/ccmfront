@@ -18,7 +18,7 @@ export default function FormSelect({
 
   /* ====== Custom Styles ====== */
   const selectStyles = {
-    container: (base, state) => ({
+    container: (base) => ({
       ...base,
       backgroundColor: 'transparent',
       zIndex: zindex || '150',

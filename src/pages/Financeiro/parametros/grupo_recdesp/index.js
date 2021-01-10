@@ -3,7 +3,7 @@ import { useRouteMatch } from 'react-router-dom';
 import * as Yup from 'yup';
 import { Form } from '@unform/web';
 import { toast } from 'react-toastify';
-import { MdClose, MdDelete } from 'react-icons/md';
+import { MdClose } from 'react-icons/md';
 import { FaArrowUp, FaArrowDown } from 'react-icons/fa';
 import { AgGridReact } from 'ag-grid-react';
 import KeyboardEventHandler from 'react-keyboard-event-handler';
@@ -52,6 +52,7 @@ export default function FINA3() {
 
   function handleDashboard() {
     history.push('/fina1', '_blank');
+    history.go(0);
   }
 
   async function listarGeral() {
@@ -165,19 +166,6 @@ export default function FINA3() {
     }
   }
 
-  async function handleDelete(registro) {
-    try {
-      await api.delete(
-        `v1/shared/cad/geral/${registro.ger_tab_id}/${registro.ger_id}`
-      );
-      listarGeral(registro.ger_tab_id);
-
-      // setOpenCadastro(true);
-    } catch (error) {
-      toast.error(`Erro ao excluir registro \n${error}`);
-    }
-  }
-
   const gridValidations = (newValue) => {
     if (!newValue) {
       toast.info('Informe uma descrição válida', toastOptions);
@@ -188,6 +176,7 @@ export default function FINA3() {
 
   function handleParametros(prm) {
     history.push(`/fina3/${prm}`);
+    history.go(0);
     window.location.reload(false);
   }
 

@@ -34,7 +34,6 @@ export default function ADM7() {
   const [loading, setLoading] = useState(false);
   const [gridPesquisa, setGridPesquisa] = useState([]);
   const [dataGridPesqSelected, setDataGridPesqSelected] = useState([]);
-  const [gridApiPesquisa, setGridApiPesquisa] = useState([]);
   const [valuePesquisa, setValuePesquisa] = useState('');
 
   const toastOptions = {
@@ -52,6 +51,7 @@ export default function ADM7() {
 
   function handleDashboard() {
     history.push('/', '_blank');
+    history.go(0);
   }
 
   // grid pesquisa
@@ -366,9 +366,6 @@ export default function ADM7() {
                     rowSelection="single"
                     animateRows
                     gridOptions={{ localeText: gridTraducoes }}
-                    onGridReady={(params) => {
-                      setGridApiPesquisa(params.api);
-                    }}
                     onSelectionChanged={handleSelectGridPesquisa}
                   />
                 </GridContainerMain>

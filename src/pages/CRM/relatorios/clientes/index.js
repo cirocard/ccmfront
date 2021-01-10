@@ -66,6 +66,7 @@ export default function Crm7() {
 
   function handleDashboard() {
     history.push('/crm1', '_blank');
+    history.go(0);
   }
   // listagem de clientes
   async function handlePrint() {

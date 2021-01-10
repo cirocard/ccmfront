@@ -71,6 +71,7 @@ export default function Adm5() {
 
   function handleDashboard() {
     history.push('/crm1', '_blank');
+    history.go(0);
   }
 
   async function comboGrupo() {
@@ -357,15 +358,8 @@ export default function Adm5() {
     setOptGrupoVenda(x);
   };
 
-  // ======= Colunas e APIs das grids ========
-  const [gridPrincipalInstance, setGridPrincipalInstance] = useState({
-    api: {},
-    columnApi: {},
-  });
-
   const onGridPrincipalReady = (params) => {
     /* obtem acesso às APIs da Ag-grid */
-    setGridPrincipalInstance({ api: params.api, columnApi: params.columnApi });
     /* ajusta as colunas da grid para preencher todo o espaço disponível */
     params.api.sizeColumnsToFit();
   };

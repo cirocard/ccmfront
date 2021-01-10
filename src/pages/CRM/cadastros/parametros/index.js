@@ -58,10 +58,12 @@ export default function Crm3() {
 
   function handleDashboard() {
     history.push('/crm1', '_blank');
+    history.go(0);
   }
 
   function handleParametros(prm) {
     history.push(`/crm3?tipo=${prm}`);
+    history.go(0);
     window.location.reload(false);
   }
 

@@ -52,9 +52,7 @@ export function* signIn({ payload }) {
     if (successlogin) {
       api.defaults.headers.Authorization = `Bearer ${token}`;
 
-      const optionsEmp = retorno.map((emp) => {
-        return emp;
-      });
+      const optionsEmp = retorno.map((emp) => emp);
 
       yield put(
         signInSuccess(
@@ -70,6 +68,7 @@ export function* signIn({ payload }) {
       );
 
       history.push('/');
+      history.go(0);
     }
   } catch (err) {
     toast.error(`Falha na autenticação!! \n${err.message}`, toastOptions);
@@ -80,6 +79,9 @@ export function* signIn({ payload }) {
 export function* setToken({ payload }) {
   try {
     if (!payload) {
+      return;
+    }
+    if (!payload.auth.signed) {
       return;
     }
 
@@ -94,6 +96,7 @@ export function* setToken({ payload }) {
 
     toast.error(`Sua sessão expirou. Faça login novamente!!!`);
     history.push('/login');
+    history.go(0);
   }
 }
 
@@ -135,17 +138,20 @@ export function* setNewEmp({ payload }) {
       );
 
       history.push('/');
+      history.go(0);
     }
   } catch (err) {
     yield put(signFailure());
 
     toast.error(`Erro ao localizar empresa. Faça login novamente!!! \n ${err}`);
     history.push('/');
+    history.go(0);
   }
 }
 
 export function signOut() {
-  history.push('/');
+  history.push('/login');
+  history.go(0);
 }
 
 export default all([

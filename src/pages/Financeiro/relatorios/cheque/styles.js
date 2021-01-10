@@ -115,40 +115,11 @@ export const Content = styled.div`
 
 export const BoxPesquisa = styled.div`
   display: flex;
-  justify-content: space-around;
-  justify-items: center;
-  align-items: center;
-  align-content: center;
-
   width: 100%;
-  height: 28px;
+  height: 40px;
   background: #fff;
   border-bottom: solid 1px #dfe7df;
-
-  background: #dae2e5;
-  padding: 5px;
-  h1 {
-    margin: 0;
-    font-size: 15px;
-    font-weight: 700;
-    color: #253739;
-    padding: 0px;
-    background: transparent;
-  }
-
-  button {
-    margin: 0;
-    border: 0;
-    background: none;
-    padding-right: 10px;
-    cursor: pointer;
-  }
-
-  div {
-    text-align: right;
-    margin-top: 7px;
-    width: 250px;
-  }
+  border-radius: 5px;
 `;
 
 export const GridContainerItens = styled.div`
@@ -203,11 +174,6 @@ export const GridContainerCheque = styled.div`
     text-align: right;
   }
 
-  .warn-baixado {
-    background-color: #afe8ba !important;
-    color: #03420f !important;
-  }
-
   @media (min-height: 300px) {
     height: 29vh;
   }
@@ -241,14 +207,14 @@ export const GridContainerMain = styled.div`
   width: 100%;
   padding: 8px 5px 0 0;
 
-  .warn-baixado {
-    background-color: #afe8ba !important;
-    color: #03420f !important;
+  .warn-finalizado {
+    background-color: #017a0c !important;
+    color: #fff !important;
   }
 
   .warn-cancelado {
-    background-color: #ffbaab !important;
-    color: #a90505 !important;
+    background-color: #bd0303 !important;
+    color: #fff !important;
   }
 
   .cell_valor {

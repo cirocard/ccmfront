@@ -1,3 +1,4 @@
+/* eslint-disable consistent-return */
 import React, { useEffect, useState, useRef } from 'react';
 import * as Yup from 'yup';
 import { Form } from '@unform/web';
@@ -15,7 +16,6 @@ import {
   FaSearch,
   FaPlusCircle,
   FaFolderPlus,
-  FaPencilAlt,
   FaUserEdit,
   FaExchangeAlt,
   FaCubes,
@@ -76,10 +76,8 @@ export default function SUPR4() {
   const [gridClassific2, setGridClassific2] = useState([]);
   const [gridClassific3, setGridClassific3] = useState([]);
   const [dataGridPesqSelected, setDataGridPesqSelected] = useState([]);
-  const [gridApiPesquisa, setGridApiPesquisa] = useState([]);
   const [openDlgEditaFornec, setOpenDlgEditaFornec] = useState(false);
   const [openDlgTrocaFornec, setOpenDlgTrocaFornec] = useState(false);
-  const [optTabPreco, setOptTabPreco] = useState([]);
   const [optCategoria, setOptCategoria] = useState([]);
   const [optEspecie, setOptEspecie] = useState([]);
   const [optUnidade, setOptUnidade] = useState([]);
@@ -126,19 +124,6 @@ export default function SUPR4() {
   ];
 
   // #region COMBO ========================
-
-  // tabela de preços
-  async function getComboTabPreco() {
-    try {
-      const response = await api.get('v1/combos/tabpreco');
-      const dados = response.data.retorno;
-      if (dados) {
-        setOptTabPreco(dados);
-      }
-    } catch (error) {
-      toast.error(`Houve um erro ao buscar tabelas de preço \n${error}`);
-    }
-  }
 
   // combo geral
   async function comboGeral(tab_id) {
@@ -218,6 +203,7 @@ export default function SUPR4() {
 
   function handleDashboard() {
     history.push('/supr1', '_blank');
+    history.go(0);
   }
 
   // grid pesquisa
@@ -1161,7 +1147,6 @@ export default function SUPR4() {
 
   useEffect(() => {
     listarProduto(100);
-    getComboTabPreco();
     comboGeral(9);
     comboGeral(10);
     comboGeral(12);
@@ -1740,9 +1725,6 @@ export default function SUPR4() {
                       rowSelection="single"
                       animateRows
                       gridOptions={{ localeText: gridTraducoes }}
-                      onGridReady={(params) => {
-                        setGridApiPesquisa(params.api);
-                      }}
                       onSelectionChanged={handleSelectGridPesquisa}
                     />
                   </GridContainerMain>
@@ -2167,9 +2149,6 @@ export default function SUPR4() {
                       rowSelection="single"
                       animateRows
                       gridOptions={{ localeText: gridTraducoes }}
-                      onGridReady={(params) => {
-                        setGridApiPesquisa(params.api);
-                      }}
                     />
                   </GridContainerForn>
                 </BoxItemCadNoQuery>
@@ -2202,9 +2181,6 @@ export default function SUPR4() {
                         rowSelection="single"
                         animateRows
                         gridOptions={{ localeText: gridTraducoes }}
-                        onGridReady={(params) => {
-                          setGridApiPesquisa(params.api);
-                        }}
                       />
                     </GridContainerClassific>
                   </AreaComp>
@@ -2236,9 +2212,6 @@ export default function SUPR4() {
                         rowSelection="single"
                         animateRows
                         gridOptions={{ localeText: gridTraducoes }}
-                        onGridReady={(params) => {
-                          setGridApiPesquisa(params.api);
-                        }}
                       />
                     </GridContainerClassific>
                   </AreaComp>
@@ -2270,9 +2243,6 @@ export default function SUPR4() {
                         rowSelection="single"
                         animateRows
                         gridOptions={{ localeText: gridTraducoes }}
-                        onGridReady={(params) => {
-                          setGridApiPesquisa(params.api);
-                        }}
                       />
                     </GridContainerClassific>
                   </AreaComp>
@@ -2294,9 +2264,6 @@ export default function SUPR4() {
                       rowSelection="single"
                       animateRows
                       gridOptions={{ localeText: gridTraducoes }}
-                      onGridReady={(params) => {
-                        setGridApiPesquisa(params.api);
-                      }}
                     />
                   </GridContainerEstoque>
                 </BoxItemCadNoQuery>
@@ -2337,9 +2304,6 @@ export default function SUPR4() {
                       rowSelection="single"
                       animateRows
                       gridOptions={{ localeText: gridTraducoes }}
-                      onGridReady={(params) => {
-                        setGridApiPesquisa(params.api);
-                      }}
                     />
                   </GridContainerEstoque>
                 </BoxItemCadNoQuery>

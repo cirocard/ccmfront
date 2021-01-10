@@ -10,6 +10,7 @@ import { loadMenu, logOut } from '~/store/modules/auth/actions';
 
 export function Menu() {
   const api = ApiService.getInstance(ApiTypes.API1);
+  /*
   const menuModelo = [
     {
       modulo: 'Adm. Sistema',
@@ -219,7 +220,7 @@ export function Menu() {
       ],
     },
   ];
-
+  */
   const { menu, usr_tipo, usr_grupo_id } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
 

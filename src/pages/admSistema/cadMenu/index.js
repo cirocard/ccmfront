@@ -24,7 +24,7 @@ export default function Adm1() {
   const api = ApiService.getInstance(ApiTypes.API1);
   const [checked, setChecked] = useState([]);
   const [expanded, setExpanded] = useState([]);
-  const [clicked, setClicked] = useState({});
+
   const [loading, setLoading] = useState(false);
   const [menuGerado, setMenuGerado] = useState([]);
 
@@ -155,8 +155,6 @@ export default function Adm1() {
         document.getElementsByName('rotaItem')[0].value = ret.rota;
       }
     }
-
-    setClicked(ck);
   }
 
   function handleNovoModulo() {

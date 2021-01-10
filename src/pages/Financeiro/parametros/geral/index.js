@@ -51,6 +51,7 @@ export default function FINA2() {
 
   function handleDashboard() {
     history.push('/supr1', '_blank');
+    history.go(0);
   }
 
   async function listarGeral(tab) {
@@ -169,12 +170,6 @@ export default function FINA2() {
     }
     return true;
   };
-
-  function handleParametros(prm) {
-    // history.push(`/fina5/${prm}`);
-    setDlgPopup(true);
-    window.location.reload(false);
-  }
 
   useEffect(() => {
     if (params.geral === '25') {
