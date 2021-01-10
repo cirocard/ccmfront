@@ -1,8 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Route, Redirect } from 'react-router-dom';
+import { Route } from 'react-router-dom';
 import AuthLayout from '~/pages/_layouts/auth';
 import DefaultLayout from '~/pages/_layouts/default';
+import history from '~/services/history';
 
 import { store } from '~/store';
 
@@ -15,7 +16,9 @@ export default function RouteWrapper({
   const Layout = signed ? DefaultLayout : AuthLayout;
 
   if (!signed && isPrivate) {
-    return <Redirect to="/login" />;
+    history.push('/login');
+    history.go(0);
+    // return <Redirect to="/login" />;
   }
 
   return (
