@@ -133,7 +133,7 @@ export default function FINA5() {
   // #endregion
 
   function handleDashboard() {
-    history.push('/fina1', '_blank');
+    history.push('/fina1');
     history.go(0);
   }
 

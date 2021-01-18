@@ -1401,9 +1401,7 @@ export default function FAT2() {
   };
 
   function handleCliente() {
-    // history.push('/crm9', '_blank');
     window.open('/crm9', '_blank');
-    history.go(0);
   }
 
   // alimenta grid financeiro

@@ -241,9 +241,9 @@ export default function SUPR7() {
           ).checked
             ? 'S'
             : 'N',
-          oper_cfop_interestadual: formData.oper_cfop_interestadual,
-          oper_cfop_estadual: formData.oper_cfop_estadual,
-          oper_cfop_import: formData.oper_cfop_import,
+          oper_cfop_interestadual: formData.oper_cfop_interestadual || null,
+          oper_cfop_estadual: formData.oper_cfop_estadual || null,
+          oper_cfop_import: formData.oper_cfop_import || null,
           oper_local_est: parseInt(formData.oper_local_est, 10),
         };
 
