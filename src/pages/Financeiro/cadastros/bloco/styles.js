@@ -53,7 +53,8 @@ export const Panel = styled.div`
   width: 100%;
   border-radius: 4px;
   margin-left: 0px;
-  margin-top: -10px;
+  padding: ${(props) => props.pdding || '1px'};
+  margin-top: ${(props) => props.mtop || '-10px'};
 
   h1 {
     width: 100%;
@@ -109,6 +110,44 @@ export const BoxPesquisa = styled.div`
   border-radius: 5px;
 `;
 
+export const BarPesquisa = styled.div`
+  display: flex;
+  justify-content: space-around;
+  justify-items: center;
+  align-items: center;
+  align-content: center;
+
+  width: 100%;
+  height: 28px;
+  background: #fff;
+  border-bottom: solid 1px #dfe7df;
+
+  background: #dae2e5;
+  padding: 5px;
+  h1 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: #253739;
+    padding: 0px;
+    background: transparent;
+  }
+
+  button {
+    margin: 0;
+    border: 0;
+    background: none;
+    padding-right: 10px;
+    cursor: pointer;
+  }
+
+  div {
+    text-align: right;
+    margin-top: 7px;
+    width: 250px;
+  }
+`;
+
 export const GridContainerItens = styled.div`
   display: flex;
   flex-direction: column;
@@ -121,63 +160,39 @@ export const GridContainerItens = styled.div`
     cursor: pointer;
   }
 
-  @media (min-height: 300px) {
-    height: 29vh;
+  .warn-aberto {
+    background-color: #d6e6f9 !important;
+    color: #012d62 !important;
   }
 
-  @media (min-height: 600px) {
-    height: 32vh;
+  .warn-baixado {
+    background-color: #afe8ba !important;
+    color: #03420f !important;
   }
 
-  @media (min-height: 680px) {
-    height: 36vh;
-  }
-
-  @media (min-height: 780px) {
-    height: 42vh;
-  }
-
-  @media (min-height: 880px) {
-    height: 53vh;
-  }
-`;
-
-export const GridContainerGrade = styled.div`
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  padding: 8px 5px 0 0;
-
-  button {
-    border: 0;
-    background: none;
-    cursor: pointer;
+  .warn-cancelado {
+    background-color: #ffbaab !important;
+    color: #a90505 !important;
   }
 
   @media (min-height: 300px) {
-    height: 29vh;
-  }
-
-  @media (min-height: 600px) {
     height: 32vh;
   }
 
+  @media (min-height: 600px) {
+    height: 34vh;
+  }
+
   @media (min-height: 680px) {
-    height: 36vh;
+    height: 38vh;
   }
 
   @media (min-height: 780px) {
-    height: 42vh;
+    height: 44vh;
   }
 
   @media (min-height: 880px) {
-    height: 53vh;
-  }
-
-  h3 {
-    font-size: 18px;
-    color: #4d2679;
-    margin-bottom: 16px;
+    height: 55vh;
   }
 `;
 
@@ -197,22 +212,22 @@ export const GridContainerMain = styled.div`
   }
 
   @media (min-height: 300px) {
-    height: 38vh;
+    height: 44vh;
   }
 
   @media (min-height: 600px) {
-    height: 42vh;
+    height: 48vh;
   }
 
   @media (min-height: 680px) {
-    height: 47vh;
+    height: 53vh;
   }
 
   @media (min-height: 780px) {
-    height: 52vh;
+    height: 58vh;
   }
 
   @media (min-height: 880px) {
-    height: 62vh;
+    height: 68vh;
   }
 `;

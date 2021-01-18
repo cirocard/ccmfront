@@ -106,6 +106,41 @@ exports.FormataData = (valor, tipo) => {
   }
 };
 
+exports.DataBd = (pDate) => {
+  if (pDate) {
+    if (pDate.length > 11) {
+      const dd = pDate.split('/')[0].padStart(2, '0');
+      let mm = pDate.split('/')[1].padStart(2, '0');
+      const yyyy = pDate.split('/')[2].split(' ')[0];
+      const hh = pDate
+        .split('/')[2]
+        .split(' ')[1]
+        .split(':')[0]
+        .padStart(2, '0');
+      const mi = pDate
+        .split('/')[2]
+        .split(' ')[1]
+        .split(':')[1]
+        .padStart(2, '0');
+      const secs = pDate
+        .split('/')[2]
+        .split(' ')[1]
+        .split(':')[2]
+        .padStart(2, '0');
+
+      mm = (parseInt(mm, 10) - 1).toString(); // January is 0
+      return new Date(yyyy, mm, dd, hh, mi, secs);
+    }
+    const dd = pDate.split('/')[0].padStart(2, '0');
+    let mm = pDate.split('/')[1].padStart(2, '0');
+    const yyyy = pDate.split('/')[2].split(' ')[0];
+
+    mm = (parseInt(mm, 10) - 1).toString();
+    return new Date(yyyy, mm, dd);
+  }
+  return new Date();
+};
+
 exports.RetirarMascara = (texto, caracter) => {
   for (let i = 0; i < caracter.length; i++) {
     while (texto.indexOf(caracter[i]) > 0) {

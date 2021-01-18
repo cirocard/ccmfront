@@ -78,7 +78,6 @@ export default function AsyncSelectForm({
             ref.select.setValue(Value);
           } else {
             const objValue = loadOptions.find((opt) => opt.value === Value);
-
             ref.select.setValue(objValue);
           }
         } else {
