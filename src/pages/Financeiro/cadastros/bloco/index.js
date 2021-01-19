@@ -18,6 +18,7 @@ import {
   FaBriefcase,
   FaEdit,
   FaFileSignature,
+  FaPrint,
 } from 'react-icons/fa';
 import moment from 'moment';
 import Confirmation from '~/componentes/DialogChoice';
@@ -67,11 +68,13 @@ export default function FINA8() {
   const frmBloco = useRef(null);
   const frmFolhas = useRef(null);
   const frmFolha = useRef(null);
+  const frmImpressao = useRef(null);
   const [loading, setLoading] = useState(false);
   const [gridPesquisa, setGridPesquisa] = useState([]);
   const [gridItens, setGridItens] = useState([]);
   const [dlgNovoBloco, setDlgNovoBloco] = useState(false);
   const [dlgFolha, setDlgFolha] = useState(false);
+  const [dlgImpressao, setDlgImpressao] = useState(false);
   const [dataGridPesqSelected, setDataGridPesqSelected] = useState([]);
   const [dataGridFolhaSelected, setDataGridFolhaSelected] = useState([]);
   const [infoBloco, setInfoBloco] = useState('');
@@ -79,7 +82,8 @@ export default function FINA8() {
   const [dataIni, setDataIni] = useState(moment().add(15, 'day'));
   const [dataFin, setDataFin] = useState(moment());
   const [dataPrevQuit, setDataPrevQuit] = useState(moment());
-  const [cliente, setCliente] = useState([]);
+
+  const [clienteImp, setClienteImp] = useState([]);
   const [BliCliente, setBliCliente] = useState([]);
 
   const toastOptions = {
@@ -212,7 +216,7 @@ export default function FINA8() {
         bli_numero_folha: formPesq.pesq_bli_numero_folha,
         bli_data_abertura: moment(dataIni).format('YYYY-MM-DD'),
         bli_data_baixa: moment(dataFin).format('YYYY-MM-DD'),
-        bli_cli_id: cliente.value || '',
+        bli_cli_id: BliCliente.value || '',
         bli_situacao: formPesq.pesq_bli_situacao,
       };
       const response = await api.post(
@@ -548,6 +552,50 @@ export default function FINA8() {
     }
   }
 
+  async function handleImpressao() {
+    try {
+      const formImp = frmImpressao.current.getData();
+
+      if (
+        !formImp.imp_bli_cli_id &&
+        !formImp.imp_bli_numero_bloco &&
+        !formImp.imp_bli_numero_folha &&
+        !formImp.imp_bli_pedido_id &&
+        !formImp.imp_bli_situacao &&
+        !formImp.imp_tpData
+      )
+        toast.error(
+          'INFORME PELO MENOS UM PARÂMETRO DE PESQUISA PARA CONTINUAR...',
+          toastOptions
+        );
+      else {
+        setLoading(true);
+
+        const objPesq = {
+          bli_bl_emp_id: null,
+          bli_numero_bloco: formImp.imp_bli_numero_bloco,
+          bli_numero_folha: formImp.imp_bli_numero_folha,
+          bli_pedido_id: formImp.imp_bli_pedido_id,
+          bli_data_abertura: moment(dataIni).format('YYYY-MM-DD'),
+          bli_data_baixa: moment(dataFin).format('YYYY-MM-DD'),
+          bli_cli_id: clienteImp.value || '',
+          bli_situacao: formImp.imp_bli_situacao,
+        };
+
+        const response = await api.post(
+          `v1/fina/report/bloco?tpData=${formImp.imp_tpData || ''}`,
+          objPesq
+        );
+        const link = response.data;
+        setLoading(false);
+        window.open(link, '_blank');
+      }
+    } catch (error) {
+      setLoading(false);
+      toast.error(`Erro ao imprimir bloco \n${error}`, toastOptions);
+    }
+  }
+
   useEffect(() => {
     listarBloco();
     comboGeral(25);
@@ -736,6 +784,13 @@ export default function FINA8() {
         </BootstrapTooltip>
         <DivLimitador hg="10px" />
 
+        <BootstrapTooltip title="IMPRESSÃO DE BLOCOS" placement="left">
+          <button type="button" onClick={() => setDlgImpressao(true)}>
+            <FaPrint size={25} color="#fff" />
+          </button>
+        </BootstrapTooltip>
+        <DivLimitador hg="10px" />
+
         <DivLimitador hg="20px" />
         <Linha />
         <DivLimitador hg="20px" />
@@ -908,8 +963,8 @@ export default function FINA8() {
                       placeholder="NÃO INFORMADO"
                       defaultOptions
                       cacheOptions
-                      value={cliente}
-                      onChange={(c) => setCliente(c || [])}
+                      value={clienteImp}
+                      onChange={(c) => setClienteImp(c || [])}
                       loadOptions={loadOptionsRepresentante}
                       isClearable
                       zindex="152"
@@ -1180,6 +1235,119 @@ export default function FINA8() {
                   onClick={handleSubmitFolha}
                 >
                   {loading ? 'Aguarde Processando...' : 'Confirmar'}
+                </button>
+              </AreaComp>
+            </BoxItemCadNoQuery>
+          </Form>
+        </Panel>
+      </Popup>
+
+      {/* popup PARA IMPRESSAO DO BLOCO... */}
+      <Popup
+        isOpen={dlgImpressao}
+        closeDialogFn={() => setDlgImpressao(false)}
+        title="IMPRESSÃO DE BLOCO"
+        size="sm"
+      >
+        <Panel
+          lefth1="left"
+          bckgnd="#dae2e5"
+          mtop="1px"
+          pdding="5px 7px 7px 10px"
+        >
+          <Form id="frmImpressao" ref={frmImpressao}>
+            <BoxItemCad fr="1fr">
+              <AreaComp wd="100">
+                <AsyncSelectForm
+                  name="imp_bli_cli_id"
+                  label="CLIENTE"
+                  placeholder="NÃO INFORMADO"
+                  defaultOptions
+                  cacheOptions
+                  value={clienteImp}
+                  onChange={(c) => setClienteImp(c || [])}
+                  loadOptions={loadOptionsRepresentante}
+                  isClearable
+                  zindex="153"
+                />
+              </AreaComp>
+            </BoxItemCad>
+
+            <BoxItemCad fr="1fr 1fr 1fr">
+              <AreaComp wd="100">
+                <FormSelect
+                  label="filtrar por data:"
+                  name="imp_tpData"
+                  optionsList={optTpData}
+                  isClearable
+                  placeholder="INFORME"
+                  zindex="153"
+                />
+              </AreaComp>
+              <AreaComp wd="100">
+                <DatePickerInput
+                  onChangeDate={(date) => setDataIni(new Date(date))}
+                  value={dataIni}
+                  label="Emissão Inicial"
+                />
+              </AreaComp>
+              <AreaComp wd="100">
+                <DatePickerInput
+                  onChangeDate={(date) => setDataFin(new Date(date))}
+                  value={dataFin}
+                  label="Emissão Final"
+                />
+              </AreaComp>
+            </BoxItemCad>
+            <BoxItemCad fr="1fr 1fr 1fr">
+              <AreaComp wd="100">
+                <label>Nº BLOCO</label>
+                <Input
+                  type="number"
+                  name="imp_bli_numero_bloco"
+                  placeholder="Nº DO BLOCO"
+                  className="input_cad"
+                />
+              </AreaComp>
+              <AreaComp wd="100">
+                <label>Nº FOLHA</label>
+                <Input
+                  type="number"
+                  name="imp_bli_numero_folha"
+                  placeholder="Nº DA FOLHA"
+                  className="input_cad"
+                />
+              </AreaComp>
+              <AreaComp wd="100">
+                <label>Nº Pedido</label>
+                <Input
+                  type="text"
+                  name="imp_bli_pedido_id"
+                  placeholder=""
+                  className="input_cad"
+                />
+              </AreaComp>
+            </BoxItemCad>
+            <BoxItemCad fr="1fr 1fr 1fr">
+              <AreaComp wd="100">
+                <FormSelect
+                  label="situação do item"
+                  name="imp_bli_situacao"
+                  optionsList={optSitItemBloco}
+                  isClearable
+                  placeholder="INFORME"
+                  zindex="152"
+                />
+              </AreaComp>
+            </BoxItemCad>
+            <BoxItemCadNoQuery fr="1fr" ptop="15px">
+              <AreaComp wd="100" ptop="10px">
+                <button
+                  type="button"
+                  className="btnGeral"
+                  onClick={handleImpressao}
+                >
+                  {loading ? 'Aguarde Processando...' : 'GERAR IMPRESSÃO'}
                 </button>
               </AreaComp>
             </BoxItemCadNoQuery>
