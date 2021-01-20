@@ -108,6 +108,7 @@ export default function FAT2() {
   const [dataGridPesqSelected, setDataGridPesqSelected] = useState([]);
   const [gridItens, setGridItens] = useState([]);
   const [gridGrade, setGridGrade] = useState([]);
+  const [gridGradeSelected, setGridGradeSelected] = useState([]);
   const [gridFinanceiro, setGridFinanceiro] = useState([]);
   const [paramSistema, setParamSistema] = useState([]);
   const [remumoItens, setResumoItens] = useState('');
@@ -455,8 +456,12 @@ export default function FAT2() {
         const ordem = document.getElementById('rbOrdemReferencia').checked
           ? '1'
           : '2';
+
+        const conferencia = document.getElementById('chbShowClassific').checked
+          ? 'T'
+          : 'N';
         const url = `v1/fat/report/espelho_pedido?cp_id=${dataGridPesqSelected[0].cp_id}
-                     &ordenar=${ordem}&conferencia=N&tipo=${params.tipo}`;
+                     &ordenar=${ordem}&conferencia=${conferencia}&tipo=${params.tipo}`;
 
         const response = await api.get(url);
         const link = response.data;
@@ -648,7 +653,6 @@ export default function FAT2() {
           // cp_credito_cli: toDecimal(formCapa.cp_credito_cli),
           cp_vlr_total: toDecimal(formCapa.cp_valor_total),
           cp_qvol: null,
-          cp_usr_id: null,
           cp_tipo_doc: '3',
           cp_representante: formCapa.cp_representante || null,
         };
@@ -1230,7 +1234,7 @@ export default function FAT2() {
   }
 
   // selecionar um produto na grade de produto
-  const handleSelectItemGrade = async (prm) => {
+  const handleSelectItemGrade = async (prm, pausada) => {
     setOpenDlgGrade(false);
     if (prm) {
       setLabelSaldo(`SALDO ATUAL DO ITEM: ${prm.prode_saldo}`);
@@ -1241,9 +1245,14 @@ export default function FAT2() {
         toDecimal(prm.tab_preco_final) > 0;
 
       await totalItem();
-      handleSubmitItens(prm);
+      if (pausada !== 'S') {
+        await handleSubmitItens(prm);
+        document.getElementsByName('barcode')[0].focus();
+      } else {
+        setGridGradeSelected(prm);
+        document.getElementsByName('item_quantidade')[0].focus();
+      }
     }
-    document.getElementsByName('barcode')[0].focus();
   };
 
   // evento barcode
@@ -1901,7 +1910,17 @@ export default function FAT2() {
               <button
                 type="button"
                 disabled={false}
-                onClick={() => handleSelectItemGrade(prm.data)}
+                onClick={() => {
+                  let pausado = '';
+                  setParamSistema((prev) => {
+                    pausado = prev[0].par_digitacao_pausada;
+                    return prev;
+                  });
+
+                  if (pausado) {
+                    handleSelectItemGrade(prm.data, pausado);
+                  } else handleSelectItemGrade(prm.data, 'N'); // N ao escolher o item, o mesmo já é lançado
+                }}
               >
                 <FaCheck size={18} color="#253739" />
               </button>
@@ -1978,11 +1997,10 @@ export default function FAT2() {
     {
       field: 'prode_id',
       headerName: 'CÓDIGO',
-      width: 100,
+      width: 130,
       sortable: false,
       resizable: true,
       filter: true,
-      flex: 1,
     },
   ];
 
@@ -2623,7 +2641,12 @@ export default function FAT2() {
                     <label>Quantidade</label>
                     <KeyboardEventHandler
                       handleKeys={['enter']}
-                      onKeyEvent={() => null}
+                      onKeyEvent={async () => {
+                        if (paramSistema[0].par_digitacao_pausada === 'S') {
+                          await totalItem();
+                          await handleSubmitItens(gridGradeSelected);
+                        }
+                      }}
                     >
                       <Input
                         type="text"
@@ -2638,7 +2661,12 @@ export default function FAT2() {
                   <AreaComp wd="100">
                     <KeyboardEventHandler
                       handleKeys={['enter']}
-                      onKeyEvent={() => null}
+                      onKeyEvent={async () => {
+                        if (paramSistema[0].par_digitacao_pausada === 'S') {
+                          await totalItem();
+                          await handleSubmitItens(gridGradeSelected);
+                        }
+                      }}
                     >
                       <label>Valor Unitário</label>
                       <Input
@@ -2656,7 +2684,12 @@ export default function FAT2() {
                     <label>Valor Desconto</label>
                     <KeyboardEventHandler
                       handleKeys={['enter']}
-                      onKeyEvent={() => null}
+                      onKeyEvent={async () => {
+                        if (paramSistema[0].par_digitacao_pausada === 'S') {
+                          await totalItem();
+                          await handleSubmitItens(gridGradeSelected);
+                        }
+                      }}
                     >
                       <Input
                         type="text"
@@ -2673,7 +2706,12 @@ export default function FAT2() {
                     <label>Desconto em percentual (%)</label>
                     <KeyboardEventHandler
                       handleKeys={['enter']}
-                      onKeyEvent={() => null}
+                      onKeyEvent={async () => {
+                        if (paramSistema[0].par_digitacao_pausada === 'S') {
+                          await totalItem();
+                          await handleSubmitItens(gridGradeSelected);
+                        }
+                      }}
                     >
                       <Input
                         type="text"
@@ -2958,7 +2996,7 @@ export default function FAT2() {
 
           <Scroll>
             <CModal wd="100%" hd="90%">
-              <BoxItemCadNoQuery fr="1fr 1fr">
+              <BoxItemCadNoQuery fr="1fr">
                 <AreaComp wd="100">
                   <CCheck>
                     <input
@@ -2979,6 +3017,16 @@ export default function FAT2() {
                     />
                     <label htmlFor="rbOrdemDescricao">
                       Ordenar por descrição
+                    </label>
+
+                    <input
+                      type="checkbox"
+                      id="chbShowClassific"
+                      name="chbShowClassific"
+                      value="S"
+                    />
+                    <label htmlFor="chbShowClassific">
+                      Exibir Classificações na descricao do item
                     </label>
                   </CCheck>
                 </AreaComp>
