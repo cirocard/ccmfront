@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import React, { useEffect, useState, useRef } from 'react';
 import * as Yup from 'yup';
 import { Form } from '@unform/web';
@@ -7,7 +6,7 @@ import { AgGridReact } from 'ag-grid-react';
 import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
-import { format, parse, parseISO } from 'date-fns';
+
 import { MdClose } from 'react-icons/md';
 import {
   FaRegCheckSquare,
@@ -37,10 +36,8 @@ import {
   a11yProps,
   maskDecimal,
   GridCurrencyFormatter,
-  maskCNPJCPF,
   toDecimal,
   DataBd,
-  RetirarMascara,
 } from '~/services/func.uteis';
 import { ApiService, ApiTypes } from '~/services/api';
 import {
