@@ -57,7 +57,8 @@ export const Panel = styled.div`
   width: 100%;
   border-radius: 4px;
   margin-left: 0px;
-  margin-top: -10px;
+  padding: ${(props) => props.pdding || '1px'};
+  margin-top: ${(props) => props.mtop || '-10px'};
 
   h1 {
     width: ${(props) => props.wdh1 || '100%'};
