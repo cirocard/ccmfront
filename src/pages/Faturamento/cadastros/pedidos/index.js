@@ -36,6 +36,7 @@ import {
 import Dialog from '@material-ui/core/Dialog';
 import { Slide } from '@material-ui/core';
 import KeyboardEventHandler from 'react-keyboard-event-handler';
+import Popup from '~/componentes/Popup';
 import DialogInfo from '~/componentes/DialogInfo';
 import { gridTraducoes } from '~/services/gridTraducoes';
 import DatePickerInput from '~/componentes/DatePickerInput';
@@ -88,6 +89,7 @@ export default function FAT2() {
   const frmItens = useRef(null);
   const frmGrade = useRef(null);
   const frmDesc = useRef(null);
+  const frmCredito = useRef(null);
   const frmFinanceiro = useRef(null);
   const [optOperFat, setOptOperFat] = useState([]);
   const [optCvto, setOptCvto] = useState([]);
@@ -104,6 +106,7 @@ export default function FAT2() {
   const [openDlgDesconto, setOpenDlgDesconto] = useState(false);
   const [openDlgImpressao, setOpenDlgImpressao] = useState(false);
   const [openDlgNota, setOpenDlgNota] = useState(false);
+  const [openDlgCredito, setOpenDlgCredito] = useState(false);
   const [gridPesquisa, setGridPesquisa] = useState([]);
   const [dataGridPesqSelected, setDataGridPesqSelected] = useState([]);
   const [gridItens, setGridItens] = useState([]);
@@ -1159,10 +1162,44 @@ export default function FAT2() {
     }
   }
 
+  // abrir popup de credito
+  async function getCredito() {
+    try {
+      const formCapa = frmCapa.current.getData();
+      if (valueTab == '1' && formCapa.cp_id) {
+        const response = await api.get(
+          `v1/fat/credito_cliente/${pesqCli_id.value}`
+        );
+        if (response.data.success) {
+          frmCredito.current.setFieldValue(
+            'credito_disponivel',
+            response.data.retorno[0].credito
+          );
+          frmCredito.current.setFieldValue('credito_aplicar', '');
+          setOpenDlgCredito(true);
+        } else {
+          toast.error(
+            `Erro ao consultar credito cliente\n${response.data.error}`,
+            toastOptions
+          );
+        }
+      } else {
+        toast.info(
+          'Abra o pedido, para que seja aplicado o crédito do cliente...',
+          toastOptions
+        );
+      }
+    } catch (error) {
+      setLoading(false);
+      toast.error(`Erro ao consultar credito cliente\n${error}`, toastOptions);
+    }
+  }
+
   // credito do cliente
   async function handleCreditoCli() {
     try {
       const formCapa = frmCapa.current.getData();
+      const formCredito = frmCredito.current.getData();
       if (valueTab == '1' && formCapa.cp_id) {
         if (situacaoPedido !== '1') {
           toast.warning(
@@ -1172,22 +1209,38 @@ export default function FAT2() {
           return;
         }
         if (toDecimal(formCapa.cp_credito_cli) === 0) {
-          setLoading(true);
-          if (pesqCli_id.value) {
-            const response = await api.get(
-              `v1/fat/credito_cliente/${pesqCli_id.value}/${formCapa.cp_id}`
-            );
-            const dados = response.data.retorno;
-            if (dados) {
-              frmCapa.current.setFieldValue('cp_credito_cli', dados[0].credito);
+          if (
+            toDecimal(formCredito.credito_aplicar) <=
+            toDecimal(formCredito.credito_disponivel)
+          ) {
+            setLoading(true);
+            if (pesqCli_id.value) {
+              const response = await api.get(
+                `v1/fat/credito_cliente/${pesqCli_id.value}/${
+                  formCapa.cp_id
+                }/${toDecimal(formCredito.credito_aplicar)}`
+              );
+              const dados = response.data.retorno;
+              if (dados) {
+                frmCapa.current.setFieldValue(
+                  'cp_credito_cli',
+                  dados[0].credito
+                );
+              } else {
+                frmCapa.current.setFieldValue('cp_credito_cli', 0);
+              }
             } else {
               frmCapa.current.setFieldValue('cp_credito_cli', 0);
             }
+            await handleSubmitCapa();
+            setOpenDlgCredito(false);
+            setLoading(false);
           } else {
-            frmCapa.current.setFieldValue('cp_credito_cli', 0);
+            toast.error(
+              'O VALOR INFORMADO É MAIOR QUE O SALDO DISPONÍVEL DO CLIENTE',
+              toastOptions
+            );
           }
-          await handleSubmitCapa();
-          setLoading(false);
         } else {
           toast.info('Crédito já aplicado!!!', toastOptions);
         }
@@ -1199,7 +1252,7 @@ export default function FAT2() {
       }
     } catch (error) {
       setLoading(false);
-      toast.error(`Erro ao consultar credito cliente\n${error}`, toastOptions);
+      toast.error(`Erro ao aplicar credito cliente\n${error}`, toastOptions);
     }
   }
 
@@ -2159,7 +2212,7 @@ export default function FAT2() {
         <DivLimitador hg="10px" />
 
         <BootstrapTooltip title="Aplicar Crédito do Cliente" placement="left">
-          <button type="button" onClick={handleCreditoCli}>
+          <button type="button" onClick={getCredito}>
             <FaDollarSign size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
@@ -3095,6 +3148,57 @@ export default function FAT2() {
           </Scroll>
         </Dialog>
       </Slide>
+
+      {/* popup para credito do cliente... */}
+      <Popup
+        isOpen={openDlgCredito}
+        closeDialogFn={() => setOpenDlgCredito(false)}
+        title="CRÉDITO DISPONÍVEL"
+        size="sm"
+      >
+        <Panel
+          lefth1="left"
+          bckgnd="#dae2e5"
+          mtop="1px"
+          pdding="5px 7px 7px 10px"
+        >
+          <Form id="frmCredito" ref={frmCredito}>
+            <BoxItemCad fr="1fr 1fr">
+              <AreaComp wd="100">
+                <label>Total disponível</label>
+                <Input
+                  type="text"
+                  name="credito_disponivel"
+                  readOnly
+                  className="input_cad"
+                />
+              </AreaComp>
+              <AreaComp wd="100">
+                <label>Valor a ser aplicado</label>
+                <Input
+                  type="text"
+                  name="credito_aplicar"
+                  placeholder="INFORME O VALOR"
+                  className="input_cad"
+                  onChange={maskDecimal}
+                />
+              </AreaComp>
+            </BoxItemCad>
+
+            <BoxItemCadNoQuery fr="1fr" ptop="15px">
+              <AreaComp wd="100" ptop="10px">
+                <button
+                  type="button"
+                  className="btnGeral"
+                  onClick={handleCreditoCli}
+                >
+                  {loading ? 'Aguarde Processando...' : 'Confirmar'}
+                </button>
+              </AreaComp>
+            </BoxItemCadNoQuery>
+          </Form>
+        </Panel>
+      </Popup>
 
       {/* popup para aguarde... */}
       <DialogInfo
