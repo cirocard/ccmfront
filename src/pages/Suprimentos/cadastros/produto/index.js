@@ -23,6 +23,7 @@ import {
   FaMoneyBill,
   FaTrash,
   FaEdit,
+  FaImages,
 } from 'react-icons/fa';
 import moment from 'moment';
 import { format } from 'date-fns';
@@ -67,6 +68,7 @@ export default function SUPR4() {
   const frmTrocaForn = useRef(null);
   const frmTabPreco = useRef(null);
   const frmEstoque = useRef(null);
+  const frmFotos = useRef(null);
   const [loading, setLoading] = useState(false);
   const [gridPesquisa, setGridPesquisa] = useState([]);
   const [gridFornec, setGridFornec] = useState([]);
@@ -91,6 +93,9 @@ export default function SUPR4() {
   const [infProd, setInfProd] = useState('');
   const [dataVigencia, setDataVigencia] = useState(new Date());
   const [dataValidade, setDataValidade] = useState(new Date());
+  const [prevFoto1, setPrevFoto1] = useState('');
+  const [prevFoto2, setPrevFoto2] = useState('');
+  const [prevFoto3, setPrevFoto3] = useState('');
 
   const toastOptions = {
     autoClose: 4000,
@@ -551,6 +556,10 @@ export default function SUPR4() {
           dataGridPesqSelected[0].prod_situacao
         );
 
+        setPrevFoto1(dataGridPesqSelected[0].prod_imagem);
+        setPrevFoto2(dataGridPesqSelected[0].prod_imagem2);
+        setPrevFoto3(dataGridPesqSelected[0].prod_imagem3);
+
         if (dataGridPesqSelected[0].prod_id) {
           await getGridFornec(dataGridPesqSelected[0].prod_id);
           await getGridClassific(dataGridPesqSelected[0].prod_id, '1');
@@ -838,6 +847,19 @@ export default function SUPR4() {
       } else if (newValue === 4) {
         if (valueTab !== 4) {
           setDataValidade(moment(new Date()).add(1, 'years'));
+          if (cadastro.prod_id) {
+            setValueTab(newValue);
+          } else {
+            if (cadastro.prod_descricao) {
+              await handleSubmit();
+            }
+            await handleEdit();
+            cadastro = frmCadastro.current.getData();
+            if (cadastro.prod_id) setValueTab(newValue);
+          }
+        }
+      } else if (newValue === 5) {
+        if (valueTab !== 5) {
           if (cadastro.prod_id) {
             setValueTab(newValue);
           } else {
@@ -1145,7 +1167,37 @@ export default function SUPR4() {
     }
   };
 
+  async function handleFoto(file, index) {
+    try {
+      setLoading(true);
+      const cadastro = frmCadastro.current.getData();
+      if (file.target.files[0]) {
+        const datalogo = new FormData();
+        datalogo.append('foto', file.target.files[0]);
+        const response = await api.post(
+          `v1/supr/produto/fotos?prod_id=${cadastro.prod_id}&index=${index}`,
+          datalogo
+        );
+        const papthImage = `${response.data}`;
+
+        if (parseInt(index, 10) === 1) {
+          setPrevFoto1(papthImage);
+        } else if (parseInt(index, 10) === 2) {
+          setPrevFoto2(papthImage);
+        } else if (parseInt(index, 10) === 3) {
+          setPrevFoto3(papthImage);
+        }
+        toast.success('foto configurada', toastOptions);
+        setLoading(false);
+      }
+    } catch (error) {
+      setLoading(false);
+      toast.error(`Erro ao processar operação: ${error}`, toastOptions);
+    }
+  }
+
   useEffect(() => {
+    window.loadMenu();
     listarProduto(100);
     comboGeral(9);
     comboGeral(10);
@@ -1649,6 +1701,17 @@ export default function SUPR4() {
                   label="TABELA DE PREÇOS"
                   {...a11yProps(4)}
                   icon={<FaMoneyBill size={26} color="#244448" />}
+                />
+              </BootstrapTooltip>
+              <BootstrapTooltip
+                title="CADASTRAR FOTOS DO PRODUTO (OPCIONAL)"
+                placement="top-end"
+              >
+                <Tab
+                  disabled={false}
+                  label="FOTOS"
+                  {...a11yProps(5)}
+                  icon={<FaImages size={26} color="#244448" />}
                 />
               </BootstrapTooltip>
             </Tabs>
@@ -2307,6 +2370,92 @@ export default function SUPR4() {
                     />
                   </GridContainerEstoque>
                 </BoxItemCadNoQuery>
+              </Form>
+            </Panel>
+          </TabPanel>
+
+          {/* FOTOS DO PRODUTO */}
+          <TabPanel value={valueTab} index={5}>
+            <Panel lefth1="left" bckgnd="#dae2e5">
+              <Form id="frmFotos" ref={frmFotos}>
+                <h1>VOCE PODE CADASTRAR ATÉ TRÊS FOTOS POR PRODUTO</h1>
+                <BoxItemCad fr="1fr 1fr 1fr">
+                  <AreaComp wd="100">
+                    <label>foto 1</label>
+                    <div>
+                      <input
+                        type="file"
+                        name="foto1"
+                        id="foto1"
+                        className="inputfile inputfile-3"
+                        accept="image/png, image/jpg, image/bmp"
+                        onChange={(file) => handleFoto(file, 1)}
+                      />
+                      <label id="lblFoto1" htmlFor="foto1">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="20"
+                          height="17"
+                          viewBox="0 0 20 17"
+                        >
+                          <path d="M10 0l-5.2 4.9h3.3v5.1h3.8v-5.1h3.3l-5.2-4.9zm9.3 11.5l-3.2-2.1h-2l3.4 2.6h-3.5c-.1 0-.2.1-.2.1l-.8 2.3h-6l-.8-2.2c-.1-.1-.1-.2-.2-.2h-3.6l3.4-2.6h-2l-3.2 2.1c-.4.3-.7 1-.6 1.5l.6 3.1c.1.5.7.9 1.2.9h16.3c.6 0 1.1-.4 1.3-.9l.6-3.1c.1-.5-.2-1.2-.7-1.5z" />
+                        </svg>{' '}
+                        <span>CLIQUE AQUI PARA LOCALIZAR IMAGEM&hellip;</span>
+                      </label>
+                    </div>
+                    <img src={prevFoto1} alt="" />
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <label>foto 2</label>
+                    <div>
+                      <input
+                        type="file"
+                        name="foto2"
+                        id="foto2"
+                        className="inputfile inputfile-3"
+                        accept="image/png, image/jpg, image/bmp"
+                        onChange={(file) => handleFoto(file, 2)}
+                      />
+                      <label id="lblFoto2" htmlFor="foto2">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="20"
+                          height="17"
+                          viewBox="0 0 20 17"
+                        >
+                          <path d="M10 0l-5.2 4.9h3.3v5.1h3.8v-5.1h3.3l-5.2-4.9zm9.3 11.5l-3.2-2.1h-2l3.4 2.6h-3.5c-.1 0-.2.1-.2.1l-.8 2.3h-6l-.8-2.2c-.1-.1-.1-.2-.2-.2h-3.6l3.4-2.6h-2l-3.2 2.1c-.4.3-.7 1-.6 1.5l.6 3.1c.1.5.7.9 1.2.9h16.3c.6 0 1.1-.4 1.3-.9l.6-3.1c.1-.5-.2-1.2-.7-1.5z" />
+                        </svg>{' '}
+                        <span>CLIQUE AQUI PARA LOCALIZAR IMAGEM&hellip;</span>
+                      </label>
+                    </div>
+                    <img src={prevFoto2} alt="" />
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <label>foto 3</label>
+                    <div>
+                      <input
+                        type="file"
+                        name="foto3"
+                        id="foto3"
+                        className="inputfile inputfile-3"
+                        accept="image/png, image/jpg, image/bmp"
+                        onChange={(file) => handleFoto(file, 3)}
+                      />
+                      <label id="lblFoto3" htmlFor="foto3">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="20"
+                          height="17"
+                          viewBox="0 0 20 17"
+                        >
+                          <path d="M10 0l-5.2 4.9h3.3v5.1h3.8v-5.1h3.3l-5.2-4.9zm9.3 11.5l-3.2-2.1h-2l3.4 2.6h-3.5c-.1 0-.2.1-.2.1l-.8 2.3h-6l-.8-2.2c-.1-.1-.1-.2-.2-.2h-3.6l3.4-2.6h-2l-3.2 2.1c-.4.3-.7 1-.6 1.5l.6 3.1c.1.5.7.9 1.2.9h16.3c.6 0 1.1-.4 1.3-.9l.6-3.1c.1-.5-.2-1.2-.7-1.5z" />
+                        </svg>{' '}
+                        <span>CLIQUE AQUI PARA LOCALIZAR IMAGEM&hellip;</span>
+                      </label>
+                    </div>
+                    <img src={prevFoto3} alt="" />
+                  </AreaComp>
+                </BoxItemCad>
               </Form>
             </Panel>
           </TabPanel>

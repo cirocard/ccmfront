@@ -67,6 +67,14 @@ export const Panel = styled.div`
     color: ${(props) => props.fontcolor || '#244448'};
     background: ${(props) => props.bckgnd || '#244448'};
   }
+
+  img {
+    height: 250px;
+    width: 250px;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    background: #fff;
+  }
 `;
 
 export const Content = styled.div`
