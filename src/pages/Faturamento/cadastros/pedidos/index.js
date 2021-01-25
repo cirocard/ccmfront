@@ -1291,7 +1291,6 @@ export default function FAT2() {
     setOpenDlgGrade(false);
     if (prm) {
       setLabelSaldo(`SALDO ATUAL DO ITEM: ${prm.prode_saldo}`);
-      frmItens.current.setFieldValue('item_quantidade', 1);
       frmItens.current.setFieldValue('item_vlr_unit', prm.tab_preco_final);
 
       document.getElementsByName('item_vlr_unit')[0].readOnly =
@@ -1299,10 +1298,12 @@ export default function FAT2() {
 
       await totalItem();
       if (pausada !== 'S') {
+        frmItens.current.setFieldValue('item_quantidade', 1);
         await handleSubmitItens(prm);
         document.getElementsByName('barcode')[0].focus();
       } else {
         setGridGradeSelected(prm);
+        frmItens.current.setFieldValue('item_quantidade', '');
         document.getElementsByName('item_quantidade')[0].focus();
       }
     }
@@ -2698,6 +2699,10 @@ export default function FAT2() {
                         if (paramSistema[0].par_digitacao_pausada === 'S') {
                           await totalItem();
                           await handleSubmitItens(gridGradeSelected);
+                          const ref = frmItens.current.getFieldRef(
+                            'item_prod_id'
+                          );
+                          ref.focus();
                         }
                       }}
                     >
@@ -2718,6 +2723,10 @@ export default function FAT2() {
                         if (paramSistema[0].par_digitacao_pausada === 'S') {
                           await totalItem();
                           await handleSubmitItens(gridGradeSelected);
+                          const ref = frmItens.current.getFieldRef(
+                            'item_prod_id'
+                          );
+                          ref.focus();
                         }
                       }}
                     >
@@ -2741,6 +2750,10 @@ export default function FAT2() {
                         if (paramSistema[0].par_digitacao_pausada === 'S') {
                           await totalItem();
                           await handleSubmitItens(gridGradeSelected);
+                          const ref = frmItens.current.getFieldRef(
+                            'item_prod_id'
+                          );
+                          ref.focus();
                         }
                       }}
                     >
@@ -2763,6 +2776,10 @@ export default function FAT2() {
                         if (paramSistema[0].par_digitacao_pausada === 'S') {
                           await totalItem();
                           await handleSubmitItens(gridGradeSelected);
+                          const ref = frmItens.current.getFieldRef(
+                            'item_prod_id'
+                          );
+                          ref.focus();
                         }
                       }}
                     >
