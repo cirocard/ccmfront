@@ -57,6 +57,7 @@ export default function SUPR6() {
     { value: '5', label: 'MOD 5 - 3 COL. 3.5 X 2 CM' },
     { value: '6', label: 'MOD 6 - 2 COL. C/ 2 PREÇO' },
     { value: '7', label: 'MOD 7 - 1 ETIQUETA 1 x 5 ANEL' },
+    { value: '8', label: 'MOD 8 - 2 COL. COM DIVISAO 1.5 X 5cm' },
   ];
 
   // options combo produto
