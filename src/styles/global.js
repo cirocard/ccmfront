@@ -254,7 +254,7 @@ div.ag-root .ag-cell-focus { /* permitir seleçao na gride */
 }
 
 .ag-theme-balham .ag-row-selected {
-  background-color: #FA6505 !important;
+  background-color: #FCB991 !important;
 }
 
 .ag-theme-balham  .ag-row-selected .ag-cell {
