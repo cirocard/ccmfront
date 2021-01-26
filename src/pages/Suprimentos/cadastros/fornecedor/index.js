@@ -498,6 +498,7 @@ export default function SUPR2() {
                       type="text"
                       name="forn_telefone"
                       className="input_cad"
+                      maxlength="15"
                       onChange={maskFone}
                     />
                   </AreaComp>
@@ -570,6 +571,7 @@ export default function SUPR2() {
                       type="text"
                       name="forn_numero"
                       className="input_cad"
+                      maxlength="15"
                     />
                   </AreaComp>
                 </BoxItemCad>

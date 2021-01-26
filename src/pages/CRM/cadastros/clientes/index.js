@@ -1145,6 +1145,7 @@ export default function Crm9() {
                       type="text"
                       name="cli_fone_residencial"
                       className="input_cad"
+                      maxlength="15"
                       onChange={maskFone}
                     />
                   </AreaComp>
@@ -1368,6 +1369,7 @@ export default function Crm9() {
                       type="text"
                       name="clie_numero"
                       className="input_cad"
+                      maxlength="15"
                     />
                   </AreaComp>
                   <AreaComp wd="100">

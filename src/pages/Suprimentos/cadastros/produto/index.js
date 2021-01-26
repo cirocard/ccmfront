@@ -27,6 +27,7 @@ import {
 } from 'react-icons/fa';
 import moment from 'moment';
 import { format } from 'date-fns';
+import TextArea from '~/componentes/TextArea';
 import AsyncSelectForm from '~/componentes/Select/selectAsync';
 import FormSelect from '~/componentes/Select';
 import DatePickerInput from '~/componentes/DatePickerInput';
@@ -313,6 +314,7 @@ export default function SUPR4() {
     frmCadastro.current.setFieldValue('prod_id', '');
     frmCadastro.current.setFieldValue('prod_descricao', '');
     frmCadastro.current.setFieldValue('prod_referencia', '');
+    frmCadastro.current.setFieldValue('prod_observacao', '');
     frmCadastro.current.setFieldValue('prod_especie_id', '');
     frmCadastro.current.setFieldValue('prod_cod_ean', '');
     frmCadastro.current.setFieldValue('prod_ncm', '');
@@ -555,6 +557,10 @@ export default function SUPR4() {
           'prod_situacao',
           dataGridPesqSelected[0].prod_situacao
         );
+        frmCadastro.current.setFieldValue(
+          'prod_observacao',
+          dataGridPesqSelected[0].prod_observacao
+        );
 
         setPrevFoto1(dataGridPesqSelected[0].prod_imagem);
         setPrevFoto2(dataGridPesqSelected[0].prod_imagem2);
@@ -678,6 +684,7 @@ export default function SUPR4() {
         const produto = {
           prod_id: dataProd.prod_id ? dataProd.prod_id : null,
           prod_descricao: dataProd.prod_descricao.toUpperCase(),
+          prod_observacao: dataProd.prod_observacao.toUpperCase(),
           prod_referencia: dataProd.prod_referencia
             ? dataProd.prod_referencia.toUpperCase()
             : null,
@@ -1996,8 +2003,14 @@ export default function SUPR4() {
                     />
                   </AreaComp>
                 </BoxItemCad>
+                <BoxItemCadNoQuery fr="1fr">
+                  <AreaComp wd="100">
+                    <label>Informações Adicionais do produto</label>
+                    <TextArea type="text" name="prod_observacao" rows="3" />
+                  </AreaComp>
+                </BoxItemCadNoQuery>
                 <h1>PARÂMETROS FISCAIS</h1>
-                <BoxItemCad fr="1fr 1fr 1fr 1fr 1fr 1fr">
+                <BoxItemCad fr="1fr 1fr 1fr 1fr 1fr 1fr 1fr">
                   <AreaComp wd="100">
                     <label>EX. TIPI</label>
                     <Input
@@ -2056,9 +2069,6 @@ export default function SUPR4() {
                       placeholder="0,00"
                     />
                   </AreaComp>
-                </BoxItemCad>
-
-                <BoxItemCad fr="1fr 1fr 1fr 1fr 1fr 1fr">
                   <AreaComp wd="100">
                     <label>ALIQ SUBST.</label>
                     <Input
@@ -2069,6 +2079,9 @@ export default function SUPR4() {
                       placeholder="0,00"
                     />
                   </AreaComp>
+                </BoxItemCad>
+
+                <BoxItemCad fr="1fr 1fr 1fr 1fr 1fr 1fr 1fr">
                   <AreaComp wd="100">
                     <label>MVA SUBST</label>
                     <Input
@@ -2119,8 +2132,6 @@ export default function SUPR4() {
                       placeholder="0,00"
                     />
                   </AreaComp>
-                </BoxItemCad>
-                <BoxItemCad fr="1fr 1fr 1fr 1fr 1fr 1fr">
                   <AreaComp wd="100">
                     <label>PAUTA/ALIQ. PIS</label>
                     <Input

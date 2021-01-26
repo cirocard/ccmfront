@@ -14,6 +14,7 @@ import Popup from '~/componentes/Popup';
 import { BootstrapTooltip } from '~/componentes/ToolTip';
 import history from '~/services/history';
 import { ApiService, ApiTypes } from '~/services/api';
+import { toDecimal } from '~/services/func.uteis';
 import {
   Container,
   Content,
@@ -187,20 +188,32 @@ export default function SUPR6() {
       selectedGrid = [];
 
       selected.forEach((s) => {
-        const obj = {
-          prod_id: s.prod_id,
-          prode_id: s.prode_id,
-          prod_referencia: s.prod_referencia,
-          descricao: s.etiquet.toUpperCase(),
-          qtd: s.quantidade,
-          classific1: s.classific1,
-          classific2: s.classific2,
-          classific3: s.classific3,
-          prod_descricao: s.prod_descricao,
-        };
-        selectedGrid.push(...gridEtiqueta, obj);
-      });
+        const found = gridEtiqueta.filter((f) => f.prode_id === s.prode_id);
 
+        if (found.length > 0) {
+          const gridAtual = gridEtiqueta.filter((f) => f !== found[0]);
+
+          found[0].qtd = (
+            toDecimal(found[0].qtd) + toDecimal(s.quantidade)
+          ).toString();
+
+          selectedGrid.push(...gridAtual, found[0]);
+        } else {
+          const obj = {
+            prod_id: s.prod_id,
+            prode_id: s.prode_id,
+            prod_referencia: s.prod_referencia,
+            descricao: s.etiquet.toUpperCase(),
+            qtd: s.quantidade,
+            classific1: s.classific1,
+            classific2: s.classific2,
+            classific3: s.classific3,
+            prod_descricao: s.prod_descricao,
+          };
+          selectedGrid.push(...gridEtiqueta, obj);
+        }
+      });
+      console.warn(selectedGrid);
       setGridEtiqueta(selectedGrid);
       setOpenDlgGrade(false);
       setProduto([]);
@@ -326,7 +339,7 @@ export default function SUPR6() {
     {
       field: 'forn_razao_social',
       headerName: 'FORNECEDOR',
-      width: 300,
+      width: 280,
       sortable: true,
       resizable: true,
       filter: true,
@@ -341,7 +354,7 @@ export default function SUPR6() {
       filter: true,
       editable: true,
       lockVisible: true,
-      cellStyle: { color: '#D56C02', fontWeight: 'bold' },
+      cellStyle: { color: '#860200', fontWeight: 'bold' },
     },
     {
       field: 'quantidade',
@@ -351,7 +364,7 @@ export default function SUPR6() {
       resizable: true,
       editable: true,
       lockVisible: true,
-      cellStyle: { color: '#D56C02', fontWeight: 'bold' },
+      cellStyle: { color: '#860200', fontWeight: 'bold' },
     },
     {
       field: 'marca',
@@ -364,12 +377,22 @@ export default function SUPR6() {
     {
       field: 'prode_saldo',
       headerName: 'SALDO ATUAL',
-      width: 140,
+      width: 130,
       sortable: true,
       resizable: true,
       filter: true,
       lockVisible: true,
-      cellStyle: { color: '#06B453', fontWeight: 'bold' },
+      cellStyle: { color: '#0C3C0D', fontWeight: 'bold' },
+    },
+    {
+      field: 'tab_preco_final',
+      headerName: 'PREÇO',
+      width: 100,
+      sortable: true,
+      resizable: true,
+      filter: true,
+      lockVisible: true,
+      cellStyle: { color: '#0C3C0D', fontWeight: 'bold' },
     },
     {
       field: 'classific1',
