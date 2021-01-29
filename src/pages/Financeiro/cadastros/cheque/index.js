@@ -15,6 +15,7 @@ import {
   FaFolderPlus,
   FaUserTie,
   FaMoneyCheckAlt,
+  FaCog,
 } from 'react-icons/fa';
 import moment from 'moment';
 import DatePickerInput from '~/componentes/DatePickerInput';
@@ -27,6 +28,7 @@ import Input from '~/componentes/Input';
 import TextArea from '~/componentes/TextArea';
 import { BootstrapTooltip } from '~/componentes/ToolTip';
 import history from '~/services/history';
+import Popup from '~/componentes/Popup';
 import {
   a11yProps,
   maskDecimal,
@@ -52,6 +54,7 @@ export default function FINA5() {
   const [valueTab, setValueTab] = useState(0);
   const frmPesquisa = useRef(null);
   const frmCadastro = useRef(null);
+  const frmCheque = useRef(null);
   const [loading, setLoading] = useState(false);
   const [gridPesquisa, setGridPesquisa] = useState([]);
   const [dataGridPesqSelected, setDataGridPesqSelected] = useState([]);
@@ -61,6 +64,9 @@ export default function FINA5() {
   const [dataVencimento, setDataVencimento] = useState(moment());
   const [dataIni, setDataIni] = useState(moment());
   const [dataFin, setDataFin] = useState(moment().add(60, 'day'));
+  const [dlgGerenciar, setDlgGerenciar] = useState(false);
+  const [optSituacaoCheque, setOptSituacaoCheque] = useState([]);
+  const [optContas, setOptContas] = useState([]);
 
   const toastOptions = {
     autoClose: 4000,
@@ -108,10 +114,25 @@ export default function FINA5() {
           setOptBanco(dados);
         } else if (tab_id === 25) {
           setOptSituacao(dados);
+          setOptSituacaoCheque(dados);
         }
       }
     } catch (error) {
       toast.error(`Erro ao carregar registro \n${error}`);
+    }
+  }
+
+  // conta bancaria
+  async function handleComboContas() {
+    try {
+      const response = await api.get(`v1/combos/contas`);
+      const dados = response.data.retorno;
+      if (dados) {
+        setOptContas(dados);
+      }
+    } catch (error) {
+      setLoading(false);
+      toast.error(`Erro ao carregar contas \n${error}`, toastOptions);
     }
   }
 
@@ -382,6 +403,46 @@ export default function FINA5() {
     }
   }
 
+  // confirmar atualizacao da situacao de cheques
+  async function handleConfirmarCheque() {
+    try {
+      const formCheque = frmCheque.current.getData();
+
+      if (formCheque.sit_cheque) {
+        setLoading(true);
+        const itens = [];
+
+        dataGridPesqSelected.forEach((c) => {
+          const cheque = {
+            chq_emp_id: null,
+            chq_id: c.chq_id,
+            chq_situacao_id: formCheque.sit_cheque,
+            chq_conta_deposito: formCheque.chq_conta_deposito,
+            chq_repassado: formCheque.chq_repassado,
+          };
+          itens.push(cheque);
+        });
+
+        const retorno = await api.put('v1/fina/cheque/cheque', itens);
+        if (retorno.data.success) {
+          await listarCheque();
+          toast.success('Cadastro atualizado com sucesso!!!', toastOptions);
+        } else {
+          toast.error(
+            `Houve erro no processamento!! ${retorno.data.message}`,
+            toastOptions
+          );
+        }
+      } else {
+        toast.error('INFORME A SITUAÇÃO PARA CONTINUAR...', toastOptions);
+      }
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      toast.error(`Erro ao atualizar cheque: ${error}`, toastOptions);
+    }
+  }
+
   const handleChangeTab = async (event, newValue) => {
     if (newValue === 0) {
       limpaForm();
@@ -398,13 +459,14 @@ export default function FINA5() {
   };
 
   function handleCliente() {
-    window.open('/crm9', '_blank');
+    window.open('/fina1', '_blank');
   }
 
   useEffect(() => {
     listarCheque();
     comboGeral(24);
     comboGeral(25);
+    handleComboContas();
     setValueTab(0);
   }, []);
 
@@ -509,6 +571,24 @@ export default function FINA5() {
         <BootstrapTooltip title="Salvar Cadastro" placement="left">
           <button type="button" onClick={handleSubmit}>
             <FaSave size={25} color="#fff" />
+          </button>
+        </BootstrapTooltip>
+        <DivLimitador hg="10px" />
+        <BootstrapTooltip title="GERENCIAR CHEQUE" placement="left">
+          <button
+            type="button"
+            onClick={() => {
+              if (dataGridPesqSelected.length > 0) {
+                setDlgGerenciar(true);
+              } else {
+                toast.warning(
+                  'SELECIONE UM OU MAIS CHEQUES PARA CONTINUAR...',
+                  toastOptions
+                );
+              }
+            }}
+          >
+            <FaCog size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
         <DivLimitador hg="20px" />
@@ -627,7 +707,7 @@ export default function FINA5() {
                       name="pesq_chq_tipo"
                       optionsList={optTipoCheque}
                       placeholder="NÃO INFORMADO"
-                      zindex="153"
+                      zindex="152"
                     />
                   </AreaComp>
                   <AreaComp wd="100">
@@ -650,7 +730,7 @@ export default function FINA5() {
                     <AgGridReact
                       columnDefs={gridColumnPesquisa}
                       rowData={gridPesquisa}
-                      rowSelection="single"
+                      rowSelection="multiple"
                       animateRows
                       gridOptions={{ localeText: gridTraducoes }}
                       onSelectionChanged={handleSelectGridPesquisa}
@@ -797,6 +877,69 @@ export default function FINA5() {
           </TabPanel>
         </Scroll>
       </Container>
+
+      {/* popup GERENCIAR CHEQUE... */}
+      <Popup
+        isOpen={dlgGerenciar}
+        closeDialogFn={() => setDlgGerenciar(false)}
+        title="GERENCIAR SITUAÇAO DO CHEQUE"
+        size="md"
+      >
+        <Panel
+          lefth1="left"
+          bckgnd="#dae2e5"
+          mtop="1px"
+          pdding="5px 7px 7px 10px"
+        >
+          <Form id="frmCheque" ref={frmCheque}>
+            <BoxItemCad fr="1fr 1fr">
+              <AreaComp wd="100">
+                <FormSelect
+                  label="definir Situação"
+                  name="sit_cheque"
+                  optionsList={optSituacaoCheque}
+                  isClearable
+                  placeholder="INFORME A SITUAÇÃO"
+                  zindex="153"
+                />
+              </AreaComp>
+              <AreaComp wd="100">
+                <FormSelect
+                  label="direcionar para conta bancária"
+                  name="chq_conta_deposito"
+                  optionsList={optContas}
+                  isClearable
+                  placeholder="CONTA BANCÁRIA"
+                  zindex="153"
+                />
+              </AreaComp>
+            </BoxItemCad>
+            <BoxItemCadNoQuery fr="1fr">
+              <AreaComp wd="100">
+                <label>informe caso repasse o cheque a terceiros</label>
+                <Input
+                  type="text"
+                  name="chq_repassado"
+                  placeholder="DESCRIÇÃO DO REPASSE"
+                  className="input_cad"
+                />
+              </AreaComp>
+            </BoxItemCadNoQuery>
+            <BoxItemCadNoQuery fr="1fr" ptop="15px">
+              <AreaComp wd="100" ptop="10px">
+                <button
+                  type="button"
+                  className="btnGeral"
+                  onClick={handleConfirmarCheque}
+                >
+                  {loading ? 'Aguarde Processando...' : 'Confirmar'}
+                </button>
+              </AreaComp>
+            </BoxItemCadNoQuery>
+          </Form>
+        </Panel>
+      </Popup>
+
       {/* popup para aguarde... */}
       <DialogInfo
         isOpen={loading}

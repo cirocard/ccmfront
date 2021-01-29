@@ -37,6 +37,7 @@ import FINA5 from '~/pages/Financeiro/cadastros/cheque';
 import FINA6 from '~/pages/Financeiro/cadastros/bordero';
 import FINA7 from '~/pages/Financeiro/relatorios';
 import FINA8 from '~/pages/Financeiro/cadastros/bloco';
+import FINA9 from '~/pages/Financeiro/cadastros/ctarec';
 
 // SUPRIMENTOS
 import SUPR1 from '~/pages/Suprimentos/dashboard';
@@ -87,6 +88,7 @@ export default function Routes() {
       <Route path="/fina6" component={FINA6} isPrivate />
       <Route path="/fina7/:tipo" component={FINA7} isPrivate />
       <Route path="/fina8" component={FINA8} isPrivate />
+      <Route path="/fina9" component={FINA9} isPrivate />
 
       {/* MÓDULO SUPRIMENTOS */}
       <Route path="/supr1" component={SUPR1} isPrivate />
