@@ -53,8 +53,7 @@ export const Panel = styled.div`
   width: 100%;
   border-radius: 4px;
   margin-left: 0px;
-  padding: ${(props) => props.pdding || '1px'};
-  margin-top: ${(props) => props.mtop || '-10px'};
+  margin-top: -10px;
 
   h1 {
     width: 100%;
@@ -198,22 +197,22 @@ export const GridContainerMain = styled.div`
   }
 
   @media (min-height: 300px) {
-    height: 38vh;
-  }
-
-  @media (min-height: 600px) {
     height: 42vh;
   }
 
+  @media (min-height: 600px) {
+    height: 46vh;
+  }
+
   @media (min-height: 680px) {
-    height: 47vh;
+    height: 51vh;
   }
 
   @media (min-height: 780px) {
-    height: 52vh;
+    height: 56vh;
   }
 
   @media (min-height: 880px) {
-    height: 62vh;
+    height: 66vh;
   }
 `;

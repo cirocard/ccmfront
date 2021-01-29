@@ -258,7 +258,8 @@ div.ag-root .ag-cell-focus { /* permitir seleçao na gride */
 }
 
 .ag-theme-balham  .ag-row-selected .ag-cell {
-  color: #fff;
+  color: #e42a3c;
+  font-weight: bold;
 }
 
 .ag-theme-balham  .ag-row-selected .ag-cell .ag-cell-editor {
