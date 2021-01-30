@@ -226,11 +226,18 @@ exports.formataCNPJCPF = (valor) => {
   // .replace(/(-\d{2})\d+?$/, '$1'); // captura 2 numeros seguidos de um traço e não deixa ser digitado mais nada
 };
 
-exports.FormataMoeda = (valor) =>
-  `${parseFloat(valor).toLocaleString('pt-BR', {
+exports.FormataMoeda = (valor) => {
+  if (valor) {
+    return `${parseFloat(valor).toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    })}`;
+  }
+  return `${parseFloat('0').toLocaleString('pt-BR', {
     style: 'currency',
     currency: 'BRL',
   })}`;
+};
 
 exports.FormataNumeroBd = (valor) => {
   const v = valor.replace('.', '');
@@ -298,5 +305,9 @@ exports.toDecimal = (valor) => {
   }
 };
 
-exports.GridCurrencyFormatter = (params) =>
-  `R$ ${parseFloat(params.value).toLocaleString('pt')}`;
+exports.GridCurrencyFormatter = (params) => {
+  if (params.value) {
+    return `R$ ${parseFloat(params.value).toLocaleString('pt')}`;
+  }
+  return `R$ ${parseFloat('0').toLocaleString('pt')}`;
+};

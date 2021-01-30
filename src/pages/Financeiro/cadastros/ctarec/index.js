@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import React, { useEffect, useState, useRef } from 'react';
 import * as Yup from 'yup';
 import { Form } from '@unform/web';
@@ -7,15 +6,13 @@ import { AgGridReact } from 'ag-grid-react';
 import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
-import { format, parse } from 'date-fns';
+import { format } from 'date-fns';
 import { MdClose } from 'react-icons/md';
 import {
   FaSave,
   FaSearch,
   FaPlusCircle,
-  FaFolderPlus,
   FaUserTie,
-  FaMoneyCheckAlt,
   FaFileSignature,
 } from 'react-icons/fa';
 import moment from 'moment';
@@ -33,12 +30,18 @@ import {
   a11yProps,
   maskDecimal,
   GridCurrencyFormatter,
-  maskCNPJCPF,
   toDecimal,
-  RetirarMascara,
+  FormataMoeda,
+  FormataData,
 } from '~/services/func.uteis';
 import { ApiService, ApiTypes } from '~/services/api';
-import { Container, Panel, ToolBar, GridContainerMain } from './styles';
+import {
+  Container,
+  Panel,
+  ToolBar,
+  GridContainerMain,
+  GridContainerItens,
+} from './styles';
 import {
   TitleBar,
   AreaComp,
@@ -57,10 +60,15 @@ export default function FINA9() {
   const [loading, setLoading] = useState(false);
   const [gridPesquisa, setGridPesquisa] = useState([]);
   const [dataGridPesqSelected, setDataGridPesqSelected] = useState([]);
+  const [gridItens, setGridItens] = useState([]);
   const [dataIni, setDataIni] = useState(moment().add(-1, 'day'));
   const [dataFin, setDataFin] = useState(moment().add(30, 'day'));
+  const [dataEmissao, setDataEmissao] = useState(moment());
   const [optGrpRec, setOptGrprec] = useState([]);
   const [cliente, setCliente] = useState([]);
+  const [cli_id, setCli_id] = useState([]);
+  const [optCvto, setOptCvto] = useState([]);
+  const [optFpgto, setOptFpgto] = useState([]);
 
   const toastOptions = {
     autoClose: 4000,
@@ -81,7 +89,7 @@ export default function FINA9() {
     { value: '3', label: 'DATA BAIXA' },
   ];
 
-  const loadOptionsRepresentante = async (inputText, callback) => {
+  const loadOptionsCliente = async (inputText, callback) => {
     if (inputText) {
       const descricao = inputText.toUpperCase();
 
@@ -120,14 +128,26 @@ export default function FINA9() {
     }
   }
 
+  async function getComboCondVcto() {
+    try {
+      const response = await api.get(`v1/combos/condvcto`);
+      const dados = response.data.retorno;
+      if (dados) {
+        setOptCvto(dados);
+      }
+    } catch (error) {
+      toast.error(`Erro ao carregar combo Condição de vencimento \n${error}`);
+    }
+  }
+
   // combo geral
   async function comboGeral(tab_id) {
     try {
       const response = await api.get(`v1/combos/geral/${tab_id}`);
       const dados = response.data.retorno;
       if (dados) {
-        if (tab_id === 24) {
-          // setOptBanco(dados);
+        if (tab_id === 6) {
+          setOptFpgto(dados);
         }
       }
     } catch (error) {
@@ -139,7 +159,13 @@ export default function FINA9() {
 
   // #region SCHEMA VALIDATIONS =====================
   const schemaCad = Yup.object().shape({
-    chq_bco_id: Yup.string().required('(??)'),
+    rec_documento: Yup.string().required('(??)'),
+    rec_cli_id: Yup.string().required('(??)'),
+    rec_vlr_bruto: Yup.string().required('(??)'),
+    rec_vlr_liquido: Yup.string().required('(??)'),
+    rec_forma_pgto_id: Yup.string().required('(??)'),
+    rec_cvto_id: Yup.string().required('(??)'),
+    rec_grprec_id: Yup.string().required('(??)'),
   });
 
   // #endregion
@@ -184,21 +210,231 @@ export default function FINA9() {
   };
 
   const limpaForm = () => {
-    frmCadastro.current.setFieldValue('chq_id', '');
+    frmCadastro.current.setFieldValue('rec_id', '');
+    setDataEmissao(new Date());
+    frmCadastro.current.setFieldValue('rec_documento', '');
+    frmCadastro.current.setFieldValue('rec_observacao', '');
+    frmCadastro.current.setFieldValue('rec_situacao', '');
+    frmCadastro.current.setFieldValue('rec_origem', '');
+    frmCadastro.current.setFieldValue('rec_grprec_id', '');
+    frmCadastro.current.setFieldValue('rec_cvto_id', '');
+    frmCadastro.current.setFieldValue('rec_forma_pgto_id', '');
+    frmCadastro.current.setFieldValue('rec_vlr_liquido', '');
+    frmCadastro.current.setFieldValue('rec_vlr_bruto', '');
+    frmCadastro.current.setFieldValue('rec_vlr_desconto', '');
+    frmCadastro.current.setFieldValue('rec_vlr_acrescimo', '');
+    frmCadastro.current.setFieldValue('rec_saldo', '');
+    setCli_id([]);
+    frmCadastro.current.setFieldValue('rec_data_baixa', '');
+    setGridItens([]);
+    document.getElementsByName('rec_documento')[0].focus();
   };
+
+  async function handleNovoCadastro() {
+    setValueTab(1);
+    limpaForm();
+  }
+
+  async function handleEdit() {
+    try {
+      if (dataGridPesqSelected.length > 0) {
+        setLoading(true);
+        setGridItens([]);
+
+        const url = `v1/fina/ctarec/listar_itens?rec_id=${dataGridPesqSelected[0].rec_id}`;
+        const response = await api.get(url);
+
+        const dados = response.data.retorno;
+        if (dados) {
+          setGridItens(dados[0].itens);
+
+          frmCadastro.current.setFieldValue('rec_id', dados[0].capa.rec_id);
+          setDataEmissao(dados[0].capa.rec_data_emissao);
+          frmCadastro.current.setFieldValue(
+            'rec_documento',
+            dados[0].capa.rec_documento
+          );
+          frmCadastro.current.setFieldValue(
+            'rec_observacao',
+            dados[0].capa.rec_observacao
+          );
+          frmCadastro.current.setFieldValue(
+            'rec_situacao',
+            dados[0].capa.situacao
+          );
+          frmCadastro.current.setFieldValue('rec_origem', dados[0].capa.origem);
+          frmCadastro.current.setFieldValue(
+            'rec_grprec_id',
+            optGrpRec.find(
+              (op) =>
+                op.value.toString() === dados[0].capa.rec_grprec_id.toString()
+            )
+          );
+          frmCadastro.current.setFieldValue(
+            'rec_cvto_id',
+            optCvto.find(
+              (op) =>
+                op.value.toString() === dados[0].capa.rec_cvto_id.toString()
+            )
+          );
+          frmCadastro.current.setFieldValue(
+            'rec_forma_pgto_id',
+            optFpgto.find(
+              (op) =>
+                op.value.toString() ===
+                dados[0].capa.rec_forma_pgto_id.toString()
+            )
+          );
+
+          frmCadastro.current.setFieldValue(
+            'rec_vlr_liquido',
+            FormataMoeda(dados[0].capa.rec_vlr_liquido)
+          );
+          frmCadastro.current.setFieldValue(
+            'rec_vlr_bruto',
+            FormataMoeda(dados[0].capa.rec_vlr_bruto)
+          );
+          frmCadastro.current.setFieldValue(
+            'rec_vlr_desconto',
+            FormataMoeda(dados[0].capa.rec_vlr_desconto)
+          );
+          frmCadastro.current.setFieldValue(
+            'rec_vlr_acrescimo',
+            FormataMoeda(dados[0].capa.rec_vlr_acrescimo)
+          );
+          frmCadastro.current.setFieldValue(
+            'rec_saldo',
+            FormataMoeda(dados[0].capa.rec_saldo)
+          );
+          await loadOptionsCliente(dados[0].capa.rec_cli_id, setCli_id);
+          frmCadastro.current.setFieldValue(
+            'rec_data_baixa',
+            FormataData(dados[0].capa.rec_data_baixa)
+          );
+
+          setValueTab(1);
+        } else
+          toast.error(
+            'NAO FOI POSSIVEL RECUPERAR OS DADOS CADASTRADOS',
+            toastOptions
+          );
+
+        setLoading(false);
+      } else {
+        setValueTab(0);
+      }
+    } catch (error) {
+      setLoading(false);
+      toast.error(`Erro ao listar cadastro \n${error}`, toastOptions);
+    }
+  }
+
+  async function handleSubmit() {
+    try {
+      if (parseInt(valueTab, 10) > 0) {
+        const formData = frmCadastro.current.getData();
+        frmCadastro.current.setErrors({});
+        await schemaCad.validate(formData, {
+          abortEarly: false,
+        });
+
+        setLoading(true);
+
+        const objCad = {
+          rec_emp_id: null,
+          rec_id: formData.rec_id ? parseInt(formData.rec_id, 10) : null,
+          rec_documento: formData.rec_documento,
+          rec_cli_id: parseInt(formData.rec_cli_id, 10) || null,
+          rec_vlr_bruto: toDecimal(formData.rec_vlr_bruto),
+          rec_vlr_liquido: toDecimal(formData.rec_vlr_liquido),
+          rec_observacao: formData.rec_observacao,
+          rec_situacao: formData.rec_situacao,
+          rec_forma_pgto_tab: 6,
+          rec_forma_pgto_id: formData.rec_forma_pgto_id,
+          rec_cvto_id: formData.rec_cvto_id,
+          rec_grprec_tab: 20,
+          rec_grprec_id: formData.rec_grprec_id,
+          rec_origem: '1',
+          rec_usr_id: null,
+          rec_editavel: 'S',
+          rec_saldo: toDecimal(formData.rec_vlr_liquido),
+          rec_data_emissao: format(dataEmissao, 'yyyy-MM-dd HH:mm:ss'),
+        };
+
+        const retorno = await api.post('v1/fina/ctarec/cadastrar', objCad);
+        if (retorno.data.success) {
+          frmCadastro.current.setFieldValue(
+            'rec_id',
+            retorno.data.retorno.retorno[0].capa.rec_id
+          );
+          setGridItens(retorno.data.retorno.retono[0].itens);
+          toast.info('Cadastro atualizado com sucesso!!!', toastOptions);
+        } else {
+          toast.error(
+            `Houve erro no processamento!! ${retorno.data.message}`,
+            toastOptions
+          );
+        }
+        setLoading(false);
+      } else {
+        toast.info(`Altere ou inicie um cadastro para salvar...`, toastOptions);
+      }
+    } catch (err) {
+      const validationErrors = {};
+      if (err instanceof Yup.ValidationError) {
+        err.inner.forEach((error) => {
+          validationErrors[error.path] = error.message;
+        });
+      } else {
+        setLoading(false);
+        toast.error(`Erro salvar cadastro: ${err}`, toastOptions);
+      }
+
+      frmCadastro.current.setFieldError(
+        'rec_documento',
+        validationErrors.rec_documento
+      );
+      frmCadastro.current.setFieldError(
+        'rec_cli_id',
+        validationErrors.rec_cli_id
+      );
+      frmCadastro.current.setFieldError(
+        'rec_vlr_bruto',
+        validationErrors.rec_vlr_bruto
+      );
+      frmCadastro.current.setFieldError(
+        'rec_vlr_liquido',
+        validationErrors.rec_vlr_liquido
+      );
+      frmCadastro.current.setFieldError(
+        'rec_forma_pgto_id',
+        validationErrors.rec_forma_pgto_id
+      );
+      frmCadastro.current.setFieldError(
+        'rec_cvto_id',
+        validationErrors.rec_cvto_id
+      );
+      frmCadastro.current.setFieldError(
+        'rec_grprec_id',
+        validationErrors.rec_grprec_id
+      );
+    }
+  }
 
   const handleChangeTab = async (event, newValue) => {
     if (newValue === 0) {
+      limpaForm();
       setValueTab(newValue);
     } else if (newValue === 1) {
-      setValueTab(newValue);
+      await handleEdit();
     }
   };
 
   useEffect(() => {
     frmPesquisa.current.setFieldValue('pesq_data', '1');
     handleGrupoRec();
-    comboGeral(24);
+    comboGeral(6);
+    getComboCondVcto();
     listarCtaRec();
     setValueTab(0);
   }, []);
@@ -294,6 +530,109 @@ export default function FINA9() {
 
   // #endregion
 
+  // #region GRID ITENS  =========================
+  const gridColunaItens = [
+    {
+      field: 'reci_parcela',
+      headerName: 'PARCELA',
+      width: 120,
+      sortable: true,
+      resizable: true,
+      filter: false,
+      lockVisible: true,
+    },
+    {
+      field: 'reci_valor',
+      headerName: 'VALOR',
+      width: 130,
+      sortable: true,
+      resizable: true,
+      filter: false,
+      lockVisible: true,
+      type: 'rightAligned',
+      valueFormatter: GridCurrencyFormatter,
+      cellStyle: { color: '#000', fontWeight: 'bold' },
+    },
+    {
+      field: 'reci_data_vencimento',
+      headerName: 'VENCIMENTO',
+      width: 130,
+      sortable: true,
+      resizable: true,
+      filter: false,
+      lockVisible: true,
+    },
+    {
+      field: 'forma_pgto',
+      headerName: 'FORMA PAGAMENTO',
+      width: 170,
+      sortable: true,
+      resizable: true,
+      filter: false,
+      lockVisible: true,
+    },
+    {
+      field: 'reci_data_baixa',
+      headerName: 'DATA BAIXA',
+      width: 130,
+      sortable: true,
+      resizable: true,
+      filter: false,
+      lockVisible: true,
+    },
+    {
+      field: 'reci_situacao',
+      headerName: 'SITUAÇÃO',
+      width: 150,
+      sortable: true,
+      resizable: true,
+      filter: true,
+      lockVisible: true,
+    },
+    {
+      field: 'reci_juros',
+      headerName: 'JUROS',
+      width: 130,
+      sortable: true,
+      resizable: true,
+      filter: true,
+      lockVisible: true,
+      type: 'rightAligned',
+      valueFormatter: GridCurrencyFormatter,
+      cellStyle: { color: '#000', fontWeight: 'bold' },
+    },
+
+    {
+      field: 'reci_desconto',
+      headerName: 'DESCONTO',
+      width: 130,
+      sortable: true,
+      resizable: true,
+      filter: false,
+      lockVisible: true,
+      type: 'rightAligned',
+      valueFormatter: GridCurrencyFormatter,
+      cellStyle: { color: '#000', fontWeight: 'bold' },
+    },
+    {
+      field: 'reci_saldo',
+      headerName: 'SALDO',
+      width: 130,
+      sortable: true,
+      resizable: true,
+      filter: false,
+      lockVisible: true,
+      type: 'rightAligned',
+      valueFormatter: GridCurrencyFormatter,
+      cellStyle: { color: '#d81e00', fontWeight: 'bold' },
+    },
+    {
+      flex: 1,
+    },
+  ];
+
+  // #endregion
+
   return (
     <>
       <ToolBar hg="100%" wd="40px">
@@ -304,24 +643,20 @@ export default function FINA9() {
         </BootstrapTooltip>
         <DivLimitador hg="10px" />
         <BootstrapTooltip title="Novo Cadastro" placement="left">
-          <button type="button" onClick={null}>
+          <button type="button" onClick={handleNovoCadastro}>
             <FaPlusCircle size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
         <DivLimitador hg="10px" />
         <BootstrapTooltip title="Salvar Cadastro" placement="left">
-          <button type="button" onClick={null}>
+          <button type="button" onClick={handleSubmit}>
             <FaSave size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
         <DivLimitador hg="20px" />
         <Linha />
         <DivLimitador hg="20px" />
-        <BootstrapTooltip title="ABRIR BORDERÔ DE CHEQUE" placement="left">
-          <button type="button" onClick={() => null}>
-            <FaMoneyCheckAlt size={25} color="#fff" />
-          </button>
-        </BootstrapTooltip>
+
         <DivLimitador hg="10px" />
         <BootstrapTooltip title="ABRIR CADASTRO DE CLIENTES" placement="left">
           <button type="button" onClick={null}>
@@ -390,7 +725,7 @@ export default function FINA9() {
                       cacheOptions
                       value={cliente}
                       onChange={(c) => setCliente(c || [])}
-                      loadOptions={loadOptionsRepresentante}
+                      loadOptions={loadOptionsCliente}
                       isClearable
                       zindex="153"
                     />
@@ -457,7 +792,185 @@ export default function FINA9() {
           <TabPanel value={valueTab} index={1}>
             <Panel lefth1="left" bckgnd="#dae2e5">
               <Form id="frmCadastro" ref={frmCadastro}>
-                <h1>CADASTRO DE CHEQUE</h1>
+                <h1>CADASTRO TITULOS - CONTAS A RECEBER</h1>
+                <BoxItemCad fr="1fr 1fr 1fr 1fr 3fr">
+                  <AreaComp wd="100">
+                    <label>Código</label>
+                    <Input
+                      type="number"
+                      name="rec_id"
+                      readOnly
+                      className="input_cad"
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <label>documento</label>
+                    <Input
+                      type="text"
+                      name="rec_documento"
+                      className="input_cad"
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <DatePickerInput
+                      onChangeDate={(date) => setDataEmissao(new Date(date))}
+                      value={dataEmissao}
+                      label="Data Emissão"
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <label>Data Baixa</label>
+                    <Input
+                      type="text"
+                      name="rec_data_baixa"
+                      readOnly
+                      className="input_cad"
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <AsyncSelectForm
+                      name="rec_cli_id"
+                      label="CLIENTE"
+                      placeholder="NÃO INFORMADO"
+                      defaultOptions
+                      cacheOptions
+                      value={cli_id}
+                      onChange={(c) => setCli_id(c || [])}
+                      loadOptions={loadOptionsCliente}
+                      isClearable
+                      zindex="153"
+                    />
+                  </AreaComp>
+                </BoxItemCad>
+
+                <BoxItemCad fr="1fr 1fr 1fr 1fr">
+                  <AreaComp wd="100">
+                    <FormSelect
+                      label="grupo de receita"
+                      name="rec_grprec_id"
+                      optionsList={optGrpRec}
+                      isClearable
+                      placeholder="INFORME"
+                      zindex="153"
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <FormSelect
+                      name="rec_forma_pgto_id"
+                      label="Forma de Pagamento"
+                      optionsList={optFpgto}
+                      isClearable
+                      placeholder="INFORME"
+                      zindex="152"
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <FormSelect
+                      name="rec_cvto_id"
+                      label="Condição de Vencimento"
+                      optionsList={optCvto}
+                      isClearable
+                      placeholder="INFORME"
+                      zindex="152"
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <label>Situacao</label>
+                    <Input
+                      type="text"
+                      name="rec_situacao"
+                      readOnly
+                      className="input_cad"
+                    />
+                  </AreaComp>
+                </BoxItemCad>
+                <BoxItemCad fr="1fr 1fr 1fr 1fr 1fr 1fr">
+                  <AreaComp wd="100">
+                    <label>Valor Bruto</label>
+                    <Input
+                      type="text"
+                      name="rec_vlr_bruto"
+                      className="input_cad"
+                      onChange={maskDecimal}
+                      onBlur={(e) => {
+                        frmCadastro.current.setFieldValue(
+                          'rec_vlr_liquido',
+                          e.target.value
+                        );
+                        frmCadastro.current.setFieldValue(
+                          'rec_saldo',
+                          e.target.value
+                        );
+                      }}
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <label>Valor Desconto</label>
+                    <Input
+                      type="text"
+                      name="rec_vlr_desconto"
+                      className="input_cad"
+                      readOnly
+                      onChange={maskDecimal}
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <label>Valor Acrescimo</label>
+                    <Input
+                      type="text"
+                      name="rec_vlr_acrescimo"
+                      className="input_cad"
+                      readOnly
+                      onChange={maskDecimal}
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <label>Valor Liquido</label>
+                    <Input
+                      type="text"
+                      name="rec_vlr_liquido"
+                      className="input_cad"
+                      readOnly
+                      onChange={maskDecimal}
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <label>Saldo Devedor</label>
+                    <Input
+                      type="text"
+                      name="rec_saldo"
+                      className="input_cad"
+                      readOnly
+                      onChange={maskDecimal}
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <label>Origem Titulo</label>
+                    <Input
+                      type="text"
+                      name="rec_origem"
+                      readOnly
+                      className="input_cad"
+                    />
+                  </AreaComp>
+                </BoxItemCad>
+                <BoxItemCadNoQuery>
+                  <AreaComp wd="100">
+                    <label>Informações Adicionais</label>
+                    <TextArea type="text" name="rec_observacao" rows="3" />
+                  </AreaComp>
+                </BoxItemCadNoQuery>
+                <BoxItemCadNoQuery fr="1fr">
+                  <GridContainerItens className="ag-theme-balham">
+                    <AgGridReact
+                      columnDefs={gridColunaItens}
+                      rowData={gridItens}
+                      rowSelection="single"
+                      animateRows
+                      gridOptions={{ localeText: gridTraducoes }}
+                    />
+                  </GridContainerItens>
+                </BoxItemCadNoQuery>
               </Form>
             </Panel>
           </TabPanel>
