@@ -474,18 +474,9 @@ export default function FINA5() {
 
   const gridColumnPesquisa = [
     {
-      field: 'chq_id',
-      headerName: 'CÓDIGO',
-      width: 140,
-      sortable: true,
-      resizable: true,
-      filter: false,
-      lockVisible: true,
-    },
-    {
       field: 'chq_numero',
       headerName: 'Nº CHEQUE',
-      width: 140,
+      width: 120,
       sortable: true,
       resizable: true,
       filter: false,
@@ -494,7 +485,7 @@ export default function FINA5() {
     {
       field: 'chq_valor',
       headerName: 'VALOR',
-      width: 140,
+      width: 120,
       sortable: true,
       resizable: true,
       filter: false,
@@ -548,6 +539,9 @@ export default function FINA5() {
       resizable: true,
       filter: true,
       lockVisible: true,
+    },
+    {
+      flex: 1,
     },
   ];
 

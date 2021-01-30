@@ -59,6 +59,7 @@ export default function SUPR6() {
     { value: '6', label: 'MOD 6 - 2 COL. C/ 2 PREÇO' },
     { value: '7', label: 'MOD 7 - 1 ETIQUETA 1 x 5 ANEL' },
     { value: '8', label: 'MOD 8 - 2 COL. COM DIVISAO 1.5 X 5cm' },
+    { value: '9', label: 'MOD 9 - 2 COL. 3 x 5cm' },
   ];
 
   // options combo produto
@@ -524,7 +525,7 @@ export default function SUPR6() {
         isOpen={openDlgGrade}
         closeDialogFn={() => setOpenDlgGrade(false)}
         title={titleDlgGrade}
-        size="lg"
+        size="xl"
       >
         <Scroll>
           <CModal wd="100%" hd="90%">
