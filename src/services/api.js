@@ -24,7 +24,7 @@ export class ApiService {
     api.defaults.headers.Authorization = `Bearer ${token}`;
 
     /* ==== Configura interceptor de response para tratar erros da Api ==== */
-    api.interceptors.response.use((response) => {
+    /* api.interceptors.response.use((response) => {
       if (response.data.errors && response.data.errors.message) {
         const { message } = response.data.errors;
         const errorMessage = message.message ? message.message : message;
@@ -39,7 +39,7 @@ export class ApiService {
       } else {
         return response;
       }
-    });
+    }); */
 
     return api;
   }

@@ -31,7 +31,6 @@ import {
   maskDecimal,
   GridCurrencyFormatter,
   toDecimal,
-  FormataMoeda,
   FormataData,
 } from '~/services/func.uteis';
 import { ApiService, ApiTypes } from '~/services/api';
@@ -249,7 +248,16 @@ export default function FINA9() {
           setGridItens(dados[0].itens);
 
           frmCadastro.current.setFieldValue('rec_id', dados[0].capa.rec_id);
-          setDataEmissao(dados[0].capa.rec_data_emissao);
+
+          setDataEmissao(
+            new Date(
+              format(
+                Date.parse(dados[0].capa.rec_data_emissao.substring(0, 19)),
+                'yyy/MM/dd HH:mm:ss'
+              )
+            )
+          );
+
           frmCadastro.current.setFieldValue(
             'rec_documento',
             dados[0].capa.rec_documento
@@ -288,25 +296,31 @@ export default function FINA9() {
 
           frmCadastro.current.setFieldValue(
             'rec_vlr_liquido',
-            FormataMoeda(dados[0].capa.rec_vlr_liquido)
+            dados[0].capa.rec_vlr_liquido
           );
           frmCadastro.current.setFieldValue(
             'rec_vlr_bruto',
-            FormataMoeda(dados[0].capa.rec_vlr_bruto)
+            dados[0].capa.rec_vlr_bruto
           );
           frmCadastro.current.setFieldValue(
             'rec_vlr_desconto',
-            FormataMoeda(dados[0].capa.rec_vlr_desconto)
+            dados[0].capa.rec_vlr_desconto
           );
           frmCadastro.current.setFieldValue(
             'rec_vlr_acrescimo',
-            FormataMoeda(dados[0].capa.rec_vlr_acrescimo)
+            dados[0].capa.rec_vlr_acrescimo
           );
           frmCadastro.current.setFieldValue(
             'rec_saldo',
-            FormataMoeda(dados[0].capa.rec_saldo)
+            dados[0].capa.rec_saldo
           );
+
           await loadOptionsCliente(dados[0].capa.rec_cli_id, setCli_id);
+          frmCadastro.current.setFieldValue('rec_cli_id', {
+            value: dados[0].capa.rec_cli_id,
+            label: dataGridPesqSelected[0].cli_razao_social,
+          });
+
           frmCadastro.current.setFieldValue(
             'rec_data_baixa',
             FormataData(dados[0].capa.rec_data_baixa)
@@ -339,7 +353,7 @@ export default function FINA9() {
         });
 
         setLoading(true);
-
+        console.warn('data ', dataEmissao);
         const objCad = {
           rec_emp_id: null,
           rec_id: formData.rec_id ? parseInt(formData.rec_id, 10) : null,
@@ -348,7 +362,7 @@ export default function FINA9() {
           rec_vlr_bruto: toDecimal(formData.rec_vlr_bruto),
           rec_vlr_liquido: toDecimal(formData.rec_vlr_liquido),
           rec_observacao: formData.rec_observacao,
-          rec_situacao: formData.rec_situacao,
+          rec_situacao: '1',
           rec_forma_pgto_tab: 6,
           rec_forma_pgto_id: formData.rec_forma_pgto_id,
           rec_cvto_id: formData.rec_cvto_id,
@@ -362,16 +376,17 @@ export default function FINA9() {
         };
 
         const retorno = await api.post('v1/fina/ctarec/cadastrar', objCad);
+
         if (retorno.data.success) {
-          frmCadastro.current.setFieldValue(
-            'rec_id',
-            retorno.data.retorno.retorno[0].capa.rec_id
-          );
-          setGridItens(retorno.data.retorno.retono[0].itens);
+          const dados = retorno.data.retorno;
+
+          frmCadastro.current.setFieldValue('rec_id', dados[0].capa.rec_id);
+
+          setGridItens(dados[0].itens);
           toast.info('Cadastro atualizado com sucesso!!!', toastOptions);
         } else {
           toast.error(
-            `Houve erro no processamento!! ${retorno.data.message}`,
+            `Houve erro no processamento!! ${retorno.data.errors}`,
             toastOptions
           );
         }
