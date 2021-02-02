@@ -3,7 +3,6 @@ import { MdClose } from 'react-icons/md';
 import { useRouteMatch } from 'react-router-dom';
 import Popup from '~/componentes/Popup';
 import { Container, Content, ToolBar } from './styles';
-
 import { TitleBar } from '~/pages/general.styles';
 import { BootstrapTooltip } from '~/componentes/ToolTip';
 import history from '~/services/history';
