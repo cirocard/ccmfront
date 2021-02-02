@@ -459,7 +459,7 @@ export default function FINA5() {
   };
 
   function handleCliente() {
-    window.open('/fina1', '_blank');
+    window.open('/crm9', '_blank');
   }
 
   useEffect(() => {

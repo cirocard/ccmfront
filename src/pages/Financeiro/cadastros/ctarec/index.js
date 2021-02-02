@@ -186,7 +186,9 @@ export default function FINA9() {
         dataIni
       ).format('YYYY-MM-DD')}&data_fin=${moment(dataFin).format(
         'YYYY-MM-DD'
-      )}&rec_id=${formPesq.pesq_rec_id}&tpData=${formPesq.pesq_data || '1'}`;
+      )}&rec_id=${formPesq.pesq_rec_id}&tpData=${
+        formPesq.pesq_data || '1'
+      }&fpgto=`;
 
       const response = await api.get(url);
 

@@ -38,6 +38,8 @@ export default function Crm7() {
   const [dataIni, setDataIni] = useState(new Date());
   const [dataFin, setDataFin] = useState(new Date());
   const [ordem, setOrdem] = useState('mx.cp_datacad desc');
+  const [vendedor, setVendedor] = useState(0);
+  const [optVendedor, setOptVendedor] = useState([]);
 
   const toastOptions = {
     autoClose: 4000,
@@ -111,7 +113,7 @@ export default function Crm7() {
         `v1/crm/report/rel_cliente_sem_venda?database=${format(
           dataIni,
           'yyyy-MM-dd'
-        )}&ordem=${ordem}&perfil=${perfil}`
+        )}&ordem=${ordem}&perfil=${perfil}&vendedor=${parseInt(vendedor, 10)}`
       );
       const link = response.data;
       setLoading(false);
@@ -122,6 +124,18 @@ export default function Crm7() {
     }
   }
 
+  async function getComboVendedor(emp_id) {
+    try {
+      const response = await api.get(`v1/combos/user_empresa/${emp_id}`);
+      const dados = response.data.retorno;
+      if (dados) {
+        setOptVendedor(dados);
+      }
+    } catch (error) {
+      toast.error(`Erro ao carregar combo vendedor \n${error}`);
+    }
+  }
+
   useEffect(() => {
     if (params.tipo === 'clientes') {
       setTitleRel('RELATÓRIO GERENCIAL DE CLIENTES');
@@ -129,6 +143,7 @@ export default function Crm7() {
     } else if (params.tipo === 'semvenda') {
       setTitleRel('RELATÓRIO CLIENTES VS ULTIMA COMPRA');
       setOpenRelClienteSemVenda(true);
+      getComboVendedor(0);
     }
   }, []);
 
@@ -295,8 +310,21 @@ export default function Crm7() {
                 />
               </AreaComp>
             </BoxItemCad>
+            <BoxItemCadNoQuery fr="1fr" ptop="10px">
+              <AreaComp wd="100">
+                <label>VENDEDOR(A)</label>
+                <Select
+                  id="r2Vendedor"
+                  options={optVendedor}
+                  value={optVendedor.filter((obj) => obj.value === vendedor)}
+                  onChange={(e) => setVendedor(e ? e.value : 0)}
+                  placeholder="Informe"
+                />
+              </AreaComp>
+            </BoxItemCadNoQuery>
 
             <h1>Filtros adicionais</h1>
+
             <BoxItemCadNoQuery fr="1fr" ptop="10px">
               <AreaComp wd="100">
                 <CCheck>
@@ -331,6 +359,7 @@ export default function Crm7() {
                 </CCheck>
               </AreaComp>
             </BoxItemCadNoQuery>
+
             <Linha />
             <BoxItemCadNoQuery fr="1fr" ptop="10px" just="center">
               <DivLimitadorRow>

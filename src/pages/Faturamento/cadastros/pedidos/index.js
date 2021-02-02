@@ -45,6 +45,7 @@ import Input from '~/componentes/Input';
 import TextArea from '~/componentes/TextArea';
 import FormSelect from '~/componentes/Select';
 import AsyncSelectForm from '~/componentes/Select/selectAsync';
+import Confirmation from '~/componentes/DialogChoice';
 import {
   Container,
   Panel,
@@ -65,7 +66,6 @@ import {
   Linha,
 } from '~/pages/general.styles';
 import { BootstrapTooltip } from '~/componentes/ToolTip';
-import Confirmation from '~/componentes/DialogChoice';
 import history from '~/services/history';
 import {
   a11yProps,
@@ -365,6 +365,12 @@ export default function FAT2() {
       const dados = response.data.retorno;
       if (dados) {
         setGridItens(dados);
+
+        // preencher a tabela de preço
+        const x = optTabPreco.find(
+          (op) => op.value.toString() === dados[0].item_tab_preco_id.toString()
+        );
+        frmItens.current.setFieldValue('item_tab_preco_id', x);
       }
 
       // resumo itens
@@ -547,21 +553,6 @@ export default function FAT2() {
           'valor_cota',
           dataGridPesqSelected[0].valor_cota
         );
-
-        if (params.tipo === '2') {
-          x = optTabPreco.find(
-            (op) =>
-              op.value.toString() ===
-              paramSistema[0].par_tab_padrao_prevenda.toString()
-          );
-        } else {
-          x = optTabPreco.find(
-            (op) =>
-              op.value.toString() ===
-              paramSistema[0].par_tab_padrao_consignado.toString()
-          );
-        }
-        frmItens.current.setFieldValue('item_tab_preco_id', x);
 
         await loadOptionsRepresentante(
           dataGridPesqSelected[0].cp_representante,
@@ -2161,6 +2152,43 @@ export default function FAT2() {
     window.open('/supr4', '_blank');
   }
 
+  const handleChangeTabPreo = async (tab) => {
+    try {
+      if (gridItens[0].item_tab_preco_id.toString() === tab.value.toString())
+        return;
+
+      const confirmation = await Confirmation.show(
+        'Ao trocar a tabela de preços,  todo o pedido será recalculado de acordo com a tabela informada.  Deseja Continuar???'
+      );
+      console.warn('item 1 ', gridItens[0].item_tab_preco_id.toString());
+      console.warn('item 2 ', tab.value.toString());
+      if (confirmation) {
+        setLoading(true);
+        const formCapa = frmCapa.current.getData();
+        const response = await api.put(
+          `v1/fat/trocar_tabela?cp_id=${formCapa.cp_id}&tab_id=${tab.value}`
+        );
+
+        if (response.data.success) {
+          await listaItens();
+          toast.info('PEDIDO RECALCULADO COM SUCESSO!!!', toastOptions);
+        } else {
+          toast.error(response.data.errors, toastOptions);
+        }
+        setLoading(false);
+      } else {
+        const x = optTabPreco.find(
+          (op) =>
+            op.value.toString() === gridItens[0].item_tab_preco_id.toString()
+        );
+        frmItens.current.setFieldValue('item_tab_preco_id', x);
+      }
+    } catch (error) {
+      setLoading(false);
+      toast.error(`Erro ao recalcular pedido \n${error}`, toastOptions);
+    }
+  };
+
   useEffect(() => {
     setColunaItens(gridColumnItens);
     if (params.tipo === '2') {
@@ -2657,7 +2685,8 @@ export default function FAT2() {
                       name="item_tab_preco_id"
                       label="Tabela de Preços"
                       optionsList={optTabPreco}
-                      isClearable
+                      isClearable={false}
+                      onChange={handleChangeTabPreo}
                       placeholder="INFORME A TABELA"
                     />
                   </AreaComp>
