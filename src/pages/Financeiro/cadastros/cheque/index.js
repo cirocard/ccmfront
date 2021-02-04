@@ -428,6 +428,7 @@ export default function FINA5() {
             chq_conta_deposito: formCheque.chq_conta_deposito,
             chq_repassado: formCheque.chq_repassado,
           };
+          if (!formCheque.chq_conta_deposito) delete cheque.chq_conta_deposito;
           itens.push(cheque);
         });
 
