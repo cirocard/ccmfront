@@ -81,6 +81,11 @@ export default function FINA5() {
     { value: '3', label: 'CHEQUE RECEBIDO DE TERCEIROS' },
   ];
 
+  const optDATA = [
+    { value: '1', label: 'DATA DE LANÇAMENTO' },
+    { value: '2', label: 'DATA VENCIMENTO' },
+  ];
+
   const loadOptionsRepresentante = async (inputText, callback) => {
     if (inputText) {
       const descricao = inputText.toUpperCase();
@@ -180,7 +185,10 @@ export default function FINA5() {
         chq_datacad: moment(dataIni).format('YYYY-MM-DD'),
         chq_vencimento: moment(dataFin).format('YYYY-MM-DD'),
       };
-      const response = await api.post('v1/fina/cheque/listar_cheque', objPesq);
+      const response = await api.post(
+        `v1/fina/cheque/listar_cheque?tpData=${formPesq.pesq_data || '1'}`,
+        objPesq
+      );
       const dados = response.data.retorno;
       if (dados) {
         setGridPesquisa(dados);
@@ -495,9 +503,18 @@ export default function FINA5() {
       cellStyle: { color: '#000', fontWeight: 'bold' },
     },
     {
+      field: 'datacad',
+      headerName: 'LANÇAMENTO',
+      width: 130,
+      sortable: true,
+      resizable: true,
+      filter: true,
+      lockVisible: true,
+    },
+    {
       field: 'vencimento',
       headerName: 'VENCIMENTO',
-      width: 140,
+      width: 130,
       sortable: true,
       resizable: true,
       filter: true,
@@ -685,7 +702,7 @@ export default function FINA5() {
                     />
                   </AreaComp>
                 </BoxItemCad>
-                <BoxItemCad fr="1fr 1fr 1fr 1fr">
+                <BoxItemCad fr="1fr 1fr 1fr 1fr 1fr">
                   <AreaComp wd="100">
                     <label>Nº Cheque</label>
                     <Input
@@ -705,17 +722,26 @@ export default function FINA5() {
                     />
                   </AreaComp>
                   <AreaComp wd="100">
+                    <FormSelect
+                      label="filtrar por"
+                      name="pesq_data"
+                      optionsList={optDATA}
+                      placeholder="NÃO INFORMADO"
+                      zindex="152"
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100">
                     <DatePickerInput
                       onChangeDate={(date) => setDataIni(new Date(date))}
                       value={dataIni}
-                      label="Vencimento Inicial"
+                      label="Data Inicial"
                     />
                   </AreaComp>
                   <AreaComp wd="100">
                     <DatePickerInput
                       onChangeDate={(date) => setDataFin(new Date(date))}
                       value={dataFin}
-                      label="Vencimento Final"
+                      label="Data Final"
                     />
                   </AreaComp>
                 </BoxItemCad>

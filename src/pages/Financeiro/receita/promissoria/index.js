@@ -1,24 +1,31 @@
-/* eslint-disable no-unused-vars */
 import React, { useEffect, useState, useRef } from 'react';
-
 import { Form } from '@unform/web';
 import { toast } from 'react-toastify';
 import { AgGridReact } from 'ag-grid-react';
-
 import { MdClose } from 'react-icons/md';
-import { FaSearch, FaUserTie, FaPrint } from 'react-icons/fa';
+import {
+  FaSearch,
+  FaUserTie,
+  FaPrint,
+  FaHandHoldingUsd,
+  FaRegCheckSquare,
+} from 'react-icons/fa';
 import moment from 'moment';
+import { format } from 'date-fns';
+import Popup from '~/componentes/Popup';
 import DatePickerInput from '~/componentes/DatePickerInput';
 import AsyncSelectForm from '~/componentes/Select/selectAsync';
 import FormSelect from '~/componentes/Select';
 import DialogInfo from '~/componentes/DialogInfo';
 import { gridTraducoes } from '~/services/gridTraducoes';
-
 import Input from '~/componentes/Input';
-
 import { BootstrapTooltip } from '~/componentes/ToolTip';
 import history from '~/services/history';
-import { GridCurrencyFormatter } from '~/services/func.uteis';
+import {
+  GridCurrencyFormatter,
+  maskDecimal,
+  toDecimal,
+} from '~/services/func.uteis';
 import { ApiService, ApiTypes } from '~/services/api';
 import {
   Container,
@@ -40,17 +47,17 @@ import {
 export default function FINA10() {
   const api = ApiService.getInstance(ApiTypes.API1);
   const frmPesquisa = useRef(null);
-
+  const frmBaixar = useRef(null);
   const [loading, setLoading] = useState(false);
   const [gridPesquisa, setGridPesquisa] = useState([]);
   const [dataGridPesqSelected, setDataGridPesqSelected] = useState([]);
   const [gridItens, setGridItens] = useState([]);
   const [dataIni, setDataIni] = useState(moment().add(-1, 'day'));
   const [dataFin, setDataFin] = useState(moment().add(30, 'day'));
+  const [dataBaixa, setDataBaixa] = useState(moment());
   const [cliente, setCliente] = useState([]);
-  const [optGrpRec, setOptGrprec] = useState([]);
-  const [optCvto, setOptCvto] = useState([]);
-  const [optFpgto, setOptFpgto] = useState([]);
+  const [openDlgBaixar, setOpenDlgBaixar] = useState(false);
+  const [parcela, setParcela] = useState([]);
 
   const toastOptions = {
     autoClose: 4000,
@@ -93,49 +100,6 @@ export default function FINA10() {
       }
     }
   };
-
-  async function handleGrupoRec() {
-    try {
-      const response = await api.get(`v1/combos/agrupador_recdesp/1/2`);
-      const dados = response.data.retorno;
-      if (dados) {
-        setOptGrprec(dados);
-      }
-    } catch (error) {
-      setLoading(false);
-      toast.error(
-        `Erro ao gerar referencia agrupadora \n${error}`,
-        toastOptions
-      );
-    }
-  }
-
-  async function getComboCondVcto() {
-    try {
-      const response = await api.get(`v1/combos/condvcto`);
-      const dados = response.data.retorno;
-      if (dados) {
-        setOptCvto(dados);
-      }
-    } catch (error) {
-      toast.error(`Erro ao carregar combo Condição de vencimento \n${error}`);
-    }
-  }
-
-  // combo geral
-  async function comboGeral(tab_id) {
-    try {
-      const response = await api.get(`v1/combos/geral/${tab_id}`);
-      const dados = response.data.retorno;
-      if (dados) {
-        if (tab_id === 6) {
-          setOptFpgto(dados);
-        }
-      }
-    } catch (error) {
-      toast.error(`Erro ao carregar registro \n${error}`);
-    }
-  }
 
   // #endregion
 
@@ -200,16 +164,75 @@ export default function FINA10() {
   };
 
   async function handleImpressao() {
-    if (dataGridPesqSelected.length > 0) {
-      //
+    try {
+      if (dataGridPesqSelected.length > 0) {
+        setLoading(true);
+
+        const response = await api.get(
+          `v1/fina/report/promissoria?rec_id=${dataGridPesqSelected[0].rec_id}`
+        );
+        const link = response.data;
+        setLoading(false);
+        window.open(link, '_blank');
+      } else {
+        toast.info('Selecione uma fatura para imprimir', toastOptions);
+      }
+    } catch (error) {
+      setLoading(false);
+      toast.error(`Erro ao imprimir promissória \n${error}`, toastOptions);
+    }
+  }
+
+  async function handleBaixar() {
+    try {
+      const formData = frmBaixar.current.getData();
+      if (!formData.reci_valor_pago) {
+        toast.error('INFORME O VALOR RECEBIDO PARA CONTINUAR...', toastOptions);
+        return;
+      }
+      setLoading(true);
+      const item = {
+        reci_rec_emp_id: null,
+        reci_rec_id: parcela.reci_rec_id,
+        reci_id: parcela.reci_id,
+        reci_data_baixa: format(dataBaixa, 'yyyy-MM-dd HH:mm:ss'),
+        reci_situacao: '2',
+        reci_valor_pago: toDecimal(formData.reci_valor_pago),
+        reci_saldo:
+          toDecimal(parcela.reci_valor) - toDecimal(formData.reci_valor_pago),
+      };
+      const retorno = await api.post('v1/fina/ctarec/baixar_parcela', item);
+
+      if (retorno.data.success) {
+        await listarCtaRec();
+        const response = await api.get(
+          `v1/fina/ctarec/listar_parcelas?rec_id=${dataGridPesqSelected[0].rec_id}`
+        );
+        if (response.data.success) {
+          setGridItens(response.data.retorno);
+        } else {
+          toast.error(
+            `Erro ao consultar parcelas\n${response.data.errors}`,
+            toastOptions
+          );
+        }
+        setOpenDlgBaixar(false);
+        toast.info('Promissória Baixada', toastOptions);
+      } else {
+        toast.error(
+          `Houve erro no processamento!! ${retorno.data.errors}`,
+          toastOptions
+        );
+      }
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      toast.error(`Erro ao baixar promissória \n${error}`, toastOptions);
     }
   }
 
   useEffect(() => {
     frmPesquisa.current.setFieldValue('pesq_data', '1');
-    handleGrupoRec();
-    comboGeral(6);
-    getComboCondVcto();
     listarCtaRec();
   }, []);
 
@@ -274,8 +297,8 @@ export default function FINA10() {
     },
 
     {
-      field: 'rec_vlr_liquido',
-      headerName: 'VLR LIQUIDO',
+      field: 'rec_vlr_bruto',
+      headerName: 'VLR TITULO',
       width: 130,
       sortable: true,
       resizable: true,
@@ -307,13 +330,43 @@ export default function FINA10() {
   // #region GRID ITENS  =========================
   const gridColunaItens = [
     {
+      field: 'prode_id',
+      headerName: 'AÇÕES',
+      width: 70,
+      lockVisible: true,
+      cellRendererFramework(prm) {
+        return (
+          <>
+            <BootstrapTooltip
+              title="BAIXAR PARCELA/PROMISSÓRIA"
+              placement="top"
+            >
+              <button
+                type="button"
+                disabled={false}
+                onClick={() => {
+                  frmBaixar.current.setFieldValue('reci_valor_pago', '');
+                  setParcela(prm.data);
+                  setDataBaixa(new Date());
+                  setOpenDlgBaixar(true);
+                }}
+              >
+                <FaRegCheckSquare size={18} color="#253739" />
+              </button>
+            </BootstrapTooltip>
+          </>
+        );
+      },
+    },
+    {
       field: 'reci_parcela',
       headerName: 'PARCELA',
-      width: 120,
+      width: 100,
       sortable: true,
       resizable: true,
       filter: false,
       lockVisible: true,
+      cellStyle: { textAlign: 'left' },
     },
     {
       field: 'reci_valor',
@@ -330,11 +383,12 @@ export default function FINA10() {
     {
       field: 'reci_data_vencimento',
       headerName: 'VENCIMENTO',
-      width: 130,
+      width: 120,
       sortable: true,
       resizable: true,
       filter: false,
       lockVisible: true,
+      cellStyle: { textAlign: 'left' },
     },
     {
       field: 'forma_pgto',
@@ -344,6 +398,7 @@ export default function FINA10() {
       resizable: true,
       filter: false,
       lockVisible: true,
+      cellStyle: { textAlign: 'left' },
     },
     {
       field: 'reci_data_baixa',
@@ -353,6 +408,7 @@ export default function FINA10() {
       resizable: true,
       filter: false,
       lockVisible: true,
+      cellStyle: { textAlign: 'left' },
     },
     {
       field: 'reci_situacao',
@@ -362,6 +418,7 @@ export default function FINA10() {
       resizable: true,
       filter: true,
       lockVisible: true,
+      cellStyle: { textAlign: 'left' },
     },
     {
       field: 'reci_juros',
@@ -423,7 +480,15 @@ export default function FINA10() {
         </BootstrapTooltip>
         <DivLimitador hg="20px" />
         <Linha />
-
+        <DivLimitador hg="10px" />
+        <BootstrapTooltip
+          title="ABRIR CADASTRO DE CONTAS A RECEBER"
+          placement="left"
+        >
+          <button type="button" onClick={() => window.open('/fina9', '_blank')}>
+            <FaHandHoldingUsd size={25} color="#fff" />
+          </button>
+        </BootstrapTooltip>
         <DivLimitador hg="10px" />
         <BootstrapTooltip title="ABRIR CADASTRO DE CLIENTES" placement="left">
           <button type="button" onClick={() => window.open('/crm9', '_blank')}>
@@ -537,6 +602,55 @@ export default function FINA10() {
           </Panel>
         </Scroll>
       </Container>
+
+      {/* popup GERENCIAR CHEQUE... */}
+      <Popup
+        isOpen={openDlgBaixar}
+        closeDialogFn={() => setOpenDlgBaixar(false)}
+        title="BAIXAR PROMISSÓRIA"
+        size="sm"
+      >
+        <Panel
+          lefth1="left"
+          bckgnd="#dae2e5"
+          mtop="1px"
+          pdding="5px 7px 7px 10px"
+        >
+          <Form id="frmBaixar" ref={frmBaixar}>
+            <BoxItemCad fr="1fr 1fr">
+              <AreaComp wd="100">
+                <label>Valor Recebido</label>
+                <Input
+                  type="text"
+                  name="reci_valor_pago"
+                  className="input_cad"
+                  onChange={maskDecimal}
+                />
+              </AreaComp>
+              <AreaComp wd="100">
+                <DatePickerInput
+                  onChangeDate={(date) => setDataBaixa(new Date(date))}
+                  value={dataBaixa}
+                  label="Data Baixa"
+                />
+              </AreaComp>
+            </BoxItemCad>
+
+            <BoxItemCadNoQuery fr="1fr" ptop="15px">
+              <AreaComp wd="100" ptop="10px">
+                <button
+                  type="button"
+                  className="btnGeral"
+                  onClick={handleBaixar}
+                >
+                  {loading ? 'Aguarde Processando...' : 'Confirmar'}
+                </button>
+              </AreaComp>
+            </BoxItemCadNoQuery>
+          </Form>
+        </Panel>
+      </Popup>
+
       {/* popup para aguarde... */}
       <DialogInfo
         isOpen={loading}

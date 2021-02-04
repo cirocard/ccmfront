@@ -25,7 +25,7 @@ export default function REL_CHEQUE() {
   const [sacado, setSacado] = useState([]);
   const [optSituacao, setOptSituacao] = useState([]);
   const [dataIni, setDataIni] = useState(moment());
-  const [dataFin, setDataFin] = useState(moment().add(60, 'day'));
+  const [dataFin, setDataFin] = useState(moment().add(7, 'day'));
 
   const toastOptions = {
     autoClose: 4000,
@@ -38,6 +38,11 @@ export default function REL_CHEQUE() {
     { value: '1', label: 'CHEQUE PRÓPRIO' },
     { value: '2', label: 'CHEQUE RECEBIDO' },
     { value: '3', label: 'CHEQUE RECEBIDO DE TERCEIROS' },
+  ];
+
+  const optDATA = [
+    { value: '1', label: 'DATA DE LANÇAMENTO' },
+    { value: '2', label: 'DATA VENCIMENTO' },
   ];
 
   const loadOptionsRepresentante = async (inputText, callback) => {
@@ -91,7 +96,9 @@ export default function REL_CHEQUE() {
         'YYYY-MM-DD'
       )}&data_fin=${moment(dataFin).format('YYYY-MM-DD')}&situacao=${
         param.chq_situacao_id
-      }&tipo=${param.chq_tipo}&sacado_id=${param.chq_sacado_id || ''}`;
+      }&tipo=${param.chq_tipo}&sacado_id=${param.chq_sacado_id || ''}&tpData=${
+        param.pesq_data || '1'
+      }`;
 
       const response = await api.get(url);
       const link = response.data;
@@ -151,6 +158,32 @@ export default function REL_CHEQUE() {
               </BoxItemCad>
               <BoxItemCad fr="1fr 1fr 1fr">
                 <AreaComp wd="100">
+                  <FormSelect
+                    label="filtrar por"
+                    name="pesq_data"
+                    optionsList={optDATA}
+                    placeholder="NÃO INFORMADO"
+                    zindex="152"
+                  />
+                </AreaComp>
+                <AreaComp wd="100">
+                  <DatePickerInput
+                    onChangeDate={(date) => setDataIni(new Date(date))}
+                    value={dataIni}
+                    label="Data Inicial"
+                  />
+                </AreaComp>
+                <AreaComp wd="100">
+                  <DatePickerInput
+                    onChangeDate={(date) => setDataFin(new Date(date))}
+                    value={dataFin}
+                    label="Data Final"
+                  />
+                </AreaComp>
+              </BoxItemCad>
+
+              <BoxItemCad fr="1fr 1fr 1fr">
+                <AreaComp wd="100">
                   <label>Nº Cheque</label>
                   <Input
                     type="text"
@@ -159,24 +192,6 @@ export default function REL_CHEQUE() {
                     className="input_cad"
                   />
                 </AreaComp>
-
-                <AreaComp wd="100">
-                  <DatePickerInput
-                    onChangeDate={(date) => setDataIni(new Date(date))}
-                    value={dataIni}
-                    label="Vencimento Inicial"
-                  />
-                </AreaComp>
-                <AreaComp wd="100">
-                  <DatePickerInput
-                    onChangeDate={(date) => setDataFin(new Date(date))}
-                    value={dataFin}
-                    label="Vencimento Final"
-                  />
-                </AreaComp>
-              </BoxItemCad>
-
-              <BoxItemCad fr="1fr 1fr 1fr">
                 <AreaComp wd="100">
                   <FormSelect
                     label="situação do cheque"
