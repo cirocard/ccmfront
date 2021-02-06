@@ -305,6 +305,11 @@ export default function FINA5() {
           dataGridPesqSelected[0].chq_sacado_id,
           setSacado
         );
+        frmCadastro.current.setFieldValue('chq_sacado_id', {
+          value: dataGridPesqSelected[0].chq_sacado_id,
+          label: dataGridPesqSelected[0].sacado,
+        });
+
         setValueTab(1);
         setLoading(false);
       } else {

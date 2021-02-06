@@ -129,6 +129,11 @@ export default function SUPR4() {
     { value: 'N', label: 'PRODUZIDO EM ESCALA NÃO RELEVANTE' },
   ];
 
+  const optSimNao = [
+    { value: 'S', label: 'SIM' },
+    { value: 'N', label: 'NÃO' },
+  ];
+
   // #region COMBO ========================
 
   // combo geral
@@ -411,6 +416,15 @@ export default function SUPR4() {
         frmCadastro.current.setFieldValue(
           'prod_origem_merc',
           dataGridPesqSelected[0].prod_origem_merc
+        );
+
+        frmCadastro.current.setFieldValue(
+          'prod_incide_desconto',
+          dataGridPesqSelected[0].prod_incide_desconto || 'S'
+        );
+        frmCadastro.current.setFieldValue(
+          'prod_calcula_comissao',
+          dataGridPesqSelected[0].prod_calcula_comissao || 'S'
         );
 
         if (dataGridPesqSelected[0].prod_unidade_venda) {
@@ -730,6 +744,8 @@ export default function SUPR4() {
           prod_categoria_id: dataProd.prod_categoria_id,
           prod_un_trib: dataProd.prod_un_trib,
           prod_situacao: dataProd.prod_situacao,
+          prod_incide_desconto: dataProd.prod_incide_desconto || 'S',
+          prod_calcula_comissao: dataProd.prod_calcula_comissao || 'S',
         };
 
         const estoque = getProdEstoque();
@@ -2006,7 +2022,7 @@ export default function SUPR4() {
                 <BoxItemCadNoQuery fr="1fr">
                   <AreaComp wd="100">
                     <label>Informações Adicionais do produto</label>
-                    <TextArea type="text" name="prod_observacao" rows="3" />
+                    <TextArea type="text" name="prod_observacao" rows="2" />
                   </AreaComp>
                 </BoxItemCadNoQuery>
                 <h1>PARÂMETROS FISCAIS</h1>
@@ -2150,6 +2166,27 @@ export default function SUPR4() {
                       className="input_cad"
                       placeholder="0,00"
                       onChange={maskDecimal}
+                    />
+                  </AreaComp>
+                </BoxItemCad>
+                <BoxItemCad fr="1fr 1fr 1fr 1fr 1fr 1fr 1fr">
+                  <AreaComp wd="100">
+                    <FormSelect
+                      label="Incide Desconto"
+                      name="prod_incide_desconto"
+                      optionsList={optSimNao}
+                      placeholder="NÃO INFORMADO"
+                      clearable={false}
+                    />
+                  </AreaComp>
+
+                  <AreaComp wd="100">
+                    <FormSelect
+                      label="Gera comissão"
+                      name="prod_calcula_comissao"
+                      optionsList={optSimNao}
+                      placeholder="NÃO INFORMADO"
+                      clearable={false}
                     />
                   </AreaComp>
                 </BoxItemCad>
