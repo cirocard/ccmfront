@@ -768,6 +768,8 @@ export default function SUPR8() {
       sortable: false,
       resizable: true,
       filter: true,
+    },
+    {
       flex: 1,
     },
   ];

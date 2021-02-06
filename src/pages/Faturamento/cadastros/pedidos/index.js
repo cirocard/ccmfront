@@ -80,7 +80,6 @@ import { ApiService, ApiTypes } from '~/services/api';
 
 export default function FAT2() {
   const api = ApiService.getInstance(ApiTypes.API1);
-  // const apiGeral = ApiService.getInstance(ApiTypes.GERAL);
   const { params } = useRouteMatch();
   const [titlePg, setTitlePg] = useState('');
   const [valueTab, setValueTab] = useState(0);
@@ -403,44 +402,48 @@ export default function FAT2() {
   };
 
   async function handleNovoPedido() {
-    setSituacaoPedido('1');
-    setExisteBordero('N');
-    setGridItens([]);
-    setDataGridPesqSelected([]);
-    frmCapa.current.setFieldValue('cp_id', '');
-    setDataEmiss(new Date());
-    setDataSaida(new Date());
-    frmCapa.current.setFieldValue('cp_cli_id', '');
-    frmCapa.current.setFieldValue('cp_cvto_id', '');
-    frmCapa.current.setFieldValue('cp_fpgto_id', '');
-    frmCapa.current.setFieldValue('cp_oper_id', '');
-    frmCapa.current.setFieldValue('cp_vlr_total', 0);
-    frmCapa.current.setFieldValue('cp_vlr_outros', 0);
-    frmCapa.current.setFieldValue('cp_credito_cli', 0);
-    frmCapa.current.setFieldValue('cp_vlr_desc', 0);
-    frmCapa.current.setFieldValue('cp_vlr_nf', 0);
-    frmCapa.current.setFieldValue('cp_observacao', '');
-    frmCapa.current.setFieldValue('valor_cota', '');
-    frmCapa.current.setFieldValue('cp_representante', '');
-    let x;
+    try {
+      setSituacaoPedido('1');
+      setExisteBordero('N');
+      setGridItens([]);
+      setDataGridPesqSelected([]);
+      frmCapa.current.setFieldValue('cp_id', '');
+      setDataEmiss(new Date());
+      setDataSaida(new Date());
+      frmCapa.current.setFieldValue('cp_cli_id', '');
+      frmCapa.current.setFieldValue('cp_cvto_id', '');
+      frmCapa.current.setFieldValue('cp_fpgto_id', '');
+      frmCapa.current.setFieldValue('cp_oper_id', '');
+      frmCapa.current.setFieldValue('cp_vlr_total', 0);
+      frmCapa.current.setFieldValue('cp_vlr_outros', 0);
+      frmCapa.current.setFieldValue('cp_credito_cli', 0);
+      frmCapa.current.setFieldValue('cp_vlr_desc', 0);
+      frmCapa.current.setFieldValue('cp_vlr_nf', 0);
+      frmCapa.current.setFieldValue('cp_observacao', '');
+      frmCapa.current.setFieldValue('valor_cota', '');
+      frmCapa.current.setFieldValue('cp_representante', '');
+      let x;
 
-    if (params.tipo === '2') {
-      x = optTabPreco.find(
-        (op) =>
-          op.value.toString() ===
-          paramSistema[0].par_tab_padrao_prevenda.toString()
-      );
-    } else {
-      x = optTabPreco.find(
-        (op) =>
-          op.value.toString() ===
-          paramSistema[0].par_tab_padrao_consignado.toString()
-      );
+      if (params.tipo === '2') {
+        x = optTabPreco.find(
+          (op) =>
+            op.value.toString() ===
+            paramSistema[0].par_tab_padrao_prevenda.toString()
+        );
+      } else {
+        x = optTabPreco.find(
+          (op) =>
+            op.value.toString() ===
+            paramSistema[0].par_tab_padrao_consignado.toString()
+        );
+      }
+      frmItens.current.setFieldValue('item_tab_preco_id', x);
+
+      setDesableSave(false);
+      setValueTab(1);
+    } catch (error) {
+      setLoading(false);
     }
-    frmItens.current.setFieldValue('item_tab_preco_id', x);
-
-    setDesableSave(false);
-    setValueTab(1);
   }
 
   async function handleDlgImpressao() {
@@ -2154,38 +2157,43 @@ export default function FAT2() {
 
   const handleChangeTabPreo = async (tab) => {
     try {
-      if (gridItens[0].item_tab_preco_id.toString() === tab.value.toString())
-        return;
+      if (gridItens.length > 0) {
+        if (gridItens[0].item_tab_preco_id.toString() === tab.value.toString())
+          return;
 
-      const confirmation = await Confirmation.show(
-        'Ao trocar a tabela de preços,  todo o pedido será recalculado de acordo com a tabela informada.  Deseja Continuar???'
-      );
-      console.warn('item 1 ', gridItens[0].item_tab_preco_id.toString());
-      console.warn('item 2 ', tab.value.toString());
-      if (confirmation) {
-        setLoading(true);
-        const formCapa = frmCapa.current.getData();
-        const response = await api.put(
-          `v1/fat/trocar_tabela?cp_id=${formCapa.cp_id}&tab_id=${tab.value}`
+        const confirmation = await Confirmation.show(
+          'Ao trocar a tabela de preços,  todo o pedido será recalculado de acordo com a tabela informada.  Deseja Continuar???'
         );
+        console.warn('item 1 ', gridItens[0].item_tab_preco_id.toString());
+        console.warn('item 2 ', tab.value.toString());
+        if (confirmation) {
+          setLoading(true);
+          const formCapa = frmCapa.current.getData();
+          const response = await api.put(
+            `v1/fat/trocar_tabela?cp_id=${formCapa.cp_id}&tab_id=${tab.value}`
+          );
 
-        if (response.data.success) {
-          await listaItens();
-          toast.info('PEDIDO RECALCULADO COM SUCESSO!!!', toastOptions);
+          if (response.data.success) {
+            await listaItens();
+            toast.info('PEDIDO RECALCULADO COM SUCESSO!!!', toastOptions);
+          } else {
+            toast.error(response.data.errors, toastOptions);
+          }
+          setLoading(false);
         } else {
-          toast.error(response.data.errors, toastOptions);
+          const x = optTabPreco.find(
+            (op) =>
+              op.value.toString() === gridItens[0].item_tab_preco_id.toString()
+          );
+          frmItens.current.setFieldValue('item_tab_preco_id', x);
         }
-        setLoading(false);
-      } else {
-        const x = optTabPreco.find(
-          (op) =>
-            op.value.toString() === gridItens[0].item_tab_preco_id.toString()
-        );
-        frmItens.current.setFieldValue('item_tab_preco_id', x);
       }
     } catch (error) {
       setLoading(false);
-      toast.error(`Erro ao recalcular pedido \n${error}`, toastOptions);
+      toast.error(
+        `Erro ao recalcular pedido pela tabela de preço\n${error}`,
+        toastOptions
+      );
     }
   };
 
