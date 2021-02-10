@@ -1515,12 +1515,14 @@ export default function FAT2() {
       const dados = response.data.retorno;
       if (dados) {
         setGridFinanceiro(dados);
+        if (dados.length > 0) setValorPedido(0);
       }
     } catch (error) {
       toast.error(`Erro ao listar negociação do cliente \n${error}`);
     }
   }
 
+  // adicionar lançamento na aba financeiro
   function handleAddFina() {
     try {
       if (
@@ -1563,18 +1565,6 @@ export default function FAT2() {
             (f) => f.value === formFina.fina_fpgto_id
           );
 
-          const grdValidar = gridFinanceiro.filter(
-            (f) => f.fina_fpgto_id === formFina.fina_fpgto_id
-          );
-
-          if (grdValidar.length > 0) {
-            toast.error(
-              `VOCÊ JÁ INFORMOU ESTA FORMA DE PAGAMENTO. SE NECESSÁRIO, EXCLUA O LANÇAMENTO ANTERIOR...`,
-              toastOptions
-            );
-            return;
-          }
-
           // abortar caso o valor com desconto informado seja maior que o valor do pedido menos o valor nao descontável
           if (
             valorFinaDesc >
@@ -1584,7 +1574,7 @@ export default function FAT2() {
               `O VALOR A PAGAR COM DESCONTO, É MAIOR QUE O MÁXIMO PERMITIDO. PARA ESTE PEDIDO, O VALOR MÁXIMO PARA DESCONTO É DE: ${
                 toDecimal(frmCapa.current.getData().cp_vlr_nf) -
                 valorNaoDescontavel
-              }`,
+              } total lançado: ${valorFinaDesc.toFixed(2)}`,
               toastOptions
             );
             frmFinanceiro.current.setFieldValue('fina_valor_final', '');
@@ -1702,7 +1692,6 @@ export default function FAT2() {
         let vlrAdicionado = 0;
         gridFinanceiro.forEach((g) => {
           vlrAdicionado += toDecimal(g.fina_valor);
-
           obj = {
             fina_cp_emp_id: null,
             fina_cp_id: formCapa.cp_id,
@@ -1738,6 +1727,14 @@ export default function FAT2() {
           toast.success(
             'Negociação confirmada com sucesso!!! Abra o pedido novamente para conferir'
           );
+        } else {
+          toast.error(
+            `Erro ao confirmar negociação: ${retorno.data.errors.message} `,
+            toastOptions
+          );
+          setGridFinanceiro([]);
+          limpaFormFina();
+          setValorFinaDesc(0);
         }
         setLoading(false);
       } else {
@@ -2988,6 +2985,14 @@ export default function FAT2() {
                         frmFinanceiro.current.setFieldValue(
                           'fina_valor',
                           valorPedido
+                        );
+                        frmFinanceiro.current.setFieldValue(
+                          'fina_valor_final',
+                          ''
+                        );
+                        frmFinanceiro.current.setFieldValue(
+                          'fina_perc_desc',
+                          ''
                         );
                         document.getElementsByName('fina_valor')[0].focus();
                       }}
