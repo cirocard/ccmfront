@@ -116,7 +116,14 @@ export default function FAT2() {
   const [remumoItens, setResumoItens] = useState('');
   const [resumoPedido, setResumoPedido] = useState('');
   const [valorPedido, setValorPedido] = useState(0);
+  // em caso de negociaçao (aba fina), nao podemos permitir que o total lançado com desconto seja maior que o valor do pedido menos o nao descontável
+  // nao descontavel, é o total de itens que nao se pode aplicar desconto
+  // valorFinaDesc é a variável para ajudar no controle do exposto acima. é o total lançado com desconto
+  const [valorFinaDesc, setValorFinaDesc] = useState(0);
+  const [valorNaoDescontavel, setValorNaoDescontavel] = useState(0);
   const [valorPedidoNegociado, setValorPedidoNegociado] = useState(0);
+  // valor bonificado do pedido
+  const [vlrBonificado, setVlrBonificado] = useState(0);
   const [infoVlrPedido, setInfoVlrPedido] = useState('');
   const [infoVlrPedidoNegociado, setInfoVlrPedidoNegociado] = useState('');
   const [titleDlgGrade, setTitleDlgGrade] = useState('');
@@ -127,7 +134,6 @@ export default function FAT2() {
   const [colunaItens, setColunaItens] = useState([]);
   const [desableSave, setDesableSave] = useState(true);
   const [inputDesable, setInputDesable] = useState(true);
-
   const [representante, setRepresentante] = useState([]);
 
   const toastOptions = {
@@ -313,6 +319,13 @@ export default function FAT2() {
     document.getElementById('chbBonificar').checked = false;
   }
 
+  function limpaFormFina() {
+    frmFinanceiro.current.setFieldValue('fina_valor_final', '');
+    frmFinanceiro.current.setFieldValue('fina_valor', '');
+    frmFinanceiro.current.setFieldValue('fina_perc_desc', '');
+    frmFinanceiro.current.setFieldValue('fina_fpgto_id', '');
+  }
+
   // fazer consulta dos pedidos
   async function listaPedido() {
     try {
@@ -366,10 +379,29 @@ export default function FAT2() {
         setGridItens(dados);
 
         // preencher a tabela de preço
-        const x = optTabPreco.find(
-          (op) => op.value.toString() === dados[0].item_tab_preco_id.toString()
-        );
-        frmItens.current.setFieldValue('item_tab_preco_id', x);
+        let x;
+        if (dados.length > 0) {
+          x = optTabPreco.find(
+            (op) =>
+              op.value.toString() === dados[0].item_tab_preco_id.toString()
+          );
+          frmItens.current.setFieldValue('item_tab_preco_id', x);
+        } else {
+          if (params.tipo === '2') {
+            x = optTabPreco.find(
+              (op) =>
+                op.value.toString() ===
+                paramSistema[0].par_tab_padrao_prevenda.toString()
+            );
+          } else {
+            x = optTabPreco.find(
+              (op) =>
+                op.value.toString() ===
+                paramSistema[0].par_tab_padrao_consignado.toString()
+            );
+          }
+          frmItens.current.setFieldValue('item_tab_preco_id', x);
+        }
       }
 
       // resumo itens
@@ -395,7 +427,7 @@ export default function FAT2() {
   }
 
   // grid pesquisa
-  const handleSelectGridPesquisa = (prmGridPesq) => {
+  const handleSelectGridPesquisa = async (prmGridPesq) => {
     const gridApi = prmGridPesq.api;
     const selectedRows = gridApi.getSelectedRows();
     setDataGridPesqSelected(selectedRows);
@@ -494,6 +526,9 @@ export default function FAT2() {
         setLoading(true);
         setSituacaoPedido(dataGridPesqSelected[0].situacao);
         setExisteBordero(dataGridPesqSelected[0].cp_status_bordero);
+        setVlrBonificado(
+          toDecimal(dataGridPesqSelected[0].vlr_bonificacao).toFixed(2)
+        );
         frmCapa.current.setFieldValue('cp_id', dataGridPesqSelected[0].cp_id);
         setDataEmiss(
           parse(dataGridPesqSelected[0].cp_data_emis, 'dd/MM/yyyy', new Date())
@@ -1068,6 +1103,7 @@ export default function FAT2() {
   async function handleDesconto(formData) {
     try {
       if (formData.perc_desconto || formData.vlr_desconto) {
+        let naodescontavel = 0;
         if (situacaoPedido !== '1') {
           toast.warning(
             'ATENÇÃO!! ESTE PEDIDO NÃO PODE MAIS SER ALTERADO. VERIFIQUE A SITUAÇÃO!!!',
@@ -1077,9 +1113,18 @@ export default function FAT2() {
         }
         setLoading(true);
         const formCapa = frmCapa.current.getData();
-        const response = await api.put(
+
+        // buscar valor nao desocontavel do pedido
+        let response = await api.get(
+          `v1/fat/nao_descontavel?cp_id=${formCapa.cp_id}`
+        );
+        if (response.data.success) {
+          naodescontavel = response.data.retorno;
+        }
+
+        response = await api.put(
           `v1/fat/aplicar_desconto?cp_id=${formCapa.cp_id}&perc=${formData.perc_desconto}
-        &valor=${formData.vlr_desconto}`
+           &valor=${formData.vlr_desconto}&naodescontar=${naodescontavel}`
         );
 
         if (response.data.success) {
@@ -1478,9 +1523,21 @@ export default function FAT2() {
 
   function handleAddFina() {
     try {
+      if (
+        toDecimal(frmCapa.current.getData().cp_vlr_desc) - vlrBonificado >
+        0
+      ) {
+        toast.error(
+          `JÁ EXISTE DESCONTO APLICADO A ESTE PEDIDO...REMOVA O DESCONTO PARA INICIAR UMA NEGOCIAÇÃO FINANCEIRA`,
+          toastOptions
+        );
+        return;
+      }
       const formFina = frmFinanceiro.current.getData();
+
       if (formFina.fina_fpgto_id) {
         if (!formFina.fina_perc_desc) {
+          // se nao informou percent desconto
           frmFinanceiro.current.setFieldValue('fina_perc_desc', '');
           document.getElementsByName('fina_perc_desc')[0].focus();
         } else if (
@@ -1490,6 +1547,11 @@ export default function FAT2() {
           const valor_final =
             toDecimal(formFina.fina_valor) *
             (1 - toDecimal(formFina.fina_perc_desc) / 100);
+
+          // controlar o valor lançado com desconto
+          if (toDecimal(formFina.fina_perc_desc) > 0)
+            setValorFinaDesc(toDecimal(formFina.fina_valor) + valorFinaDesc);
+
           frmFinanceiro.current.setFieldValue(
             'fina_valor_final',
             valor_final.toFixed(2)
@@ -1506,10 +1568,28 @@ export default function FAT2() {
           );
 
           if (grdValidar.length > 0) {
-            toast.warn(
+            toast.error(
               `VOCÊ JÁ INFORMOU ESTA FORMA DE PAGAMENTO. SE NECESSÁRIO, EXCLUA O LANÇAMENTO ANTERIOR...`,
               toastOptions
             );
+            return;
+          }
+
+          // abortar caso o valor com desconto informado seja maior que o valor do pedido menos o valor nao descontável
+          if (
+            valorFinaDesc >
+            toDecimal(frmCapa.current.getData().cp_vlr_nf) - valorNaoDescontavel
+          ) {
+            toast.error(
+              `O VALOR A PAGAR COM DESCONTO, É MAIOR QUE O MÁXIMO PERMITIDO. PARA ESTE PEDIDO, O VALOR MÁXIMO PARA DESCONTO É DE: ${
+                toDecimal(frmCapa.current.getData().cp_vlr_nf) -
+                valorNaoDescontavel
+              }`,
+              toastOptions
+            );
+            frmFinanceiro.current.setFieldValue('fina_valor_final', '');
+            // removendo da variável o valor lançado excedente
+            setValorFinaDesc(valorFinaDesc - toDecimal(formFina.fina_valor));
             return;
           }
 
@@ -1543,10 +1623,10 @@ export default function FAT2() {
             }
 
             // limpar controles
-            frmFinanceiro.current.setFieldValue('fina_valor_final', '');
-            frmFinanceiro.current.setFieldValue('fina_valor', '');
-            frmFinanceiro.current.setFieldValue('fina_perc_desc', '');
-            frmFinanceiro.current.setFieldValue('fina_fpgto_id', '');
+            limpaFormFina();
+
+            const ref = frmFinanceiro.current.getFieldRef('fina_fpgto_id');
+            ref.focus();
           } else {
             toast.error(
               `O VALOR INFORMADO É MAIOR QUE O SALDO DO PEDIDO. OPERAÇÃO CANCELADA!!`,
@@ -1611,6 +1691,7 @@ export default function FAT2() {
     }
   };
 
+  // salvar negociação financeira
   async function handleConfirmarNeg() {
     try {
       if (gridFinanceiro.length > 0) {
@@ -1618,7 +1699,10 @@ export default function FAT2() {
         const formCapa = frmCapa.current.getData();
         const cad = [];
         let obj = {};
+        let vlrAdicionado = 0;
         gridFinanceiro.forEach((g) => {
+          vlrAdicionado += toDecimal(g.fina_valor);
+
           obj = {
             fina_cp_emp_id: null,
             fina_cp_id: formCapa.cp_id,
@@ -1627,11 +1711,25 @@ export default function FAT2() {
             fina_perc_desc: toDecimal(g.fina_perc_desc),
             fina_valor_final: toDecimal(g.fina_valor_final),
           };
-
           cad.push(obj);
         });
 
-        const retorno = await api.post('v1/fat/pedido_financeiro', cad);
+        if (
+          vlrAdicionado.toFixed(2) !== toDecimal(formCapa.cp_vlr_nf).toFixed(2)
+        ) {
+          setLoading(false);
+          toast.error(
+            `O TOTAL NEGOCIADO, DIFERE DO VALOR DO PEDIDO.REVISE A NEGOCIAÇÃO PARA CONTINUAR...DIFERENÇA ENCONTRADA: ${(
+              vlrAdicionado.toFixed(2) - toDecimal(formCapa.cp_vlr_nf)
+            ).toString()} valor pedido: ${formCapa.cp_vlr_nf} `,
+            toastOptions
+          );
+          return;
+        }
+        const retorno = await api.post(
+          `v1/fat/pedido_financeiro?naodescontar=${valorNaoDescontavel} `,
+          cad
+        );
         if (retorno.data.success) {
           await handleSubmitCapa();
           await getGridFinanceiro();
@@ -1643,11 +1741,11 @@ export default function FAT2() {
         }
         setLoading(false);
       } else {
-        toast.info('Não há itens para confirmar');
+        toast.error('NÃO HÁ NEGOCIAÇÃO DEFINIDA.', toastOptions);
       }
     } catch (err) {
       setLoading(false);
-      toast.error(`Erro ao confirmar negociação: ${err}`, toastOptions);
+      toast.error(`Erro ao confirmar negociação: ${err} `, toastOptions);
     }
   }
 
@@ -1695,19 +1793,35 @@ export default function FAT2() {
       }
     } else if (newValue === 3) {
       if (dataGridPesqSelected.length > 0) {
+        limpaFormFina();
+        setValorFinaDesc(0); // zerando valor de negociaçao lançado com desconto
+        setLoading(true);
+        // buscar valor nao desocontavel do pedido
+        const response = await api.get(
+          `v1/fat/nao_descontavel?cp_id=${dataGridPesqSelected[0].cp_id} `
+        );
+        if (response.data.success) {
+          setValorNaoDescontavel(response.data.retorno);
+        }
+
         frmFinanceiro.current.setFieldValue('fina_valor', '');
+        frmFinanceiro.current.setFieldValue(
+          'fina_vpedido',
+          dataGridPesqSelected[0].cp_vlr_nf
+        );
         const formCapa = frmCapa.current.getData();
         if (dataGridPesqSelected[0].situacao === '10') {
           setInfoVlrPedido(
             `VALOR ATUAL DO PEDIDO PEDIDO: ${FormataMoeda(
               dataGridPesqSelected[0].cp_vlr_nf
-            )}`
+            )} `
           );
           if (!formCapa.cp_id) await handleEdit();
           setValorPedido(toDecimal(dataGridPesqSelected[0].cp_vlr_nf));
           setInfoVlrPedidoNegociado('');
           setValorPedidoNegociado(0);
           await getGridFinanceiro();
+          setLoading(false);
           setValueTab(newValue);
         } else {
           toast.info('SELECIONE UM PEDIDO FINALIZADO', toastOptions);
@@ -1978,19 +2092,9 @@ export default function FAT2() {
       },
     },
     {
-      field: 'forn_razao_social',
-      headerName: 'FORNECEDOR',
-      width: 300,
-      sortable: true,
-      resizable: true,
-      filter: true,
-      lockVisible: true,
-    },
-
-    {
       field: 'marca',
       headerName: 'MARCA',
-      width: 170,
+      width: 180,
       sortable: true,
       resizable: true,
       lockVisible: true,
@@ -1998,7 +2102,7 @@ export default function FAT2() {
     {
       field: 'classific1',
       headerName: 'CLASSIFIC. 1',
-      width: 140,
+      width: 160,
       sortable: true,
       resizable: true,
       filter: true,
@@ -2007,7 +2111,7 @@ export default function FAT2() {
     {
       field: 'classific2',
       headerName: 'CLASSIFIC. 2',
-      width: 140,
+      width: 160,
       sortable: true,
       resizable: true,
       filter: true,
@@ -2016,7 +2120,7 @@ export default function FAT2() {
     {
       field: 'classific3',
       headerName: 'CLASSIFIC. 3',
-      width: 140,
+      width: 160,
       sortable: true,
       resizable: true,
       filter: true,
@@ -2025,7 +2129,7 @@ export default function FAT2() {
     {
       field: 'prode_saldo',
       headerName: 'SALDO',
-      width: 120,
+      width: 130,
       sortable: true,
       resizable: true,
       filter: true,
@@ -2035,7 +2139,7 @@ export default function FAT2() {
     {
       field: 'tab_preco_final',
       headerName: 'PREÇO',
-      width: 120,
+      width: 130,
       sortable: true,
       resizable: true,
       filter: true,
@@ -2049,6 +2153,7 @@ export default function FAT2() {
       sortable: false,
       resizable: true,
       filter: true,
+      flex: 1,
     },
   ];
 
@@ -2170,7 +2275,7 @@ export default function FAT2() {
           setLoading(true);
           const formCapa = frmCapa.current.getData();
           const response = await api.put(
-            `v1/fat/trocar_tabela?cp_id=${formCapa.cp_id}&tab_id=${tab.value}`
+            `v1/fat/trocar_tabela?cp_id = ${formCapa.cp_id}& tab_id=${tab.value} `
           );
 
           if (response.data.success) {
@@ -2191,7 +2296,7 @@ export default function FAT2() {
     } catch (error) {
       setLoading(false);
       toast.error(
-        `Erro ao recalcular pedido pela tabela de preço\n${error}`,
+        `Erro ao recalcular pedido pela tabela de preço\n${error} `,
         toastOptions
       );
     }
@@ -2661,7 +2766,7 @@ export default function FAT2() {
           {/* ABA ITENS DO PEDIDO */}
           <TabPanel value={valueTab} index={2}>
             <Panel lefth1="left" bckgnd="#dae2e5">
-              <h1>{`ITENS DO PEDIDO   -  ${labelSaldo}`}</h1>
+              <h1>{`ITENS DO PEDIDO - ${labelSaldo} `}</h1>
 
               <Form id="frmItens" ref={frmItens}>
                 <BoxItemCad fr="1fr 1fr 2fr 1fr">
@@ -2872,7 +2977,7 @@ export default function FAT2() {
             <Panel lefth1="left" bckgnd="#dae2e5">
               <h1>NEGOCIAÇÃO FINANCEIRA DO CLIENTE</h1>
               <Form id="frmFinanceiro" ref={frmFinanceiro}>
-                <BoxItemCad fr="2fr 1fr 1fr 1fr">
+                <BoxItemCad fr="2fr 1fr 1fr 1fr 1fr 1fr">
                   <AreaComp wd="100">
                     <FormSelect
                       name="fina_fpgto_id"
@@ -2890,6 +2995,33 @@ export default function FAT2() {
                     />
                   </AreaComp>
                   <AreaComp wd="100">
+                    <label>Vlr pedido</label>
+                    <Input
+                      type="text"
+                      name="fina_vpedido"
+                      readOnly
+                      onChange={maskDecimal}
+                      className="input_cad"
+                    />
+                  </AreaComp>
+                  <BootstrapTooltip
+                    title="Informe o valor que o cliente quer pagar de acordo com a forma de pagamento escolhida"
+                    placement="top"
+                  >
+                    <AreaComp wd="100">
+                      <label>Não Descontável</label>
+                      <Input
+                        type="text"
+                        name="fina_descontavel"
+                        placeholder="0,00"
+                        value={valorNaoDescontavel}
+                        readOnly
+                        onChange={maskDecimal}
+                        className="input_cad"
+                      />
+                    </AreaComp>
+                  </BootstrapTooltip>
+                  <AreaComp wd="100">
                     <BootstrapTooltip
                       title="Informe o valor que o cliente quer pagar de acordo com a forma de pagamento escolhida"
                       placement="top"
@@ -2898,7 +3030,7 @@ export default function FAT2() {
                         handleKeys={['enter', 'tab']}
                         onKeyEvent={() => handleAddFina()}
                       >
-                        <label>Valor Desejado</label>
+                        <label>vlr negociado</label>
                         <Input
                           type="text"
                           name="fina_valor"
@@ -2919,7 +3051,7 @@ export default function FAT2() {
                         handleKeys={['enter', 'tab']}
                         onKeyEvent={() => handleAddFina()}
                       >
-                        <label>% Desconto Concedido</label>
+                        <label>Desconto (%)</label>
                         <Input
                           type="text"
                           name="fina_perc_desc"
