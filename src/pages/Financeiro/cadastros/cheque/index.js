@@ -64,6 +64,7 @@ export default function FINA5() {
   const [dataVencimento, setDataVencimento] = useState(moment());
   const [dataIni, setDataIni] = useState(moment());
   const [dataFin, setDataFin] = useState(moment().add(60, 'day'));
+  const [dataUpdate, setDataUpdate] = useState(moment());
   const [dlgGerenciar, setDlgGerenciar] = useState(false);
   const [optSituacaoCheque, setOptSituacaoCheque] = useState([]);
   const [optContas, setOptContas] = useState([]);
@@ -84,6 +85,7 @@ export default function FINA5() {
   const optDATA = [
     { value: '1', label: 'DATA DE LANÇAMENTO' },
     { value: '2', label: 'DATA VENCIMENTO' },
+    { value: '3', label: 'DATA SITUAÇÃO' }, // data que foi definido a situação informada
   ];
 
   const loadOptionsRepresentante = async (inputText, callback) => {
@@ -270,6 +272,10 @@ export default function FINA5() {
           parse(dataGridPesqSelected[0].vencimento, 'dd/MM/yyyy', new Date())
         );
         frmCadastro.current.setFieldValue(
+          'chq_dataupdated',
+          dataGridPesqSelected[0].dataupdated
+        );
+        frmCadastro.current.setFieldValue(
           'chq_cta_id',
           dataGridPesqSelected[0].chq_cta_id
         );
@@ -432,6 +438,7 @@ export default function FINA5() {
             chq_situacao_id: formCheque.sit_cheque,
             chq_conta_deposito: formCheque.chq_conta_deposito,
             chq_repassado: formCheque.chq_repassado,
+            chq_dataupdated: format(dataUpdate, 'yyyy-MM-dd HH:mm:ss'),
           };
           if (!formCheque.chq_conta_deposito) delete cheque.chq_conta_deposito;
           itens.push(cheque);
@@ -596,6 +603,7 @@ export default function FINA5() {
             type="button"
             onClick={() => {
               if (dataGridPesqSelected.length > 0) {
+                setDataUpdate(new Date());
                 setDlgGerenciar(true);
               } else {
                 toast.warning(
@@ -854,12 +862,21 @@ export default function FINA5() {
                     <Input type="text" name="chq_mc7" className="input_cad" />
                   </AreaComp>
                 </BoxItemCad>
-                <BoxItemCad fr="1fr 1fr 1fr 1fr">
+                <BoxItemCad fr="1fr 1fr 1fr 2fr 2fr">
                   <AreaComp wd="100">
                     <DatePickerInput
                       onChangeDate={(date) => setDataVencimento(new Date(date))}
                       value={dataVencimento}
                       label="Data Vencimento"
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <label>Data Situação</label>
+                    <Input
+                      type="text"
+                      name="chq_dataupdated"
+                      className="input_cad"
+                      readOnly
                     />
                   </AreaComp>
                   <AreaComp wd="100">
@@ -918,7 +935,7 @@ export default function FINA5() {
           pdding="5px 7px 7px 10px"
         >
           <Form id="frmCheque" ref={frmCheque}>
-            <BoxItemCad fr="1fr 1fr">
+            <BoxItemCad fr="2fr 2fr 1fr">
               <AreaComp wd="100">
                 <FormSelect
                   label="definir Situação"
@@ -937,6 +954,13 @@ export default function FINA5() {
                   isClearable
                   placeholder="CONTA BANCÁRIA"
                   zindex="153"
+                />
+              </AreaComp>
+              <AreaComp wd="100">
+                <DatePickerInput
+                  onChangeDate={(date) => setDataUpdate(new Date(date))}
+                  value={dataUpdate}
+                  label="Data Atualização"
                 />
               </AreaComp>
             </BoxItemCad>

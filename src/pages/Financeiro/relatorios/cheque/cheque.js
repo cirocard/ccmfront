@@ -43,6 +43,7 @@ export default function REL_CHEQUE() {
   const optDATA = [
     { value: '1', label: 'DATA DE LANÇAMENTO' },
     { value: '2', label: 'DATA VENCIMENTO' },
+    { value: '3', label: 'DATA SITUAÇÃO' }, // data que foi definido a situação informada
   ];
 
   const loadOptionsRepresentante = async (inputText, callback) => {
