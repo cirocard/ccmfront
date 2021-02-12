@@ -1561,24 +1561,23 @@ export default function FAT2() {
           );
 
           // abortar caso o valor com desconto informado seja maior que o valor do pedido menos o valor nao descontável
-          console.warn(
-            `valorFinaDesc: ${valorFinaDesc}  valorPedidoNegociado: ${valorPedidoNegociado}  cp_vlrnf: ${toDecimal(
+          /* console.warn(
+            `valorPedido: ${valorPedido} valorFinaDesc: ${valorFinaDesc}  valorPedidoNegociado: ${valorPedidoNegociado}  cp_vlrnf: ${toDecimal(
               frmCapa.current.getData().cp_vlr_nf
             )} nao descon: ${valorNaoDescontavel}`
-          );
+          ); */
+
           if (
-            valorFinaDesc >
-              toDecimal(frmCapa.current.getData().cp_vlr_nf) -
-                (valorPedidoNegociado + valorNaoDescontavel) &&
+            toDecimal(formFina.fina_valor) >
+              valorPedido - valorNaoDescontavel &&
             toDecimal(formFina.fina_perc_desc) > 0
           ) {
             toast.error(
               `O VALOR A PAGAR COM DESCONTO, É MAIOR QUE O MÁXIMO PERMITIDO. PARA ESTE PEDIDO, O VALOR MÁXIMO PARA DESCONTO NESTA CONDIÇÃO É DE: ${(
-                valorFinaDesc -
-                valorNaoDescontavel +
-                toDecimal(frmCapa.current.getData().cp_vlr_nf) -
-                (valorPedidoNegociado + valorFinaDesc)
-              ).toFixed(2)} total lançado: ${valorFinaDesc.toFixed(2)}`,
+                valorPedido - valorNaoDescontavel
+              ).toFixed(2)} total lançado: ${toDecimal(
+                formFina.fina_valor
+              ).toFixed(2)}`,
               toastOptions
             );
             frmFinanceiro.current.setFieldValue('fina_valor_final', '');
