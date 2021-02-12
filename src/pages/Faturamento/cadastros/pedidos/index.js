@@ -1561,9 +1561,13 @@ export default function FAT2() {
           );
 
           // abortar caso o valor com desconto informado seja maior que o valor do pedido menos o valor nao descontável
-
+          console.warn(
+            `valorFinaDesc: ${valorFinaDesc}  valorPedidoNegociado: ${valorPedidoNegociado}  cp_vlrnf: ${toDecimal(
+              frmCapa.current.getData().cp_vlr_nf
+            )} nao descon: ${valorNaoDescontavel}`
+          );
           if (
-            valorFinaDesc + valorPedidoNegociado >
+            valorFinaDesc >
               toDecimal(frmCapa.current.getData().cp_vlr_nf) -
                 valorNaoDescontavel &&
             toDecimal(formFina.fina_perc_desc) > 0
