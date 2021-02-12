@@ -576,6 +576,10 @@ export default function FAT2() {
           dataGridPesqSelected[0].cp_credito_cli
         );
         frmCapa.current.setFieldValue(
+          'vlr_bonificacao',
+          dataGridPesqSelected[0].vlr_bonificacao
+        );
+        frmCapa.current.setFieldValue(
           'cp_vlr_desc',
           dataGridPesqSelected[0].cp_vlr_desc
         );
@@ -1103,7 +1107,6 @@ export default function FAT2() {
   async function handleDesconto(formData) {
     try {
       if (formData.perc_desconto || formData.vlr_desconto) {
-        let naodescontavel = 0;
         if (situacaoPedido !== '1') {
           toast.warning(
             'ATENÇÃO!! ESTE PEDIDO NÃO PODE MAIS SER ALTERADO. VERIFIQUE A SITUAÇÃO!!!',
@@ -1114,17 +1117,9 @@ export default function FAT2() {
         setLoading(true);
         const formCapa = frmCapa.current.getData();
 
-        // buscar valor nao desocontavel do pedido
-        let response = await api.get(
-          `v1/fat/nao_descontavel?cp_id=${formCapa.cp_id}`
-        );
-        if (response.data.success) {
-          naodescontavel = response.data.retorno;
-        }
-
-        response = await api.put(
+        const response = await api.put(
           `v1/fat/aplicar_desconto?cp_id=${formCapa.cp_id}&perc=${formData.perc_desconto}
-           &valor=${formData.vlr_desconto}&naodescontar=${naodescontavel}`
+           &valor=${formData.vlr_desconto}`
         );
 
         if (response.data.success) {
@@ -1566,15 +1561,20 @@ export default function FAT2() {
           );
 
           // abortar caso o valor com desconto informado seja maior que o valor do pedido menos o valor nao descontável
+
           if (
-            valorFinaDesc >
-            toDecimal(frmCapa.current.getData().cp_vlr_nf) - valorNaoDescontavel
+            valorFinaDesc + valorPedidoNegociado >
+              toDecimal(frmCapa.current.getData().cp_vlr_nf) -
+                valorNaoDescontavel &&
+            toDecimal(formFina.fina_perc_desc) > 0
           ) {
             toast.error(
-              `O VALOR A PAGAR COM DESCONTO, É MAIOR QUE O MÁXIMO PERMITIDO. PARA ESTE PEDIDO, O VALOR MÁXIMO PARA DESCONTO É DE: ${
+              `O VALOR A PAGAR COM DESCONTO, É MAIOR QUE O MÁXIMO PERMITIDO. PARA ESTE PEDIDO, O VALOR MÁXIMO PARA DESCONTO NESTA CONDIÇÃO É DE: ${(
+                valorFinaDesc -
+                valorNaoDescontavel +
                 toDecimal(frmCapa.current.getData().cp_vlr_nf) -
-                valorNaoDescontavel
-              } total lançado: ${valorFinaDesc.toFixed(2)}`,
+                (valorPedidoNegociado + valorFinaDesc)
+              ).toFixed(2)} total lançado: ${valorFinaDesc.toFixed(2)}`,
               toastOptions
             );
             frmFinanceiro.current.setFieldValue('fina_valor_final', '');
@@ -1710,7 +1710,7 @@ export default function FAT2() {
           toast.error(
             `O TOTAL NEGOCIADO, DIFERE DO VALOR DO PEDIDO.REVISE A NEGOCIAÇÃO PARA CONTINUAR...DIFERENÇA ENCONTRADA: ${(
               vlrAdicionado.toFixed(2) - toDecimal(formCapa.cp_vlr_nf)
-            ).toString()} valor pedido: ${formCapa.cp_vlr_nf} `,
+            ).toFixed(2)} valor pedido: ${formCapa.cp_vlr_nf} `,
             toastOptions
           );
           return;
@@ -2693,8 +2693,8 @@ export default function FAT2() {
                 <BoxItemCad
                   fr={
                     params.tipo === '2'
-                      ? '1fr 1fr 1fr 1fr 1fr'
-                      : '1fr 1fr 1fr 1fr 1fr 1fr'
+                      ? '1fr 1fr 1fr 1fr 1fr 1fr'
+                      : '1fr 1fr 1fr 1fr 1fr 1fr 1fr'
                   }
                 >
                   <AreaComp wd="100">
@@ -2720,6 +2720,15 @@ export default function FAT2() {
                     <Input
                       type="number"
                       name="cp_credito_cli"
+                      readOnly
+                      className="input_cad"
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <label>Valor Bonificação</label>
+                    <Input
+                      type="number"
+                      name="vlr_bonificacao"
                       readOnly
                       className="input_cad"
                     />
