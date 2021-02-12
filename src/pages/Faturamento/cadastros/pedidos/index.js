@@ -1569,7 +1569,7 @@ export default function FAT2() {
           if (
             valorFinaDesc >
               toDecimal(frmCapa.current.getData().cp_vlr_nf) -
-                valorNaoDescontavel &&
+                (valorPedidoNegociado + valorNaoDescontavel) &&
             toDecimal(formFina.fina_perc_desc) > 0
           ) {
             toast.error(
