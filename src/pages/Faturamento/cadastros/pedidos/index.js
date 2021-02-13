@@ -115,12 +115,16 @@ export default function FAT2() {
   const [paramSistema, setParamSistema] = useState([]);
   const [remumoItens, setResumoItens] = useState('');
   const [resumoPedido, setResumoPedido] = useState('');
-  const [valorPedido, setValorPedido] = useState(0);
+  // valor saldo restante do pedido a medida que se faz negociaçao financeira
+  const [valorSaldoPedido, setValorSaldoPedido] = useState(0);
   // em caso de negociaçao (aba fina), nao podemos permitir que o total lançado com desconto seja maior que o valor do pedido menos o nao descontável
   // nao descontavel, é o total de itens que nao se pode aplicar desconto
   // valorFinaDesc é a variável para ajudar no controle do exposto acima. é o total lançado com desconto
   const [valorFinaDesc, setValorFinaDesc] = useState(0);
   const [valorNaoDescontavel, setValorNaoDescontavel] = useState(0);
+  // valor do pedido que é lançado na negociaçao financeira (totalizador)
+  const [valorPedidoLancado, setValorPedidoLancado] = useState(0);
+  // valor do pedido apos negociacao
   const [valorPedidoNegociado, setValorPedidoNegociado] = useState(0);
   // valor bonificado do pedido
   const [vlrBonificado, setVlrBonificado] = useState(0);
@@ -1510,7 +1514,7 @@ export default function FAT2() {
       const dados = response.data.retorno;
       if (dados) {
         setGridFinanceiro(dados);
-        if (dados.length > 0) setValorPedido(0);
+        if (dados.length > 0) setValorSaldoPedido(0);
       }
     } catch (error) {
       toast.error(`Erro ao listar negociação do cliente \n${error}`);
@@ -1561,20 +1565,21 @@ export default function FAT2() {
           );
 
           // abortar caso o valor com desconto informado seja maior que o valor do pedido menos o valor nao descontável
-          /* console.warn(
-            `valorPedido: ${valorPedido} valorFinaDesc: ${valorFinaDesc}  valorPedidoNegociado: ${valorPedidoNegociado}  cp_vlrnf: ${toDecimal(
+          console.warn(
+            `valorLançado: ${valorPedidoLancado} valorPedido: ${valorSaldoPedido} valorFinaDesc: ${valorFinaDesc}  valorPedidoNegociado: ${valorPedidoNegociado}  cp_vlrnf: ${toDecimal(
               frmCapa.current.getData().cp_vlr_nf
             )} nao descon: ${valorNaoDescontavel}`
-          ); */
+          );
 
           if (
-            toDecimal(formFina.fina_valor) >
-              valorPedido - valorNaoDescontavel &&
+            (toDecimal(formFina.fina_valor) - valorPedidoLancado >
+              valorSaldoPedido - valorNaoDescontavel ||
+              valorSaldoPedido - valorNaoDescontavel <= 0) &&
             toDecimal(formFina.fina_perc_desc) > 0
           ) {
             toast.error(
               `O VALOR A PAGAR COM DESCONTO, É MAIOR QUE O MÁXIMO PERMITIDO. PARA ESTE PEDIDO, O VALOR MÁXIMO PARA DESCONTO NESTA CONDIÇÃO É DE: ${(
-                valorPedido - valorNaoDescontavel
+                valorSaldoPedido - valorNaoDescontavel
               ).toFixed(2)} total lançado: ${toDecimal(
                 formFina.fina_valor
               ).toFixed(2)}`,
@@ -1586,9 +1591,15 @@ export default function FAT2() {
             return;
           }
 
-          const vlr_atualizado = valorPedido - toDecimal(formFina.fina_valor);
+          // totalizando os valores lancado
+          setValorPedidoLancado(
+            valorPedidoLancado + toDecimal(formFina.fina_valor)
+          );
+
+          const vlr_atualizado =
+            valorSaldoPedido - toDecimal(formFina.fina_valor);
           if (vlr_atualizado > -1) {
-            setValorPedido(vlr_atualizado.toFixed(2));
+            setValorSaldoPedido(vlr_atualizado.toFixed(2));
             const objFina = {
               fina_fpgto_id: formFina.fina_fpgto_id,
               forma_pgto: objForma[0].label,
@@ -1659,7 +1670,7 @@ export default function FAT2() {
         // tratar valores
         let vlped = 0;
 
-        setValorPedido((prev) => {
+        setValorSaldoPedido((prev) => {
           vlped = toDecimal(prev) + toDecimal(prm.fina_valor);
           frmFinanceiro.current.setFieldValue('fina_valor', vlped);
           return vlped;
@@ -1795,6 +1806,7 @@ export default function FAT2() {
       if (dataGridPesqSelected.length > 0) {
         limpaFormFina();
         setValorFinaDesc(0); // zerando valor de negociaçao lançado com desconto
+        setValorPedidoLancado(0); // total pedido lançado zerado
         setLoading(true);
         // buscar valor nao desocontavel do pedido
         const response = await api.get(
@@ -1817,7 +1829,7 @@ export default function FAT2() {
             )} `
           );
           if (!formCapa.cp_id) await handleEdit();
-          setValorPedido(toDecimal(dataGridPesqSelected[0].cp_vlr_nf));
+          setValorSaldoPedido(toDecimal(dataGridPesqSelected[0].cp_vlr_nf));
           setInfoVlrPedidoNegociado('');
           setValorPedidoNegociado(0);
           await getGridFinanceiro();
@@ -2996,7 +3008,7 @@ export default function FAT2() {
                       onChange={() => {
                         frmFinanceiro.current.setFieldValue(
                           'fina_valor',
-                          valorPedido
+                          valorSaldoPedido
                         );
                         frmFinanceiro.current.setFieldValue(
                           'fina_valor_final',
@@ -3021,63 +3033,69 @@ export default function FAT2() {
                       className="input_cad"
                     />
                   </AreaComp>
-                  <BootstrapTooltip
-                    title="Informe o valor que o cliente quer pagar de acordo com a forma de pagamento escolhida"
-                    placement="top"
-                  >
-                    <AreaComp wd="100">
-                      <label>Não Descontável</label>
-                      <Input
-                        type="text"
-                        name="fina_descontavel"
-                        placeholder="0,00"
-                        value={valorNaoDescontavel}
-                        readOnly
-                        onChange={maskDecimal}
-                        className="input_cad"
-                      />
-                    </AreaComp>
-                  </BootstrapTooltip>
-                  <AreaComp wd="100">
+                  <span>
                     <BootstrapTooltip
                       title="Informe o valor que o cliente quer pagar de acordo com a forma de pagamento escolhida"
                       placement="top"
                     >
-                      <KeyboardEventHandler
-                        handleKeys={['enter', 'tab']}
-                        onKeyEvent={() => handleAddFina()}
-                      >
-                        <label>vlr negociado</label>
+                      <AreaComp wd="100">
+                        <label>Não Descontável</label>
                         <Input
                           type="text"
-                          name="fina_valor"
+                          name="fina_descontavel"
                           placeholder="0,00"
+                          value={valorNaoDescontavel}
+                          readOnly
                           onChange={maskDecimal}
                           className="input_cad"
                         />
-                      </KeyboardEventHandler>
+                      </AreaComp>
                     </BootstrapTooltip>
+                  </span>
+                  <AreaComp wd="100">
+                    <span>
+                      <BootstrapTooltip
+                        title="Informe o valor que o cliente quer pagar de acordo com a forma de pagamento escolhida"
+                        placement="top"
+                      >
+                        <KeyboardEventHandler
+                          handleKeys={['enter', 'tab']}
+                          onKeyEvent={() => handleAddFina()}
+                        >
+                          <label>vlr negociado</label>
+                          <Input
+                            type="text"
+                            name="fina_valor"
+                            placeholder="0,00"
+                            onChange={maskDecimal}
+                            className="input_cad"
+                          />
+                        </KeyboardEventHandler>
+                      </BootstrapTooltip>
+                    </span>
                   </AreaComp>
 
                   <AreaComp wd="100">
-                    <BootstrapTooltip
-                      title="Informe o percentual de desconto concedido de acordo com a forma de pagamento"
-                      placement="top"
-                    >
-                      <KeyboardEventHandler
-                        handleKeys={['enter', 'tab']}
-                        onKeyEvent={() => handleAddFina()}
+                    <span>
+                      <BootstrapTooltip
+                        title="Informe o percentual de desconto concedido de acordo com a forma de pagamento"
+                        placement="top"
                       >
-                        <label>Desconto (%)</label>
-                        <Input
-                          type="text"
-                          name="fina_perc_desc"
-                          placeholder="0,00"
-                          onChange={maskDecimal}
-                          className="input_cad"
-                        />
-                      </KeyboardEventHandler>
-                    </BootstrapTooltip>
+                        <KeyboardEventHandler
+                          handleKeys={['enter', 'tab']}
+                          onKeyEvent={() => handleAddFina()}
+                        >
+                          <label>Desconto (%)</label>
+                          <Input
+                            type="text"
+                            name="fina_perc_desc"
+                            placeholder="0,00"
+                            onChange={maskDecimal}
+                            className="input_cad"
+                          />
+                        </KeyboardEventHandler>
+                      </BootstrapTooltip>
+                    </span>
                   </AreaComp>
                   <AreaComp wd="100">
                     <KeyboardEventHandler
