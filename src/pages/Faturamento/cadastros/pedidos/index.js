@@ -466,9 +466,10 @@ export default function FAT2() {
       setExisteBordero('N');
       setGridItens([]);
       setDataGridPesqSelected([]);
-      frmCapa.current.setFieldValue('cp_id', '');
+
       setDataEmiss(new Date());
       setDataSaida(new Date());
+      frmCapa.current.setFieldValue('cp_id', '');
       frmCapa.current.setFieldValue('cp_cli_id', '');
       frmCapa.current.setFieldValue('cp_cvto_id', '');
       frmCapa.current.setFieldValue('cp_fpgto_id', '');
@@ -2780,7 +2781,7 @@ export default function FAT2() {
                       isClearable
                       placeholder="INFORME"
                       onChange={(op) => {
-                        setGeraFina(op.gera_fina);
+                        if (op) setGeraFina(op.gera_fina || 'N');
                       }}
                       zindex="153"
                     />
