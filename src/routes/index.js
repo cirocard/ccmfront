@@ -49,6 +49,7 @@ import SUPR5 from '~/pages/Suprimentos/cadastros/tabPreco';
 import SUPR6 from '~/pages/Suprimentos/cadastros/etiqueta';
 import SUPR7 from '~/pages/Suprimentos/estoque/operacaoEst';
 import SUPR8 from '~/pages/Suprimentos/estoque/entrada_saida';
+import SUPR9 from '~/pages/Suprimentos/relatorios/';
 
 export default function Routes() {
   // /:parametro+  o mais é pra pegar tudo certinho q vem depois da barra
@@ -101,6 +102,7 @@ export default function Routes() {
       <Route path="/supr6" component={SUPR6} isPrivate />
       <Route path="/supr7" component={SUPR7} isPrivate />
       <Route path="/supr8" component={SUPR8} isPrivate />
+      <Route path="/supr9/:tipo" component={SUPR9} isPrivate />
     </Switch>
   );
 }
