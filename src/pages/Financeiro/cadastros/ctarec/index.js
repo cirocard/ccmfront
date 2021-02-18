@@ -355,7 +355,7 @@ export default function FINA9() {
         });
 
         setLoading(true);
-        console.warn('data ', dataEmissao);
+
         const objCad = {
           rec_emp_id: null,
           rec_id: formData.rec_id ? parseInt(formData.rec_id, 10) : null,

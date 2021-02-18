@@ -50,6 +50,7 @@ import {
   Container,
   Panel,
   GridContainerItens,
+  GridContainerFina,
   ToolBar,
   GridContainerMain,
   DivGeral,
@@ -75,6 +76,7 @@ import {
   toDecimal,
   GridCurrencyFormatter,
   FormataMoeda,
+  JurosTotal,
 } from '~/services/func.uteis';
 import { ApiService, ApiTypes } from '~/services/api';
 
@@ -90,6 +92,7 @@ export default function FAT2() {
   const frmDesc = useRef(null);
   const frmCredito = useRef(null);
   const frmFinanceiro = useRef(null);
+  const [geraFina, setGeraFina] = useState('N');
   const [optOperFat, setOptOperFat] = useState([]);
   const [optCvto, setOptCvto] = useState([]);
   const [optFpgto, setOptFpgto] = useState([]);
@@ -139,6 +142,8 @@ export default function FAT2() {
   const [desableSave, setDesableSave] = useState(true);
   const [inputDesable, setInputDesable] = useState(true);
   const [representante, setRepresentante] = useState([]);
+  const [nParcela, setNParcela] = useState(1);
+  const [optGrpRec, setOptGrpRec] = useState(1);
 
   const toastOptions = {
     autoClose: 5000,
@@ -244,6 +249,23 @@ export default function FAT2() {
     }
   };
 
+  // grupo de receita
+  async function handleGrupoRec() {
+    try {
+      const response = await api.get(`v1/combos/agrupador_recdesp/1/2`);
+      const dados = response.data.retorno;
+      if (dados) {
+        setOptGrpRec(dados);
+      }
+    } catch (error) {
+      setLoading(false);
+      toast.error(
+        `Erro ao gerar referencia agrupadora \n${error}`,
+        toastOptions
+      );
+    }
+  }
+
   // forma pagamento
   async function getComboFpgto() {
     try {
@@ -327,6 +349,7 @@ export default function FAT2() {
     frmFinanceiro.current.setFieldValue('fina_valor_final', '');
     frmFinanceiro.current.setFieldValue('fina_valor', '');
     frmFinanceiro.current.setFieldValue('fina_perc_desc', '');
+    frmFinanceiro.current.setFieldValue('fina_perc_juro', '');
     frmFinanceiro.current.setFieldValue('fina_fpgto_id', '');
   }
 
@@ -697,6 +720,7 @@ export default function FAT2() {
           cp_representante: formCapa.cp_representante || null,
         };
 
+        // if (toDecimal(formCapa.cp_vlr_outros) === 0) delete capa.cp_vlr_outros;
         const obj = {
           emp_id: null,
           usr_id: null,
@@ -1524,9 +1548,11 @@ export default function FAT2() {
   // adicionar lançamento na aba financeiro
   function handleAddFina() {
     try {
+      const formFina = frmFinanceiro.current.getData();
+
       if (
-        toDecimal(frmCapa.current.getData().cp_vlr_desc) - vlrBonificado >
-        0
+        toDecimal(frmCapa.current.getData().cp_vlr_desc) - vlrBonificado > 0 &&
+        toDecimal(formFina.fina_perc_desc) > 0
       ) {
         toast.error(
           `JÁ EXISTE DESCONTO APLICADO A ESTE PEDIDO...REMOVA O DESCONTO PARA INICIAR UMA NEGOCIAÇÃO FINANCEIRA`,
@@ -1534,29 +1560,56 @@ export default function FAT2() {
         );
         return;
       }
-      const formFina = frmFinanceiro.current.getData();
+
+      if (geraFina === 'S') {
+        if (!formFina.fina_grprec_id) {
+          toast.error(
+            `VOCÊ ESTÁ USANDO UMA OPERAÇÃO QUE MOVIMENTA FINANCEIRO... INFORME O GRUPO DE RECEITA!!!`,
+            toastOptions
+          );
+          return;
+        }
+      }
 
       if (formFina.fina_fpgto_id) {
         if (!formFina.fina_perc_desc) {
           // se nao informou percent desconto
           frmFinanceiro.current.setFieldValue('fina_perc_desc', '');
           document.getElementsByName('fina_perc_desc')[0].focus();
+        } else if (!formFina.fina_perc_juro) {
+          frmFinanceiro.current.setFieldValue('fina_perc_juro', '');
+          document.getElementsByName('fina_perc_juro')[0].focus();
         } else if (
           toDecimal(formFina.fina_valor) > 0 &&
           toDecimal(formFina.fina_valor_final) === 0
         ) {
-          const valor_final =
-            toDecimal(formFina.fina_valor) *
-            (1 - toDecimal(formFina.fina_perc_desc) / 100);
+          let valor_final = 0;
+
+          if (toDecimal(formFina.fina_perc_desc) > 0) {
+            valor_final = (
+              toDecimal(formFina.fina_valor) *
+              (1 - toDecimal(formFina.fina_perc_desc) / 100)
+            ).toFixed(2);
+          } else if (toDecimal(formFina.fina_perc_juro) > 0) {
+            valor_final = JurosTotal(
+              toDecimal(formFina.fina_valor),
+              nParcela,
+              toDecimal(formFina.fina_perc_juro)
+            );
+            // lançar o valor do acréscimo como despesa
+            frmCapa.current.setFieldValue(
+              'cp_vlr_outros',
+              valor_final - toDecimal(formFina.fina_valor)
+            );
+          } else {
+            valor_final = toDecimal(formFina.fina_valor).toFixed(2);
+          }
 
           // controlar o valor lançado com desconto
           if (toDecimal(formFina.fina_perc_desc) > 0)
             setValorFinaDesc(toDecimal(formFina.fina_valor) + valorFinaDesc);
 
-          frmFinanceiro.current.setFieldValue(
-            'fina_valor_final',
-            valor_final.toFixed(2)
-          );
+          frmFinanceiro.current.setFieldValue('fina_valor_final', valor_final);
         } else {
           // adicionar o item na grid
           const itemGrid = [];
@@ -1564,17 +1617,23 @@ export default function FAT2() {
             (f) => f.value === formFina.fina_fpgto_id
           );
 
+          const objCondVcto = optCvto.filter(
+            (c) => c.value === formFina.fina_cvto_id
+          );
+
           // abortar caso o valor com desconto informado seja maior que o valor do pedido menos o valor nao descontável
-          /* console.warn(
-            `valorLançado: ${valorPedidoLancado} valorPedido: ${valorSaldoPedido} valorFinaDesc: ${valorFinaDesc}  valorPedidoNegociado: ${valorPedidoNegociado}  cp_vlrnf: ${toDecimal(
+          /*
+          console.warn(
+            `valorLançado: ${valorPedidoLancado} SaldoPedido: ${valorSaldoPedido} valorFinaDesc: ${valorFinaDesc}  valorPedidoNegociado: ${valorPedidoNegociado}  cp_vlrnf: ${toDecimal(
               frmCapa.current.getData().cp_vlr_nf
             )} nao descon: ${valorNaoDescontavel}`
-          ); */
+          );
+          */
 
           if (
-            (toDecimal(formFina.fina_valor) - valorPedidoLancado >
-              valorSaldoPedido - valorNaoDescontavel ||
-              valorSaldoPedido - valorNaoDescontavel <= 0) &&
+            valorFinaDesc >
+              toDecimal(frmCapa.current.getData().cp_vlr_nf) -
+                valorNaoDescontavel &&
             toDecimal(formFina.fina_perc_desc) > 0
           ) {
             toast.error(
@@ -1603,9 +1662,13 @@ export default function FAT2() {
             const objFina = {
               fina_fpgto_id: formFina.fina_fpgto_id,
               forma_pgto: objForma[0].label,
+              cond_vcto: objCondVcto[0].label,
+              fina_cvto_id: formFina.fina_cvto_id,
               fina_valor: formFina.fina_valor,
               fina_perc_desc: formFina.fina_perc_desc,
+              fina_perc_juro: formFina.fina_perc_juro,
               fina_valor_final: formFina.fina_valor_final,
+              fina_grprec_id: formFina.fina_grprec_id,
               persistido: 'N',
             };
 
@@ -1659,10 +1722,7 @@ export default function FAT2() {
           excluiu = true;
         }
       } else {
-        setGridFinanceiro((prev) => {
-          prev = prev.filter((item) => item !== prm);
-          return prev;
-        });
+        setGridFinanceiro([]);
         excluiu = true;
       }
 
@@ -1681,13 +1741,18 @@ export default function FAT2() {
           vlneg = prev - toDecimal(prm.fina_valor_final);
           setValorPedidoNegociado(vlneg);
         });
-
         setInfoVlrPedidoNegociado('');
       }
       toast.info(
         'ATENÇÃO!! APÓS EXCLUIR UMA NEGOCIAÇÃO É NECESSÁRIO SALVAR TODO O PEDIDO, SEM SAIR DA ABA FINANCEIRO...',
         toastOptions
       );
+      setValorSaldoPedido(toDecimal(frmCapa.current.getData().cp_vlr_nf));
+      setInfoVlrPedidoNegociado('');
+      setValorPedidoNegociado(0);
+      setValorFinaDesc(0); // zerando valor de negociaçao lançado com desconto
+      setValorPedidoLancado(0); // total pedido lançado zerado
+      frmFinanceiro.current.setFieldValue('fina_grprec_id', '');
       setLoading(false);
     } catch (err) {
       setLoading(false);
@@ -1710,9 +1775,12 @@ export default function FAT2() {
             fina_cp_emp_id: null,
             fina_cp_id: formCapa.cp_id,
             fina_fpgto_id: g.fina_fpgto_id,
+            fina_cvto_id: g.fina_cvto_id,
             fina_valor: toDecimal(g.fina_valor),
             fina_perc_desc: toDecimal(g.fina_perc_desc),
+            fina_perc_juro: toDecimal(g.fina_perc_juro),
             fina_valor_final: toDecimal(g.fina_valor_final),
+            fina_grprec_id: g.fina_grprec_id || null,
           };
           cad.push(obj);
         });
@@ -1730,7 +1798,7 @@ export default function FAT2() {
           return;
         }
         const retorno = await api.post(
-          `v1/fat/pedido_financeiro?naodescontar=${valorNaoDescontavel} `,
+          `v1/fat/pedido_financeiro?gera_fina=${geraFina}`,
           cad
         );
         if (retorno.data.success) {
@@ -1757,6 +1825,59 @@ export default function FAT2() {
     } catch (err) {
       setLoading(false);
       toast.error(`Erro ao confirmar negociação: ${err} `, toastOptions);
+    }
+  }
+
+  // acesso aba financeiro
+  async function handleAbaFina() {
+    if (dataGridPesqSelected.length > 0) {
+      limpaFormFina();
+      frmFinanceiro.current.setFieldValue('fina_grprec_id', '');
+      setValorFinaDesc(0); // zerando valor de negociaçao lançado com desconto
+      setValorPedidoLancado(0); // total pedido lançado zerado
+      setLoading(true);
+      // buscar valor nao desocontavel do pedido
+      const response = await api.get(
+        `v1/fat/nao_descontavel?cp_id=${dataGridPesqSelected[0].cp_id} `
+      );
+      if (response.data.success) {
+        setValorNaoDescontavel(response.data.retorno);
+      }
+
+      frmFinanceiro.current.setFieldValue('fina_valor', '');
+      frmFinanceiro.current.setFieldValue(
+        'fina_vpedido',
+        dataGridPesqSelected[0].cp_vlr_nf
+      );
+      const formCapa = frmCapa.current.getData();
+      if (dataGridPesqSelected[0].situacao === '10') {
+        setInfoVlrPedido(
+          `VALOR ATUAL DO PEDIDO PEDIDO: ${FormataMoeda(
+            dataGridPesqSelected[0].cp_vlr_nf
+          )} `
+        );
+        if (!formCapa.cp_id) await handleEdit();
+        setValorSaldoPedido(toDecimal(dataGridPesqSelected[0].cp_vlr_nf));
+        setInfoVlrPedidoNegociado('');
+        setValorPedidoNegociado(0);
+        // set cond vcto do pedido
+        const x = optCvto.find(
+          (op) =>
+            op.value.toString() ===
+            frmCapa.current.getData().cp_cvto_id.toString()
+        );
+        frmFinanceiro.current.setFieldValue('fina_cvto_id', x);
+        setNParcela(x.parcelas);
+
+        await getGridFinanceiro();
+        setLoading(false);
+
+        setValueTab(3);
+      } else {
+        toast.info('SELECIONE UM PEDIDO FINALIZADO', toastOptions);
+      }
+    } else {
+      toast.info('SELECIONE UM PEDIDO FINALIZADO', toastOptions);
     }
   }
 
@@ -1803,44 +1924,7 @@ export default function FAT2() {
         toast.info('SELECIONE UM PEDIDO PARA CONSULTAR', toastOptions);
       }
     } else if (newValue === 3) {
-      if (dataGridPesqSelected.length > 0) {
-        limpaFormFina();
-        setValorFinaDesc(0); // zerando valor de negociaçao lançado com desconto
-        setValorPedidoLancado(0); // total pedido lançado zerado
-        setLoading(true);
-        // buscar valor nao desocontavel do pedido
-        const response = await api.get(
-          `v1/fat/nao_descontavel?cp_id=${dataGridPesqSelected[0].cp_id} `
-        );
-        if (response.data.success) {
-          setValorNaoDescontavel(response.data.retorno);
-        }
-
-        frmFinanceiro.current.setFieldValue('fina_valor', '');
-        frmFinanceiro.current.setFieldValue(
-          'fina_vpedido',
-          dataGridPesqSelected[0].cp_vlr_nf
-        );
-        const formCapa = frmCapa.current.getData();
-        if (dataGridPesqSelected[0].situacao === '10') {
-          setInfoVlrPedido(
-            `VALOR ATUAL DO PEDIDO PEDIDO: ${FormataMoeda(
-              dataGridPesqSelected[0].cp_vlr_nf
-            )} `
-          );
-          if (!formCapa.cp_id) await handleEdit();
-          setValorSaldoPedido(toDecimal(dataGridPesqSelected[0].cp_vlr_nf));
-          setInfoVlrPedidoNegociado('');
-          setValorPedidoNegociado(0);
-          await getGridFinanceiro();
-          setLoading(false);
-          setValueTab(newValue);
-        } else {
-          toast.info('SELECIONE UM PEDIDO FINALIZADO', toastOptions);
-        }
-      } else {
-        toast.info('SELECIONE UM PEDIDO FINALIZADO', toastOptions);
-      }
+      handleAbaFina();
     }
   };
 
@@ -2044,10 +2128,15 @@ export default function FAT2() {
     {
       field: 'item_perc_desc',
       headerName: '% DESC.',
+      editable: true,
       width: 100,
       sortable: true,
       resizable: true,
       lockVisible: true,
+      onCellValueChanged: handleEditarQuantidade,
+      cellEditorParams: {
+        validacoes: gridValidationsQtd,
+      },
     },
     {
       field: 'item_vlr_desc',
@@ -2189,7 +2278,17 @@ export default function FAT2() {
               <button
                 type="button"
                 disabled={false}
-                onClick={() => handleExcluirFina(prm.data)}
+                onClick={async () => {
+                  await handleExcluirFina(prm.data);
+                  // acrescimos sao lancçados como despesa, ao remover, é preciso remover do pedido também a despesa lançada
+                  frmCapa.current.setFieldValue(
+                    'cp_vlr_outros',
+                    (
+                      toDecimal(frmCapa.current.getData().cp_vlr_outros) -
+                      toDecimal(prm.data.total_juro)
+                    ).toFixed(2)
+                  );
+                }}
               >
                 <FaTrashAlt size={18} color="#253739" />
               </button>
@@ -2201,7 +2300,16 @@ export default function FAT2() {
     {
       field: 'forma_pgto',
       headerName: 'FORMA DE PAGAMENTO',
-      width: 300,
+      width: 270,
+      sortable: true,
+      resizable: true,
+      filter: true,
+      lockVisible: true,
+    },
+    {
+      field: 'cond_vcto',
+      headerName: 'CONDIÇÃO DE VENCIMENTO',
+      width: 270,
       sortable: true,
       resizable: true,
       filter: true,
@@ -2209,8 +2317,8 @@ export default function FAT2() {
     },
     {
       field: 'fina_valor',
-      headerName: 'VALOR INFORMADO',
-      width: 180,
+      headerName: 'VLR INFORMADO',
+      width: 160,
       sortable: true,
       resizable: true,
       filter: true,
@@ -2219,8 +2327,18 @@ export default function FAT2() {
     },
     {
       field: 'fina_perc_desc',
-      headerName: '% DESC. CONCEDIDO',
-      width: 160,
+      headerName: '% DESCONTO',
+      width: 140,
+      sortable: true,
+      resizable: true,
+      filter: true,
+      lockVisible: true,
+      cellStyle: { fontWeight: 'bold' },
+    },
+    {
+      field: 'fina_perc_juro',
+      headerName: '% JURO',
+      width: 140,
       sortable: true,
       resizable: true,
       filter: true,
@@ -2287,7 +2405,7 @@ export default function FAT2() {
           setLoading(true);
           const formCapa = frmCapa.current.getData();
           const response = await api.put(
-            `v1/fat/trocar_tabela?cp_id = ${formCapa.cp_id}& tab_id=${tab.value} `
+            `v1/fat/trocar_tabela?cp_id=${formCapa.cp_id}&tab_id=${tab.value}`
           );
 
           if (response.data.success) {
@@ -2327,6 +2445,7 @@ export default function FAT2() {
     getComboCondVcto();
     getComboTabPreco();
     getParamSistema();
+    handleGrupoRec();
     setDesableSave(true);
     setValueTab(0);
   }, []);
@@ -2660,6 +2779,9 @@ export default function FAT2() {
                       optionsList={optOperFat}
                       isClearable
                       placeholder="INFORME"
+                      onChange={(op) => {
+                        setGeraFina(op.gera_fina);
+                      }}
                       zindex="153"
                     />
                   </AreaComp>
@@ -2788,7 +2910,6 @@ export default function FAT2() {
           <TabPanel value={valueTab} index={2}>
             <Panel lefth1="left" bckgnd="#dae2e5">
               <h1>{`ITENS DO PEDIDO - ${labelSaldo} `}</h1>
-
               <Form id="frmItens" ref={frmItens}>
                 <BoxItemCad fr="1fr 1fr 2fr 1fr">
                   <AreaComp wd="100">
@@ -2998,7 +3119,17 @@ export default function FAT2() {
             <Panel lefth1="left" bckgnd="#dae2e5">
               <h1>NEGOCIAÇÃO FINANCEIRA DO CLIENTE</h1>
               <Form id="frmFinanceiro" ref={frmFinanceiro}>
-                <BoxItemCad fr="2fr 1fr 1fr 1fr 1fr 1fr">
+                <BoxItemCad fr="1fr 1fr 1fr">
+                  <AreaComp wd="100">
+                    <FormSelect
+                      label="grupo de receita"
+                      name="fina_grprec_id"
+                      optionsList={optGrpRec}
+                      isClearable
+                      placeholder="INFORME"
+                      zindex="153"
+                    />
+                  </AreaComp>
                   <AreaComp wd="100">
                     <FormSelect
                       name="fina_fpgto_id"
@@ -3024,6 +3155,30 @@ export default function FAT2() {
                     />
                   </AreaComp>
                   <AreaComp wd="100">
+                    <FormSelect
+                      name="fina_cvto_id"
+                      label="Condição de Vencimento"
+                      optionsList={optCvto}
+                      isClearable
+                      placeholder="INFORME"
+                      onChange={(cvto) => {
+                        setNParcela(cvto.parcelas);
+                        frmFinanceiro.current.setFieldValue(
+                          'fina_valor_final',
+                          ''
+                        );
+                        frmFinanceiro.current.setFieldValue(
+                          'fina_perc_desc',
+                          ''
+                        );
+                        document.getElementsByName('fina_valor')[0].focus();
+                      }}
+                      zindex="153"
+                    />
+                  </AreaComp>
+                </BoxItemCad>
+                <BoxItemCad fr="1fr 1fr 1fr 1fr 1fr 1fr">
+                  <AreaComp wd="100">
                     <label>Vlr pedido</label>
                     <Input
                       type="text"
@@ -3033,69 +3188,85 @@ export default function FAT2() {
                       className="input_cad"
                     />
                   </AreaComp>
-                  <span>
+
+                  <BootstrapTooltip
+                    title="Informe o valor que o cliente quer pagar de acordo com a forma de pagamento escolhida"
+                    placement="top"
+                  >
+                    <AreaComp wd="100">
+                      <label>Não Descontável</label>
+                      <Input
+                        type="text"
+                        name="fina_descontavel"
+                        placeholder="0,00"
+                        value={valorNaoDescontavel}
+                        readOnly
+                        onChange={maskDecimal}
+                        className="input_cad"
+                      />
+                    </AreaComp>
+                  </BootstrapTooltip>
+
+                  <AreaComp wd="100">
                     <BootstrapTooltip
                       title="Informe o valor que o cliente quer pagar de acordo com a forma de pagamento escolhida"
                       placement="top"
                     >
-                      <AreaComp wd="100">
-                        <label>Não Descontável</label>
+                      <KeyboardEventHandler
+                        handleKeys={['enter', 'tab']}
+                        onKeyEvent={() => handleAddFina()}
+                      >
+                        <label>vlr negociado</label>
                         <Input
                           type="text"
-                          name="fina_descontavel"
+                          name="fina_valor"
                           placeholder="0,00"
-                          value={valorNaoDescontavel}
-                          readOnly
                           onChange={maskDecimal}
                           className="input_cad"
                         />
-                      </AreaComp>
+                      </KeyboardEventHandler>
                     </BootstrapTooltip>
-                  </span>
-                  <AreaComp wd="100">
-                    <span>
-                      <BootstrapTooltip
-                        title="Informe o valor que o cliente quer pagar de acordo com a forma de pagamento escolhida"
-                        placement="top"
-                      >
-                        <KeyboardEventHandler
-                          handleKeys={['enter', 'tab']}
-                          onKeyEvent={() => handleAddFina()}
-                        >
-                          <label>vlr negociado</label>
-                          <Input
-                            type="text"
-                            name="fina_valor"
-                            placeholder="0,00"
-                            onChange={maskDecimal}
-                            className="input_cad"
-                          />
-                        </KeyboardEventHandler>
-                      </BootstrapTooltip>
-                    </span>
                   </AreaComp>
 
                   <AreaComp wd="100">
-                    <span>
-                      <BootstrapTooltip
-                        title="Informe o percentual de desconto concedido de acordo com a forma de pagamento"
-                        placement="top"
+                    <BootstrapTooltip
+                      title="Informe o percentual de desconto concedido de acordo com a forma de pagamento"
+                      placement="top"
+                    >
+                      <KeyboardEventHandler
+                        handleKeys={['enter', 'tab']}
+                        onKeyEvent={() => handleAddFina()}
                       >
-                        <KeyboardEventHandler
-                          handleKeys={['enter', 'tab']}
-                          onKeyEvent={() => handleAddFina()}
-                        >
-                          <label>Desconto (%)</label>
-                          <Input
-                            type="text"
-                            name="fina_perc_desc"
-                            placeholder="0,00"
-                            onChange={maskDecimal}
-                            className="input_cad"
-                          />
-                        </KeyboardEventHandler>
-                      </BootstrapTooltip>
-                    </span>
+                        <label>Desconto (%)</label>
+                        <Input
+                          type="text"
+                          name="fina_perc_desc"
+                          placeholder="0,00"
+                          onChange={maskDecimal}
+                          className="input_cad"
+                        />
+                      </KeyboardEventHandler>
+                    </BootstrapTooltip>
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <BootstrapTooltip
+                      title="perncentual de juros (se houver) de acordo com a forma e condiçao de vencimento de pagamento escolhida"
+                      placement="top"
+                    >
+                      <KeyboardEventHandler
+                        handleKeys={['enter', 'tab']}
+                        onKeyEvent={() => handleAddFina()}
+                      >
+                        <label>Juro (%)</label>
+                        <Input
+                          type="text"
+                          name="fina_perc_juro"
+                          placeholder="0,00"
+                          onChange={maskDecimal}
+                          className="input_cad"
+                        />
+                      </KeyboardEventHandler>
+                    </BootstrapTooltip>
                   </AreaComp>
                   <AreaComp wd="100">
                     <KeyboardEventHandler
@@ -3116,7 +3287,7 @@ export default function FAT2() {
                 </BoxItemCad>
 
                 <BoxItemCadNoQuery fr="1fr">
-                  <GridContainerItens className="ag-theme-balham">
+                  <GridContainerFina className="ag-theme-balham">
                     <AgGridReact
                       columnDefs={gridColumnFinanceiro}
                       rowData={gridFinanceiro}
@@ -3124,19 +3295,19 @@ export default function FAT2() {
                       animateRows
                       gridOptions={{ localeText: gridTraducoes }}
                     />
-                  </GridContainerItens>
+                  </GridContainerFina>
                 </BoxItemCadNoQuery>
-                <BoxItemCadNoQuery fr="1fr">
+
+                <BoxItemCadNoQuery fr="1fr 1fr">
                   <AreaComp wd="100" h3talign="left" bckgndh3="#fff" ptop="7px">
                     <h3>{infoVlrPedido}</h3>
                   </AreaComp>
-                </BoxItemCadNoQuery>
-                <BoxItemCadNoQuery fr="1fr">
                   <AreaComp wd="100" h3talign="left" bckgndh3="#fff" ptop="7px">
                     <h3>{infoVlrPedidoNegociado}</h3>
                   </AreaComp>
                 </BoxItemCadNoQuery>
-                <BoxItemCadNoQuery fr="1fr" ptop="10px" just="center">
+
+                <BoxItemCadNoQuery fr="1fr" ptop="5px" just="center">
                   <DivGeral wd="230px">
                     <button
                       type="button"

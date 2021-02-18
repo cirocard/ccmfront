@@ -12,7 +12,6 @@ export const ContentBar = styled.div`
   flex-direction: row;
   justify-content: center;
   align-items: center;
-
   width: 100%;
 
   margin: 0 auto;
@@ -22,7 +21,7 @@ export const ContentBar = styled.div`
 export const ToolBar = styled.div`
   display: flex;
   flex-direction: column;
-  padding-top: 30px;
+  padding-top: ${(props) => props.ptop || '120px'};
   width: ${(props) => props.wd};
   height: ${(props) => props.hg};
   margin-left: ${(props) => props.mleft || -10}px;
@@ -34,9 +33,6 @@ export const ToolBar = styled.div`
   button {
     border: 0;
     background: none;
-    &:disabled {
-      cursor: not-allowed;
-    }
   }
   button:hover {
     background: #01293e;
@@ -53,6 +49,14 @@ export const Container = styled.div`
   box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.2);
 `;
 
+export const ContainerConsulta = styled.div`
+  width: calc(100% - 40px);
+  height: 98%;
+  border-radius: 1px;
+  margin-left: 5px;
+  background: #fff;
+`;
+
 export const Panel = styled.div`
   width: 100%;
   border-radius: 4px;
@@ -61,7 +65,7 @@ export const Panel = styled.div`
   margin-top: ${(props) => props.mtop || '-10px'};
 
   h1 {
-    width: ${(props) => props.wdh1 || '100%'};
+    width: 100%;
     margin-top: 0px;
     text-align: ${(props) => props.lefth1 || 'center'};
     font-size: 16px;
@@ -71,6 +75,10 @@ export const Panel = styled.div`
     color: ${(props) => props.fontcolor || '#244448'};
     background: ${(props) => props.bckgnd || '#244448'};
   }
+`;
+
+export const ContentConsulta = styled.div`
+  display: flex;
 `;
 
 export const Content = styled.div`
@@ -120,50 +128,6 @@ export const GridContainerItens = styled.div`
   width: 100%;
   padding: 8px 5px 0 0;
 
-  .cell_quantity {
-    font-weight: bold;
-    font-size: 14px;
-    color: #af2000 !important;
-  }
-
-  .cell_total {
-    font-weight: bold;
-    font-size: 14px;
-  }
-
-  button {
-    border: 0;
-    background: none;
-    cursor: pointer;
-  }
-
-  @media (min-height: 300px) {
-    height: 32vh;
-  }
-
-  @media (min-height: 600px) {
-    height: 34vh;
-  }
-
-  @media (min-height: 680px) {
-    height: 38vh;
-  }
-
-  @media (min-height: 780px) {
-    height: 44vh;
-  }
-
-  @media (min-height: 880px) {
-    height: 49vh;
-  }
-`;
-
-export const GridContainerGrade = styled.div`
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  padding: 8px 5px 0 0;
-
   button {
     border: 0;
     background: none;
@@ -189,30 +153,13 @@ export const GridContainerGrade = styled.div`
   @media (min-height: 880px) {
     height: 53vh;
   }
-
-  h3 {
-    font-size: 18px;
-    color: #4d2679;
-    margin-bottom: 16px;
-  }
 `;
 
-export const GridContainerFina = styled.div`
+export const GridContainerCheque = styled.div`
   display: flex;
   flex-direction: column;
   width: 100%;
-  padding: 8px 5px 0 0;
-
-  .cell_quantity {
-    font-weight: bold;
-    font-size: 14px;
-    color: #af2000 !important;
-  }
-
-  .cell_total {
-    font-weight: bold;
-    font-size: 14px;
-  }
+  padding: 0px;
 
   button {
     border: 0;
@@ -220,24 +167,37 @@ export const GridContainerFina = styled.div`
     cursor: pointer;
   }
 
+  .cell_valor {
+    font-weight: bold;
+    font-size: 13px;
+    color: #000;
+    text-align: right;
+  }
+
   @media (min-height: 300px) {
-    height: 30vh;
+    height: 29vh;
   }
 
   @media (min-height: 600px) {
-    height: 32vh;
+    height: 30vh;
   }
 
   @media (min-height: 680px) {
-    height: 36vh;
+    height: 30vh;
   }
 
   @media (min-height: 780px) {
-    height: 42vh;
+    height: 35vh;
   }
 
   @media (min-height: 880px) {
-    height: 47vh;
+    height: 45vh;
+  }
+
+  h3 {
+    font-size: 18px;
+    color: #4d2679;
+    margin-bottom: 16px;
   }
 `;
 
@@ -281,12 +241,6 @@ export const GridContainerMain = styled.div`
   }
 
   @media (min-height: 880px) {
-    height: 58vh;
+    height: 65vh;
   }
-`;
-
-export const DivGeral = styled.div`
-  display: flex;
-  flex-direction: column;
-  width: ${(props) => props.wd || '200px'};
 `;

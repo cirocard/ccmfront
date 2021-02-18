@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-properties */
 /* eslint-disable no-plusplus */
 /* eslint-disable consistent-return */
 exports.getSiglaUf = (cUf) => {
@@ -310,4 +311,22 @@ exports.GridCurrencyFormatter = (params) => {
     return `R$ ${parseFloat(params.value).toLocaleString('pt')}`;
   }
   return `R$ ${parseFloat('0').toLocaleString('pt')}`;
+};
+
+// retorna o valor da parcela aplicado uma taxa de juro
+exports.JurosParcela = (valor, parcelas, taxa) => {
+  // parcelas = numero de vezes
+  const juros = taxa / 100;
+  const cfet = juros / (1 - 1 / Math.pow(1 + juros, parcelas));
+  const valorDaParcela = cfet * valor;
+  return valorDaParcela.toFixed(2);
+};
+
+// retorna o valor total a pagar dado uma taxa de juro e numero de parcelas
+exports.JurosTotal = (valor, parcelas, taxa) => {
+  // parcelas = numero de vezes
+  const juros = taxa / 100;
+  const cfet = juros / (1 - 1 / Math.pow(1 + juros, parcelas));
+  const valorDaParcela = cfet * valor;
+  return (parcelas * valorDaParcela).toFixed(2);
 };
