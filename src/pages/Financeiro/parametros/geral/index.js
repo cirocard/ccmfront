@@ -176,6 +176,10 @@ export default function FINA2() {
       setTituloCadastro('CADASTRO DE SITUAÇÃO DE CHEQUE');
       setTabId(25);
       listarGeral(25);
+    } else if (params.geral === '34') {
+      setTituloCadastro('CLASSIFICAÇÃO DE SERVIÇOS');
+      setTabId(34);
+      listarGeral(34);
     }
   }, []);
 
@@ -232,11 +236,15 @@ export default function FINA2() {
     <>
       <ToolBar hg="100%" wd="40px">
         <DivLimitador hg="10px" />
-        <BootstrapTooltip title="Cadastro de Cheque" placement="left">
-          <button type="button" onClick={() => setDlgPopup(true)}>
-            <FaMoneyCheckAlt size={25} color="#fff" />
-          </button>
-        </BootstrapTooltip>
+        {params.geral === '25' ? (
+          <BootstrapTooltip title="Cadastro de Cheque" placement="left">
+            <button type="button" onClick={() => setDlgPopup(true)}>
+              <FaMoneyCheckAlt size={25} color="#fff" />
+            </button>
+          </BootstrapTooltip>
+        ) : (
+          <DivLimitador hg="10px" />
+        )}
       </ToolBar>
       <Container id="pgClassific">
         <Scroll>

@@ -44,7 +44,7 @@ export default function SUPR6() {
   const [openDlgGrade, setOpenDlgGrade] = useState(false);
   const [titleDlgGrade, setTitleDlgGrade] = useState('');
   const [gridGrade, setGridGrade] = useState([]);
-  let selectedGrid = [];
+
   const toastOptions = {
     autoClose: 4000,
     position: toast.POSITION.TOP_CENTER,
@@ -186,8 +186,8 @@ export default function SUPR6() {
   async function handleAddItens() {
     try {
       const selected = gridGrade.filter((g) => g.etiquet !== 'NÃO INFORMADO');
-      selectedGrid = [];
-
+      const selectedGrid = [];
+      let update_quantidade = false;
       selected.forEach((s) => {
         const found = gridEtiqueta.filter((f) => f.prode_id === s.prode_id);
 
@@ -197,7 +197,7 @@ export default function SUPR6() {
           found[0].qtd = (
             toDecimal(found[0].qtd) + toDecimal(s.quantidade)
           ).toString();
-
+          update_quantidade = true;
           selectedGrid.push(...gridAtual, found[0]);
         } else {
           const obj = {
@@ -211,13 +211,26 @@ export default function SUPR6() {
             classific3: s.classific3,
             prod_descricao: s.prod_descricao,
           };
-          selectedGrid.push(...gridEtiqueta, obj);
+          selectedGrid.push(obj);
         }
       });
-      console.warn(selectedGrid);
-      setGridEtiqueta(selectedGrid);
+      console.warn('selectedGrid ', selectedGrid);
+      const gridAtualizado = [];
+
+      if (!update_quantidade) {
+        gridEtiqueta.forEach((a) => {
+          gridAtualizado.push(a);
+        });
+      }
+
+      selectedGrid.forEach((s) => {
+        gridAtualizado.push(s);
+      });
+      console.warn('atualizado ', gridAtualizado);
+      setGridEtiqueta(gridAtualizado);
       setOpenDlgGrade(false);
       setProduto([]);
+      setGridGrade([]);
     } catch (error) {
       toast.error(`Houve um erro ao confirmar itens \n${error}`);
     }

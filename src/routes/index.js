@@ -51,6 +51,8 @@ import SUPR7 from '~/pages/Suprimentos/estoque/operacaoEst';
 import SUPR8 from '~/pages/Suprimentos/estoque/entrada_saida';
 import SUPR9 from '~/pages/Suprimentos/relatorios/';
 
+// SERVIÇOS
+
 export default function Routes() {
   // /:parametro+  o mais é pra pegar tudo certinho q vem depois da barra
   return (
