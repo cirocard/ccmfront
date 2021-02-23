@@ -99,7 +99,7 @@ export default function REL_CHEQUE() {
         param.chq_situacao_id
       }&tipo=${param.chq_tipo}&sacado_id=${param.chq_sacado_id || ''}&tpData=${
         param.pesq_data || '1'
-      }`;
+      }&numero=${param.chq_numero}`;
 
       const response = await api.get(url);
       const link = response.data;
