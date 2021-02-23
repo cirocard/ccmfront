@@ -23,6 +23,7 @@ export default function REL_ENTRADA_PRODUTO() {
   const [optTabPreco, setOptTabPreco] = useState([]);
   const [dataIni, setDataIni] = useState(moment());
   const [dataFin, setDataFin] = useState(moment().add(7, 'day'));
+  const [optOperEst, setOptOperEst] = useState([]);
 
   const toastOptions = {
     autoClose: 4000,
@@ -50,6 +51,18 @@ export default function REL_ENTRADA_PRODUTO() {
     }
   }
 
+  async function getComboOperEst(tipo) {
+    try {
+      const response = await api.get(`v1/combos/oper_est/${tipo}`);
+      const dados = response.data.retorno;
+      if (dados) {
+        setOptOperEst(dados);
+      }
+    } catch (error) {
+      toast.error(`Erro ao carregar combo Operaçao de Estoque \n${error}`);
+    }
+  }
+
   // #endregion
 
   async function handleRelatorio() {
@@ -61,7 +74,9 @@ export default function REL_ENTRADA_PRODUTO() {
         dataIni
       ).format('YYYY-MM-DD')}&data_fin=${moment(dataFin).format(
         'YYYY-MM-DD'
-      )}&tab_id=${param.tabPreco}&order=${param.ordenar}`;
+      )}&tab_id=${param.tabPreco}&order=${param.ordenar}&oper_id=${
+        param.operest_id
+      }`;
 
       const response = await api.get(url);
       const link = response.data;
@@ -81,6 +96,7 @@ export default function REL_ENTRADA_PRODUTO() {
 
   useEffect(() => {
     getComboTabPreco();
+    getComboOperEst('E');
     frmRel.current.setFieldValue('ordenar', 'prod_referencia');
   }, []);
 
@@ -130,6 +146,18 @@ export default function REL_ENTRADA_PRODUTO() {
                     placeholder="NÃO INFORMADO"
                     clearable={false}
                     zindex="152"
+                  />
+                </AreaComp>
+              </BoxItemCad>
+              <BoxItemCad fr="1fr 1fr">
+                <AreaComp wd="100">
+                  <FormSelect
+                    label="OPERAÇÃO DE ESTOQUE"
+                    name="operest_id"
+                    optionsList={optOperEst}
+                    isClearable
+                    placeholder="INFORME"
+                    zindex="153"
                   />
                 </AreaComp>
               </BoxItemCad>
