@@ -52,6 +52,7 @@ import SUPR8 from '~/pages/Suprimentos/estoque/entrada_saida';
 import SUPR9 from '~/pages/Suprimentos/relatorios/';
 
 // SERVIÇOS
+import SERV2 from '~/pages/Servicos/cadastros/servico';
 
 export default function Routes() {
   // /:parametro+  o mais é pra pegar tudo certinho q vem depois da barra
@@ -105,6 +106,9 @@ export default function Routes() {
       <Route path="/supr7" component={SUPR7} isPrivate />
       <Route path="/supr8" component={SUPR8} isPrivate />
       <Route path="/supr9/:tipo" component={SUPR9} isPrivate />
+
+      {/* MÓDULO SERVIÇOS */}
+      <Route path="/serv2" component={SERV2} isPrivate />
     </Switch>
   );
 }
