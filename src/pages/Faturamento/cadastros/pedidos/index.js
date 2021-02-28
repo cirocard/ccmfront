@@ -1625,7 +1625,9 @@ export default function FAT2() {
           // abortar caso o valor com desconto informado seja maior que o valor do pedido menos o valor nao descontável
 
           console.warn(
-            `valorLançado: ${valorPedidoLancado} SaldoPedido: ${valorSaldoPedido} valorFinaDesc: ${valorFinaDesc}  valorPedidoNegociado: ${valorPedidoNegociado}  cp_vlrnf: ${toDecimal(
+            `valorLançado: ${valorPedidoLancado} SaldoPedido: ${valorSaldoPedido} valorFinaDesc: ${valorFinaDesc.toFixed(
+              2
+            )}  valorPedidoNegociado: ${valorPedidoNegociado}  cp_vlrnf: ${toDecimal(
               frmCapa.current.getData().cp_vlr_nf
             )} nao descon: ${valorNaoDescontavel} DIFERENÇA: ${(
               toDecimal(frmCapa.current.getData().cp_vlr_nf) -
@@ -1634,7 +1636,7 @@ export default function FAT2() {
           );
 
           if (
-            valorFinaDesc >
+            valorFinaDesc.toFixed(2) >
               (
                 toDecimal(frmCapa.current.getData().cp_vlr_nf) -
                 valorNaoDescontavel

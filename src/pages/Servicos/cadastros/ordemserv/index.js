@@ -15,23 +15,32 @@ import {
   FaTools,
   FaUserTie,
 } from 'react-icons/fa';
-
+import moment from 'moment';
+import DatePickerInput from '~/componentes/DatePickerInput';
+import AsyncSelectForm from '~/componentes/Select/selectAsync';
 import FormSelect from '~/componentes/Select';
 import DialogInfo from '~/componentes/DialogInfo';
 import { gridTraducoes } from '~/services/gridTraducoes';
 import TabPanel from '~/componentes/TabPanel';
 import Input from '~/componentes/Input';
-import TextArea from '~/componentes/TextArea';
 import { BootstrapTooltip } from '~/componentes/ToolTip';
-
+import TextEditor from '~/componentes/Editor';
 import {
   a11yProps,
-  maskDecimal,
+  // maskDecimal,
   GridCurrencyFormatter,
   toDecimal,
 } from '~/services/func.uteis';
 import { ApiService, ApiTypes } from '~/services/api';
-import { Container, Panel, ToolBar, GridContainerMain } from './styles';
+import {
+  Container,
+  Panel,
+  ToolBar,
+  GridContainerMain,
+  GridContainerItens,
+  EditorContainer,
+  EditorFechamento,
+} from './styles';
 import {
   TitleBar,
   AreaComp,
@@ -42,7 +51,7 @@ import {
   Linha,
 } from '~/pages/general.styles';
 
-export default function SERV2() {
+export default function SERV3() {
   const api = ApiService.getInstance(ApiTypes.API1);
   const [valueTab, setValueTab] = useState(0);
   const frmPesquisa = useRef(null);
@@ -50,6 +59,18 @@ export default function SERV2() {
   const [loading, setLoading] = useState(false);
   const [gridPesquisa, setGridPesquisa] = useState([]);
   const [dataGridPesqSelected, setDataGridPesqSelected] = useState([]);
+  const [gridServico, setGridServico] = useState([]);
+  const [PesqCliente, setPesqCliente] = useState([]);
+  const [cliente, setCliente] = useState([]);
+  const [dataIni, setDataIni] = useState(moment().add(-1, 'day'));
+  const [dataFin, setDataFin] = useState(moment().add(7, 'day'));
+  const [dataEmiss, setDataEmiss] = useState(moment());
+  const [dataBaixa, setDataBaixa] = useState(moment());
+  const [optUsers, setOptUsers] = useState([]); // usuarios de uma empresa
+  const [solicitacaoCliente, setSolicitacaoCliente] = useState('');
+  const [servRealizado, setServRealizado] = useState('');
+  const [optClassific, setOptClassific] = useState([]); // classificacao da ordem de serviço
+  const [optServicos, setOptServicos] = useState([]);
 
   const toastOptions = {
     autoClose: 4000,
@@ -58,10 +79,77 @@ export default function SERV2() {
 
   // #region COMBO ========================
 
-  const optSituacao = [
-    { value: '1', label: 'ATIVO' },
-    { value: '2', label: 'INATIVO' },
+  const optTipo = [
+    { value: 'O', label: 'ORÇAMENTO' },
+    { value: 'S', label: 'ORDEM DE SERVIÇO' },
   ];
+
+  const optDATA = [
+    { value: '1', label: 'DATA DE EMISSAO' },
+    { value: '2', label: 'DATA BAIXA' },
+  ];
+
+  const loadOptionsCliente = async (inputText, callback) => {
+    if (inputText) {
+      const descricao = inputText.toUpperCase();
+
+      if (descricao.length > 2) {
+        const response = await api.get(
+          `v1/combos/combo_cliente?perfil=0&nome=${descricao}`
+        );
+        callback(
+          response.data.retorno.map((i) => ({ value: i.value, label: i.label }))
+        );
+      } else if (!Number.isNaN(descricao)) {
+        // consultar com menos de 3 digitos só se for numerico como codigo do cliente
+        const response = await api.get(
+          `v1/combos/combo_cliente?perfil=0&nome=${descricao}`
+        );
+        callback(
+          response.data.retorno.map((i) => ({ value: i.value, label: i.label }))
+        );
+      }
+    }
+  };
+
+  async function getComboUsers(emp_id) {
+    try {
+      const response = await api.get(`v1/combos/user_empresa/${emp_id}`);
+      const dados = response.data.retorno;
+      if (dados) {
+        setOptUsers(dados);
+      }
+    } catch (error) {
+      toast.error(`Erro ao carregar combo usuarios \n${error}`);
+    }
+  }
+
+  // combo geral
+  async function comboGeral(tab_id) {
+    try {
+      const response = await api.get(`v1/combos/geral/${tab_id}`);
+      const dados = response.data.retorno;
+      if (dados) {
+        if (tab_id === 34) {
+          setOptClassific(dados);
+        }
+      }
+    } catch (error) {
+      toast.error(`Erro ao carregar registro \n${error}`);
+    }
+  }
+
+  async function getComboServicos() {
+    try {
+      const response = await api.get(`v1/combos/servicos`);
+      const dados = response.data.retorno;
+      if (dados) {
+        setOptServicos(dados);
+      }
+    } catch (error) {
+      toast.error(`Erro ao carregar combo serviços \n${error}`);
+    }
+  }
 
   // #endregion
 
@@ -93,15 +181,11 @@ export default function SERV2() {
     frmCadastro.current.setFieldValue('serv_horas', '');
     frmCadastro.current.setFieldValue('serv_valor', '');
     frmCadastro.current.setFieldValue('serv_valor_ant', '');
-    frmCadastro.current.setFieldValue(
-      'serv_situacao',
-      optSituacao.find((op) => op.value.toString() === '1')
-    );
-    document.getElementsByName('serv_codigo')[0].focus();
+    setSolicitacaoCliente('');
     setValueTab(1);
   };
 
-  async function listarServico() {
+  async function listarOS() {
     try {
       setLoading(true);
       const formPesq = frmPesquisa.current.getData();
@@ -144,7 +228,7 @@ export default function SERV2() {
 
         frmCadastro.current.setFieldValue(
           'serv_situacao',
-          optSituacao.find(
+          optTipo.find(
             (op) =>
               op.value.toString() === dataGridPesqSelected[0].serv_situacao
           )
@@ -248,7 +332,7 @@ export default function SERV2() {
     if (newValue === 0) {
       limpaForm();
       setValueTab(newValue);
-      await listarServico();
+      await listarOS();
     } else if (newValue === 1) {
       const cadastro = frmCadastro.current.getData();
       if (cadastro.ct_id) {
@@ -256,11 +340,28 @@ export default function SERV2() {
       } else {
         await handleEdit();
       }
-    }
+    } else setValueTab(newValue);
+  };
+  const onChangeEditorSolicit = (vlr) => {
+    setSolicitacaoCliente(vlr);
   };
 
+  const onChangeEditorRealizado = (vlr) => {
+    setServRealizado(vlr);
+  };
+
+  function handleSelectServico(s) {
+    const aux = gridServico;
+    aux.push(s);
+    console.warn(aux);
+    setGridServico(aux);
+  }
+
   useEffect(() => {
-    listarServico();
+    listarOS();
+    getComboUsers(0);
+    comboGeral(34);
+    getComboServicos();
     setValueTab(0);
   }, []);
 
@@ -268,45 +369,50 @@ export default function SERV2() {
 
   const gridColumnPesquisa = [
     {
-      field: 'serv_id',
-      headerName: 'Nº SERVIÇO',
-      width: 130,
+      field: 'os_id',
+      headerName: 'Nº O.S',
+      width: 120,
       sortable: true,
       resizable: true,
       filter: false,
       lockVisible: true,
     },
     {
-      field: 'serv_codigo',
-      headerName: 'REFERÊNCIA',
-      width: 170,
-      sortable: true,
-      resizable: true,
-      filter: false,
-      lockVisible: true,
-    },
-    {
-      field: 'serv_titulo',
-      headerName: 'IDENTIFICAÇÃO',
-      width: 400,
-      sortable: true,
-      resizable: true,
-      filter: false,
-      lockVisible: true,
-    },
-    {
-      field: 'serv_valor',
-      headerName: 'VALOR',
+      field: 'data_emissao',
+      headerName: 'DATA EMISSÃO',
       width: 160,
       sortable: true,
       resizable: true,
       filter: false,
       lockVisible: true,
-      type: 'rightAligned',
-      valueFormatter: GridCurrencyFormatter,
-      cellStyle: { color: '#000', fontWeight: 'bold' },
     },
-
+    {
+      field: 'cliente',
+      headerName: 'CLIENTE',
+      width: 350,
+      sortable: true,
+      resizable: true,
+      filter: false,
+      lockVisible: true,
+    },
+    {
+      field: 'tecnico',
+      headerName: 'TECNICO/ATENDENTE',
+      width: 300,
+      sortable: true,
+      resizable: true,
+      filter: false,
+      lockVisible: true,
+    },
+    {
+      field: 'tipo',
+      headerName: 'TIPO',
+      width: 180,
+      sortable: true,
+      resizable: true,
+      filter: true,
+      lockVisible: true,
+    },
     {
       field: 'situacao',
       headerName: 'SITUAÇÃO',
@@ -315,6 +421,46 @@ export default function SERV2() {
       resizable: true,
       filter: true,
       lockVisible: true,
+    },
+    {
+      flex: 1,
+    },
+  ];
+
+  // #endregion
+
+  // #region GRID SERVIÇOS  =========================
+
+  const gridColumnServico = [
+    {
+      field: 'serv_codigo',
+      headerName: 'CÓDIGO SERVIÇO',
+      width: 120,
+      sortable: true,
+      resizable: true,
+      filter: false,
+      lockVisible: true,
+    },
+    {
+      field: 'serv_titulo',
+      headerName: 'IDENTIFICAÇÃO SERVIÇO',
+      width: 300,
+      sortable: true,
+      resizable: true,
+      filter: false,
+      lockVisible: true,
+    },
+    {
+      field: 'serv_valor',
+      headerName: 'VALOR',
+      width: 120,
+      sortable: true,
+      resizable: true,
+      filter: false,
+      lockVisible: true,
+      type: 'rightAligned',
+      valueFormatter: GridCurrencyFormatter,
+      cellStyle: { color: '#000', fontWeight: 'bold' },
     },
     {
       flex: 1,
@@ -357,7 +503,7 @@ export default function SERV2() {
       <Container>
         <Scroll>
           <TitleBar bckgnd="#dae2e5">
-            <h1>CADASTRO DE SERVIÇOS</h1>
+            <h1>CERENCIAMENTO DE ORDENS DE SERVIÇO</h1>
             <BootstrapTooltip title="Voltar para Dashboard" placement="top">
               <button type="button" onClick={handleDashboard}>
                 <MdClose size={30} color="#244448" />
@@ -376,17 +522,17 @@ export default function SERV2() {
               textColor="primary"
             >
               <BootstrapTooltip
-                title="Consultar Serviços Cadastrado"
+                title="Consultar O.S cadastrada"
                 placement="top-start"
               >
                 <Tab
-                  label="CONSULTAR SERVIÇOS"
+                  label="CONSULTAR O.S"
                   {...a11yProps(0)}
                   icon={<FaSearch size={29} color="#244448" />}
                 />
               </BootstrapTooltip>
               <BootstrapTooltip
-                title="CADASTRAR/EDITAR SERVIÇOS"
+                title="CADASTRAR/EDITAR O.S"
                 placement="top-end"
               >
                 <Tab
@@ -396,6 +542,14 @@ export default function SERV2() {
                   icon={<FaFileSignature size={26} color="#244448" />}
                 />
               </BootstrapTooltip>
+              <BootstrapTooltip title="FECHAMENTO O.S" placement="top-end">
+                <Tab
+                  disabled={false}
+                  label="FECHAR O.S"
+                  {...a11yProps(1)}
+                  icon={<FaTools size={26} color="#244448" />}
+                />
+              </BootstrapTooltip>
             </Tabs>
           </AppBar>
 
@@ -403,42 +557,53 @@ export default function SERV2() {
           <TabPanel value={valueTab} index={0}>
             <Panel lefth1="left" bckgnd="#dae2e5">
               <Form id="frmPesquisa" ref={frmPesquisa}>
-                <h1>CONSULTAR SERVIÇOS CADASTRADOS</h1>
-                <BoxItemCad fr="1fr 1fr 3fr 1fr">
+                <h1>CONSULTAR O.S CADASTRADOS</h1>
+                <BoxItemCad fr="1fr 3fr 1fr 1fr 1fr">
                   <AreaComp wd="100">
-                    <label>código</label>
+                    <label>Nº O.S</label>
                     <Input
                       type="text"
-                      name="pesq_serv_id"
-                      placeholder="Nº serviço"
+                      name="pesq_os_id"
+                      placeholder="Nº O.S"
                       className="input_cad"
                     />
                   </AreaComp>
                   <AreaComp wd="100">
-                    <label>Referência</label>
-                    <Input
-                      type="text"
-                      name="pesq_serv_codigo"
-                      placeholder="Referência"
-                      className="input_cad"
-                    />
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <label>Identificação</label>
-                    <Input
-                      type="text"
-                      name="pesq_serv_titulo"
-                      placeholder="IDENTIFICAÇÃO DO SERVIÇO"
-                      className="input_cad"
+                    <AsyncSelectForm
+                      name="pesq_os_cli_id"
+                      label="CLIENTE"
+                      placeholder="NÃO INFORMADO"
+                      defaultOptions
+                      cacheOptions
+                      value={PesqCliente}
+                      onChange={(c) => setPesqCliente(c || [])}
+                      loadOptions={loadOptionsCliente}
+                      isClearable
+                      zindex="153"
                     />
                   </AreaComp>
                   <AreaComp wd="100">
                     <FormSelect
-                      label="situação do cadastro"
-                      name="pesq_serv_situacao"
-                      optionsList={optSituacao}
+                      label="filtrar por"
+                      name="pesq_data"
+                      optionsList={optDATA}
                       placeholder="NÃO INFORMADO"
                       zindex="153"
+                      clearable={false}
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <DatePickerInput
+                      onChangeDate={(date) => setDataIni(new Date(date))}
+                      value={dataIni}
+                      label="Data Inicial:"
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <DatePickerInput
+                      onChangeDate={(date) => setDataFin(new Date(date))}
+                      value={dataFin}
+                      label="Data Final:"
                     />
                   </AreaComp>
                 </BoxItemCad>
@@ -458,84 +623,137 @@ export default function SERV2() {
             </Panel>
           </TabPanel>
 
-          {/* ABA CADASTRO */}
-          <TabPanel value={valueTab} index={1}>
-            <Panel lefth1="left" bckgnd="#dae2e5">
-              <Form id="frmCadastro" ref={frmCadastro}>
-                <h1>CADASTRO DE SERVIÇOS</h1>
-                <BoxItemCad fr="1fr 1fr 3fr">
+          <Form id="frmCadastro" ref={frmCadastro}>
+            {/* ABA CADASTRO */}
+            <TabPanel value={valueTab} index={1}>
+              <Panel lefth1="left" bckgnd="#dae2e5">
+                <h1>CADASTRO DE O.S</h1>
+                <BoxItemCad fr="1fr 1fr 1fr 2fr 2fr">
                   <AreaComp wd="100">
-                    <label>Código</label>
+                    <label>Nº O.S</label>
                     <Input
                       type="number"
-                      name="serv_id"
+                      name="os_id"
                       readOnly
                       className="input_cad"
                     />
                   </AreaComp>
                   <AreaComp wd="100">
-                    <label>referência</label>
-                    <Input
-                      type="text"
-                      name="serv_codigo"
-                      className="input_cad"
+                    <DatePickerInput
+                      onChangeDate={(date) => setDataEmiss(new Date(date))}
+                      value={dataEmiss}
+                      label="Data Emissão"
                     />
                   </AreaComp>
                   <AreaComp wd="100">
-                    <label>identificação</label>
-                    <Input
-                      type="text"
-                      name="serv_titulo"
-                      className="input_cad"
-                    />
-                  </AreaComp>
-                </BoxItemCad>
-                <BoxItemCadNoQuery fr="1fr">
-                  <AreaComp wd="100">
-                    <label>descrição detalhada</label>
-                    <TextArea type="text" name="serv_descricao" rows="4" />
-                  </AreaComp>
-                </BoxItemCadNoQuery>
-                <BoxItemCad fr="1fr 1fr 1fr 1fr">
-                  <AreaComp wd="100">
-                    <label>Tempo Exec (Hs)</label>
-                    <Input
-                      type="number"
-                      name="serv_horas"
-                      className="input_cad"
-                    />
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <label>Valor Anterior</label>
-                    <Input
-                      type="text"
-                      name="serv_valor_ant"
-                      className="input_cad"
-                      readOnly
-                    />
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <label>Valor Serviço</label>
-                    <Input
-                      type="text"
-                      name="serv_valor"
-                      className="input_cad"
-                      onChange={maskDecimal}
+                    <DatePickerInput
+                      onChangeDate={(date) => setDataBaixa(new Date(date))}
+                      value={dataBaixa}
+                      label="Previsão Baixa"
+                      dateAndTime
                     />
                   </AreaComp>
                   <AreaComp wd="100">
                     <FormSelect
-                      label="situação do cadastro"
-                      name="serv_situacao"
-                      optionsList={optSituacao}
+                      label="tipo cadastro"
+                      name="pesq_data"
+                      optionsList={optTipo}
                       placeholder="NÃO INFORMADO"
                       zindex="153"
+                      clearable={false}
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <FormSelect
+                      label="Classificação"
+                      name="pesq_data"
+                      optionsList={optClassific}
+                      placeholder="NÃO INFORMADO"
+                      zindex="153"
+                      clearable={false}
                     />
                   </AreaComp>
                 </BoxItemCad>
-              </Form>
-            </Panel>
-          </TabPanel>
+                <BoxItemCad fr="1fr 1fr">
+                  <AreaComp wd="100">
+                    <AsyncSelectForm
+                      name="os_cli_id"
+                      label="CLIENTE"
+                      placeholder="NÃO INFORMADO"
+                      defaultOptions
+                      cacheOptions
+                      value={cliente}
+                      onChange={(c) => setCliente(c || [])}
+                      loadOptions={loadOptionsCliente}
+                      isClearable
+                      zindex="152"
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <FormSelect
+                      label="técnico/atendente"
+                      name="pesq_data"
+                      optionsList={optUsers}
+                      placeholder="NÃO INFORMADO"
+                      zindex="152"
+                      clearable={false}
+                    />
+                  </AreaComp>
+                </BoxItemCad>
+                <BoxItemCadNoQuery fr="1fr 1fr">
+                  <AreaComp wd="100" lblWeight="700">
+                    <EditorContainer>
+                      <label>SOLICITAÇÃO DO CLIENTE</label>
+                      <TextEditor
+                        onChangeFn={onChangeEditorSolicit}
+                        value={solicitacaoCliente}
+                      />
+                    </EditorContainer>
+                  </AreaComp>
+                  <AreaComp wd="100" ptop="6px" lblWeight="700">
+                    <FormSelect
+                      label="servicos solicitados"
+                      name="pesq_data"
+                      optionsList={optServicos}
+                      placeholder="NÃO INFORMADO"
+                      onChange={(s) => handleSelectServico(s || [])}
+                      zindex="153"
+                    />
+                    <GridContainerItens className="ag-theme-balham">
+                      <AgGridReact
+                        columnDefs={gridColumnServico}
+                        rowData={gridServico}
+                        rowSelection="single"
+                        animateRows
+                        gridOptions={{ localeText: gridTraducoes }}
+                      />
+                    </GridContainerItens>
+                  </AreaComp>
+                </BoxItemCadNoQuery>
+              </Panel>
+            </TabPanel>
+
+            {/* ABA FECHAMENTO */}
+            <TabPanel value={valueTab} index={2}>
+              <Panel lefth1="left" bckgnd="#dae2e5">
+                <h1>FECHAMENTO DA O.S</h1>
+
+                <BoxItemCadNoQuery fr="1fr">
+                  <AreaComp wd="100" lblWeight="700">
+                    <EditorFechamento>
+                      <label>
+                        INFORMAÇÕES ADICIONAIS / PARECER TÉCNICO DA LOJA
+                      </label>
+                      <TextEditor
+                        onChangeFn={onChangeEditorRealizado}
+                        value={servRealizado}
+                      />
+                    </EditorFechamento>
+                  </AreaComp>
+                </BoxItemCadNoQuery>
+              </Panel>
+            </TabPanel>
+          </Form>
         </Scroll>
       </Container>
       {/* popup para aguarde... */}
@@ -544,7 +762,7 @@ export default function SERV2() {
         closeDialogFn={() => {
           setLoading(false);
         }}
-        title="CADASTRO DE SERVIÇOS"
+        title="CADASTRO DE ORDENS DE SERVIÇO"
         message="Aguarde Processamento..."
       />
     </>

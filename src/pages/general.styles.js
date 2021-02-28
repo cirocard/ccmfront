@@ -151,7 +151,7 @@ export const AreaComp = styled.div`
     color: ${(props) => props.lblColor || '#2A404A'};
     font-size: ${(props) => props.lblFontSize || '11px'};
     text-transform: uppercase;
-    font-weight: 500;
+    font-weight: ${(props) => props.lblWeight || 500};
     margin: 7px 0 3px 0;
   }
 

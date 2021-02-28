@@ -53,6 +53,7 @@ import SUPR9 from '~/pages/Suprimentos/relatorios/';
 
 // SERVIÇOS
 import SERV2 from '~/pages/Servicos/cadastros/servico';
+import SERV3 from '~/pages/Servicos/cadastros/ordemserv';
 
 export default function Routes() {
   // /:parametro+  o mais é pra pegar tudo certinho q vem depois da barra
@@ -109,6 +110,7 @@ export default function Routes() {
 
       {/* MÓDULO SERVIÇOS */}
       <Route path="/serv2" component={SERV2} isPrivate />
+      <Route path="/serv3" component={SERV3} isPrivate />
     </Switch>
   );
 }
