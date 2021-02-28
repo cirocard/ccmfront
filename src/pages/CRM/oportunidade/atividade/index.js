@@ -81,7 +81,7 @@ export default function Crm6() {
     // theme: 'dark',
     toolbarButtonSize: 'small',
     buttons:
-      'bold,strikethrough,underline,eraser,brush,ul,ol,outdent,indent,font,fontsize,,image,video,table,link,align,undo,redo,selectall,hr,fullsize',
+      'bold,strikethrough,underline,eraser,brush,ul,ol,outdent,indent,font,fontsize,image,video,table,link,align,undo,redo,selectall,hr,fullsize',
     height: 285,
     allowResizeY: false,
     uploader: {
@@ -482,6 +482,7 @@ export default function Crm6() {
       atv_neg_id: neg_id,
       atv_registros: content,
     };
+    console.warn(reg);
     const response = await api.post(`v1/crm/cad/atividade`, reg);
     if (response.data.success) {
       await listaAtividade();
