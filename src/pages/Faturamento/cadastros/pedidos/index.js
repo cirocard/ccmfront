@@ -1636,12 +1636,13 @@ export default function FAT2() {
           );
           */
 
-          const limiteDesc =
+          const limiteDesc = (
             toDecimal(frmCapa.current.getData().cp_vlr_nf) -
-            toDecimal(valorNaoDescontavel).toFixed(2);
+            toDecimal(valorNaoDescontavel)
+          ).toFixed(2);
 
           if (
-            toDecimal(valorFinaDesc.toFixed(2)) > limiteDesc &&
+            toDecimal(valorFinaDesc.toFixed(2)) > toDecimal(limiteDesc) &&
             toDecimal(formFina.fina_perc_desc) > 0
           ) {
             toast.error(

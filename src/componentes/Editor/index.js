@@ -54,7 +54,7 @@ export default function TextEditor({
     showWordsCounter: true,
     toolbarSticky: true,
     style: {
-      background: '#F2F3F9',
+      background: '#F7FAD1',
       color: '#252A26',
       fontSize: '15px',
       lineHeight: '80%',
