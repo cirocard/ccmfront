@@ -351,11 +351,32 @@ export default function SERV3() {
   };
 
   function handleSelectServico(s) {
-    const aux = gridServico;
-    aux.push(s);
-    console.warn(aux);
-    setGridServico(aux);
+    if (s) {
+      const grid = [];
+      gridServico.forEach((g) => {
+        grid.push(g);
+      });
+      grid.push(s);
+      setGridServico(grid);
+    }
   }
+
+  const gridValidationsQtd = (newValue) => {
+    if (!newValue) {
+      toast.info('Informe uma quantidade válida', toastOptions);
+      return false;
+    }
+    return true;
+  };
+
+  const handleEditarQuantidade = async (prm) => {
+    try {
+      console.warn(prm);
+    } catch (err) {
+      setLoading(false);
+      toast.error(`Erro ao alterar quantidade: ${err}`, toastOptions);
+    }
+  };
 
   useEffect(() => {
     listarOS();
@@ -434,7 +455,7 @@ export default function SERV3() {
   const gridColumnServico = [
     {
       field: 'serv_codigo',
-      headerName: 'CÓDIGO SERVIÇO',
+      headerName: 'CÓDIGO',
       width: 120,
       sortable: true,
       resizable: true,
@@ -451,9 +472,25 @@ export default function SERV3() {
       lockVisible: true,
     },
     {
+      field: 'osi_quantidade',
+      headerName: 'QTD. LANÇADA',
+      width: 110,
+      sortable: true,
+      editable: true,
+      type: 'rightAligned',
+      /* metodo para edição na grid  */
+      onCellValueChanged: handleEditarQuantidade,
+      cellEditorParams: {
+        validacoes: gridValidationsQtd,
+      },
+      resizable: true,
+      lockVisible: true,
+      cellClass: 'cell_quantity',
+    },
+    {
       field: 'serv_valor',
       headerName: 'VALOR',
-      width: 120,
+      width: 130,
       sortable: true,
       resizable: true,
       filter: false,
@@ -700,7 +737,7 @@ export default function SERV3() {
                     />
                   </AreaComp>
                 </BoxItemCad>
-                <BoxItemCadNoQuery fr="1fr 1fr">
+                <BoxItemCad fr="1fr 1fr">
                   <AreaComp wd="100" lblWeight="700">
                     <EditorContainer>
                       <label>SOLICITAÇÃO DO CLIENTE</label>
@@ -713,10 +750,12 @@ export default function SERV3() {
                   <AreaComp wd="100" ptop="6px" lblWeight="700">
                     <FormSelect
                       label="servicos solicitados"
-                      name="pesq_data"
+                      name="servico_solicitado"
                       optionsList={optServicos}
                       placeholder="NÃO INFORMADO"
-                      onChange={(s) => handleSelectServico(s || [])}
+                      onChange={(s) => {
+                        if (s) handleSelectServico(s);
+                      }}
                       zindex="153"
                     />
                     <GridContainerItens className="ag-theme-balham">
@@ -729,7 +768,7 @@ export default function SERV3() {
                       />
                     </GridContainerItens>
                   </AreaComp>
-                </BoxItemCadNoQuery>
+                </BoxItemCad>
               </Panel>
             </TabPanel>
 
