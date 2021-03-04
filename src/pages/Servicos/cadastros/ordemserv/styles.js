@@ -220,7 +220,7 @@ export const GridContainerMain = styled.div`
   padding: 8px 5px 0 0;
 
   .warn-finalizado {
-    background-color: #f3ff33 !important;
+    background-color: #dbf2df !important;
   }
 
   .warn-cancelado {
