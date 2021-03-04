@@ -18,6 +18,7 @@ import {
   FaTrashAlt,
   FaPrint,
   FaHammer,
+  FaBan,
 } from 'react-icons/fa';
 import moment from 'moment';
 import { format } from 'date-fns';
@@ -239,6 +240,7 @@ export default function SERV3() {
     setTotalServ(0);
     setTotalDesc(0);
     setGridServico([]);
+    setDataGridPesqSelected([]);
     setDataBaixa(new Date());
     setDataEmiss(new Date());
     setResumoItens(`Valor total O.S: ${FormataMoeda(0)}`);
@@ -355,6 +357,8 @@ export default function SERV3() {
         }
 
         setLoading(false);
+      } else {
+        setValueTab(0);
       }
     } catch (error) {
       setLoading(false);
@@ -419,7 +423,7 @@ export default function SERV3() {
           toast.info('Cadastro concluído com sucesso!!!', toastOptions);
         } else {
           toast.error(
-            `Houve erro no processamento!! ${retorno.data.message}`,
+            `Houve erro no processamento!! ${retorno.data.errors}`,
             toastOptions
           );
         }
@@ -479,6 +483,36 @@ export default function SERV3() {
       await schemaClose.validate(formData, {
         abortEarly: false,
       });
+      setLoading(true);
+      const objCad = {
+        os_emp_id: null,
+        os_id: formData.os_id ? parseInt(formData.os_id, 10) : null,
+        os_cli_id: formData.os_cli_id,
+        os_data_emissao: format(dataEmiss, 'yyyy-MM-dd HH:mm:ss'),
+        os_data_baixa: format(dataBaixa, 'yyyy-MM-dd HH:mm:ss'),
+        os_classificacao: formData.os_classificacao,
+        os_solicitacao_cli: solicitacaoCliente,
+        os_atividade: servRealizado,
+        os_fpgto_id: formData.os_fpgto_id || null,
+        os_condvcto_id: formData.os_condvcto_id || null,
+        os_grprec_id: formData.os_grprec_id || null,
+        os_valor: toDecimal(totalServ.toFixed(2)),
+        os_vlr_desc: toDecimal(totalDesc),
+        os_tipo: formData.os_tipo,
+        os_situacao: '3',
+      };
+
+      const retorno = await api.put('v1/serv/os', objCad);
+      if (retorno.data.success) {
+        await listarOS();
+        toast.success('O.S concluída com Sucesso!!!', toastOptions);
+      } else {
+        toast.error(
+          `Houve erro no processamento!! ${retorno.data.errors}`,
+          toastOptions
+        );
+      }
+      setLoading(false);
     } catch (err) {
       const validationErrors = {};
       if (err instanceof Yup.ValidationError) {
@@ -504,20 +538,68 @@ export default function SERV3() {
     }
   }
 
+  async function handleCancelar() {
+    try {
+      if (dataGridPesqSelected.length > 0) {
+        setLoading(true);
+        const objCad = {
+          os_emp_id: null,
+          os_id: dataGridPesqSelected[0].os_id,
+          os_situacao: '2',
+        };
+
+        const retorno = await api.put('v1/serv/os/cancelar', objCad);
+        if (retorno.data.success) {
+          await listarOS();
+          toast.success('O.S cancelada com Sucesso!!!', toastOptions);
+        } else {
+          toast.error(
+            `Houve erro no processamento!! ${retorno.data.errors}`,
+            toastOptions
+          );
+        }
+        setLoading(false);
+      } else {
+        toast.error('Selecione a O.S que deseja cancelar', toastOptions);
+      }
+    } catch (error) {
+      setLoading(false);
+      toast.error(`Erro ao imprimir O.S \n${error}`, toastOptions);
+    }
+  }
+
   const handleChangeTab = async (event, newValue) => {
     let cadastro = frmCadastro.current.getData();
     if (newValue === 0) {
+      frmCadastro.current.setFieldValue('os_id', '');
       setDataGridPesqSelected([]);
+      setGridPesquisa([]);
       setValueTab(newValue);
       await listarOS();
     } else if (newValue === 1) {
-      cadastro = frmCadastro.current.getData();
-      if (!cadastro.os_id) {
-        await handleEdit();
-        setValueTab(newValue);
-      } else setValueTab(newValue);
+      if (dataGridPesqSelected.length > 0) {
+        cadastro = frmCadastro.current.getData();
+        if (cadastro.os_id) {
+          setValueTab(newValue);
+        } else {
+          await handleEdit();
+          setValueTab(newValue);
+        }
+      } else {
+        setValueTab(0);
+      }
     } else if (newValue === 2) {
-      setValueTab(newValue);
+      cadastro = frmCadastro.current.getData();
+      if (dataGridPesqSelected.length > 0 || cadastro.os_id) {
+        if (cadastro.os_id) {
+          setValueTab(newValue);
+        } else {
+          await handleEdit();
+          setValueTab(newValue);
+        }
+      } else {
+        setValueTab(0);
+      }
     }
   };
 
@@ -852,6 +934,13 @@ export default function SERV3() {
             <FaPrint size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
+        <DivLimitador hg="10px" />
+
+        <BootstrapTooltip title="Cancelar O.S" placement="left">
+          <button type="button" onClick={handleCancelar}>
+            <FaBan size={25} color="#fff" />
+          </button>
+        </BootstrapTooltip>
 
         <DivLimitador hg="20px" />
         <Linha />
@@ -915,7 +1004,7 @@ export default function SERV3() {
                 <Tab
                   disabled={false}
                   label="FECHAR O.S"
-                  {...a11yProps(1)}
+                  {...a11yProps(2)}
                   icon={<FaTools size={26} color="#244448" />}
                 />
               </BootstrapTooltip>
@@ -985,6 +1074,16 @@ export default function SERV3() {
                       animateRows
                       gridOptions={{ localeText: gridTraducoes }}
                       onSelectionChanged={handleSelectGridPesquisa}
+                      rowClassRules={{
+                        'warn-finalizado': function (p) {
+                          const finalizado = p.data.os_situacao;
+                          return finalizado === 'O.S FINALIZADA';
+                        },
+                        'warn-cancelado': function (p) {
+                          const cancelado = p.data.os_situacao;
+                          return cancelado === 'O.S CANCELADA';
+                        },
+                      }}
                     />
                   </GridContainerMain>
                 </BoxItemCadNoQuery>
