@@ -29,9 +29,8 @@ export default function TextEditor({
       'right',
       'justify',
       'hr',
-      'selectall',
+
       'fullsize',
-      'ol',
     ],
 
     allowResizeY: false,
@@ -48,6 +47,8 @@ export default function TextEditor({
       'link',
       'eraser',
       'fullsize',
+      'ol',
+      'selectall',
     ],
     showXPathInStatusbar: false,
     showCharsCounter: true,
@@ -55,9 +56,11 @@ export default function TextEditor({
     toolbarSticky: true,
     style: {
       background: '#F7FAD1',
+      position: 'absolute',
+      height: '100% !important',
       color: '#252A26',
       fontSize: '15px',
-      lineHeight: '80%',
+      lineHeight: '1.6',
     },
   });
 

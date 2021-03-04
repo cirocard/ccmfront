@@ -14,8 +14,13 @@ import {
   FaFileSignature,
   FaTools,
   FaUserTie,
+  FaCheckCircle,
+  FaTrashAlt,
+  FaPrint,
+  FaHammer,
 } from 'react-icons/fa';
 import moment from 'moment';
+import { format } from 'date-fns';
 import DatePickerInput from '~/componentes/DatePickerInput';
 import AsyncSelectForm from '~/componentes/Select/selectAsync';
 import FormSelect from '~/componentes/Select';
@@ -30,6 +35,7 @@ import {
   // maskDecimal,
   GridCurrencyFormatter,
   toDecimal,
+  FormataMoeda,
 } from '~/services/func.uteis';
 import { ApiService, ApiTypes } from '~/services/api';
 import {
@@ -40,6 +46,7 @@ import {
   GridContainerItens,
   EditorContainer,
   EditorFechamento,
+  DivGeral,
 } from './styles';
 import {
   TitleBar,
@@ -62,15 +69,21 @@ export default function SERV3() {
   const [gridServico, setGridServico] = useState([]);
   const [PesqCliente, setPesqCliente] = useState([]);
   const [cliente, setCliente] = useState([]);
-  const [dataIni, setDataIni] = useState(moment().add(-1, 'day'));
-  const [dataFin, setDataFin] = useState(moment().add(7, 'day'));
-  const [dataEmiss, setDataEmiss] = useState(moment());
-  const [dataBaixa, setDataBaixa] = useState(moment());
+  const [dataIni, setDataIni] = useState();
+  const [dataFin, setDataFin] = useState();
+  const [dataEmiss, setDataEmiss] = useState(new Date());
+  const [dataBaixa, setDataBaixa] = useState(new Date());
   const [optUsers, setOptUsers] = useState([]); // usuarios de uma empresa
   const [solicitacaoCliente, setSolicitacaoCliente] = useState('');
   const [servRealizado, setServRealizado] = useState('');
   const [optClassific, setOptClassific] = useState([]); // classificacao da ordem de serviço
   const [optServicos, setOptServicos] = useState([]);
+  const [remumoItens, setResumoItens] = useState('');
+  const [totalServ, setTotalServ] = useState(0);
+  const [totalDesc, setTotalDesc] = useState(0);
+  const [optGrpRec, setOptGrpRec] = useState([]);
+  const [optCvto, setOptCvto] = useState([]);
+  const [optFpgto, setOptFpgto] = useState([]);
 
   const toastOptions = {
     autoClose: 4000,
@@ -111,6 +124,49 @@ export default function SERV3() {
       }
     }
   };
+
+  // grupo de receita
+  async function handleGrupoRec() {
+    try {
+      const response = await api.get(`v1/combos/agrupador_recdesp/1/2`);
+      const dados = response.data.retorno;
+      if (dados) {
+        setOptGrpRec(dados);
+      }
+    } catch (error) {
+      setLoading(false);
+      toast.error(
+        `Erro ao gerar referencia agrupadora \n${error}`,
+        toastOptions
+      );
+    }
+  }
+
+  // forma pagamento
+  async function getComboFpgto() {
+    try {
+      const response = await api.get(`v1/combos/geral/6`);
+      const dados = response.data.retorno;
+      if (dados) {
+        setOptFpgto(dados);
+      }
+    } catch (error) {
+      toast.error(`Erro ao carregar combo forma de pagamento \n${error}`);
+    }
+  }
+
+  // condicao de vencimento
+  async function getComboCondVcto() {
+    try {
+      const response = await api.get(`v1/combos/condvcto`);
+      const dados = response.data.retorno;
+      if (dados) {
+        setOptCvto(dados);
+      }
+    } catch (error) {
+      toast.error(`Erro ao carregar combo Condição de vencimento \n${error}`);
+    }
+  }
 
   async function getComboUsers(emp_id) {
     try {
@@ -155,11 +211,17 @@ export default function SERV3() {
 
   // #region SCHEMA VALIDATIONS =====================
   const schemaCad = Yup.object().shape({
-    serv_codigo: Yup.string().required('(??)'),
-    serv_titulo: Yup.string().required('(??)'),
-    serv_horas: Yup.string().required('(??)'),
+    os_tecnico_id: Yup.string().required('(??)'),
+    os_cli_id: Yup.string().required('(??)'),
+    os_classificacao: Yup.string().required('(??)'),
+    os_tipo: Yup.string().required('(??)'),
   });
 
+  const schemaClose = Yup.object().shape({
+    os_fpgto_id: Yup.string().required('(??)'),
+    os_condvcto_id: Yup.string().required('(??)'),
+    os_grprec_id: Yup.string().required('(??)'),
+  });
   // #endregion
 
   function handleDashboard() {
@@ -174,14 +236,26 @@ export default function SERV3() {
   };
 
   const limpaForm = () => {
-    frmCadastro.current.setFieldValue('serv_id', '');
-    frmCadastro.current.setFieldValue('serv_codigo', '');
-    frmCadastro.current.setFieldValue('serv_titulo', '');
-    frmCadastro.current.setFieldValue('serv_descricao', '');
-    frmCadastro.current.setFieldValue('serv_horas', '');
-    frmCadastro.current.setFieldValue('serv_valor', '');
-    frmCadastro.current.setFieldValue('serv_valor_ant', '');
+    setTotalServ(0);
+    setTotalDesc(0);
+    setGridServico([]);
+    setDataBaixa(new Date());
+    setDataEmiss(new Date());
+    setResumoItens(`Valor total O.S: ${FormataMoeda(0)}`);
+    frmCadastro.current.setFieldValue('os_id', '');
+    frmCadastro.current.setFieldValue('os_tecnico_id', '');
+    frmCadastro.current.setFieldValue('os_cli_id', '');
+    frmCadastro.current.setFieldValue('os_classificacao', '');
+    frmCadastro.current.setFieldValue('os_fpgto_id', '');
+    frmCadastro.current.setFieldValue('os_condvcto_id', '');
+    frmCadastro.current.setFieldValue('os_valor', '');
+    frmCadastro.current.setFieldValue('os_tipo', '');
+    frmCadastro.current.setFieldValue('os_situacao', '');
+    frmCadastro.current.setFieldValue('os_grprec_id', '');
+    frmCadastro.current.setFieldValue('servico_solicitado', '');
+    frmCadastro.current.setFieldValue('valorOS', 'R$0,00');
     setSolicitacaoCliente('');
+    setServRealizado('');
     setValueTab(1);
   };
 
@@ -190,7 +264,11 @@ export default function SERV3() {
       setLoading(true);
       const formPesq = frmPesquisa.current.getData();
       const response = await api.get(
-        `v1/serv/servicos?serv_id=${formPesq.pesq_serv_id}&serv_codigo=${formPesq.pesq_serv_codigo}&serv_titulo=${formPesq.pesq_serv_titulo}&serv_situacao=${formPesq.pesq_serv_situacao}`
+        `v1/serv/os?os_id=${formPesq.pesq_os_id}&cli_id=${
+          formPesq.pesq_cli_id || ''
+        }&tecnico_id=&tpData=${formPesq.pesq_tpData || '1'}&dataIni=${moment(
+          dataIni
+        ).format('YYYY-MM-DD')}&dataFin=${moment(dataFin).format('YYYY-MM-DD')}`
       );
       const dados = response.data.retorno;
       if (dados) {
@@ -207,53 +285,76 @@ export default function SERV3() {
     try {
       if (dataGridPesqSelected.length > 0) {
         setLoading(true);
-        frmCadastro.current.setFieldValue(
-          'serv_id',
-          dataGridPesqSelected[0].serv_id
-        );
-        frmCadastro.current.setFieldValue(
-          'serv_codigo',
-          dataGridPesqSelected[0].serv_codigo
-        );
 
-        frmCadastro.current.setFieldValue(
-          'serv_descricao',
-          dataGridPesqSelected[0].serv_descricao
+        const response = await api.get(
+          `v1/serv/os/os_by_id?os_id=${dataGridPesqSelected[0].os_id}`
         );
+        if (response.data.success) {
+          const { capa, itens } = response.data.retorno;
+          frmCadastro.current.setFieldValue('os_id', capa.os_id);
+          setDataEmiss(Date.parse(capa.os_data_emissao.substring(0, 19)));
+          setDataBaixa(Date.parse(capa.os_data_baixa.substring(0, 19)));
+          setSolicitacaoCliente(capa.os_solicitacao_cli || '');
+          setServRealizado(capa.os_atividade || '');
+          frmCadastro.current.setFieldValue(
+            'os_tipo',
+            optTipo.find((op) => op.value.toString() === capa.os_tipo)
+          );
+          frmCadastro.current.setFieldValue(
+            'os_classificacao',
+            optClassific.find(
+              (op) => op.value.toString() === capa.os_classificacao.toString()
+            )
+          );
+          frmCadastro.current.setFieldValue(
+            'os_tecnico_id',
+            optUsers.find(
+              (op) => op.value.toString() === capa.os_tecnico_id.toString()
+            )
+          );
 
-        frmCadastro.current.setFieldValue(
-          'serv_titulo',
-          dataGridPesqSelected[0].serv_titulo
-        );
+          if (capa.os_grprec_id) {
+            frmCadastro.current.setFieldValue(
+              'os_grprec_id',
+              optGrpRec.find(
+                (op) => op.value.toString() === capa.os_grprec_id.toString()
+              )
+            );
+          }
 
-        frmCadastro.current.setFieldValue(
-          'serv_situacao',
-          optTipo.find(
-            (op) =>
-              op.value.toString() === dataGridPesqSelected[0].serv_situacao
-          )
-        );
-        frmCadastro.current.setFieldValue(
-          'serv_horas',
-          dataGridPesqSelected[0].serv_horas
-        );
-        frmCadastro.current.setFieldValue(
-          'serv_valor',
-          dataGridPesqSelected[0].serv_valor
-        );
-        frmCadastro.current.setFieldValue(
-          'serv_valor_ant',
-          dataGridPesqSelected[0].serv_valor_ant
-        );
-        frmCadastro.current.setFieldValue(
-          'ct_contacorr_dv',
-          dataGridPesqSelected[0].ct_contacorr_dv
-        );
+          if (capa.os_fpgto_id) {
+            frmCadastro.current.setFieldValue(
+              'os_fpgto_id',
+              optFpgto.find(
+                (op) => op.value.toString() === capa.os_fpgto_id.toString()
+              )
+            );
+          }
+          if (capa.os_condvcto_id) {
+            frmCadastro.current.setFieldValue(
+              'os_condvcto_id',
+              optCvto.find(
+                (op) => op.value.toString() === capa.os_condvcto_id.toString()
+              )
+            );
+          }
+          await loadOptionsCliente(capa.os_cli_id, setCliente);
 
-        setValueTab(1);
+          frmCadastro.current.setFieldValue('os_cli_id', {
+            value: capa.os_cli_id,
+            label: capa.cli_razao_social,
+          });
+          frmCadastro.current.setFieldValue(
+            'valorOS',
+            FormataMoeda(capa.os_valor)
+          );
+          setTotalServ(toDecimal(capa.os_valor));
+          setTotalDesc(toDecimal(capa.os_vlr_desc));
+          setResumoItens(`Valor total O.S: ${FormataMoeda(capa.os_valor)}`);
+          setGridServico(itens);
+        }
+
         setLoading(false);
-      } else {
-        setValueTab(0);
       }
     } catch (error) {
       setLoading(false);
@@ -271,27 +372,51 @@ export default function SERV3() {
         });
 
         setLoading(true);
+        const itens = [];
+        let index = 0;
+        gridServico.forEach((g) => {
+          if (g.persistido) index = parseInt(g.osi_id, 10);
+          const it = {
+            osi_os_emp_id: null,
+            osi_os_id: null,
+            osi_id: (index += 1),
+            osi_serv_id: g.osi_serv_id,
+            osi_valor_bruto: toDecimal(g.osi_valor_bruto),
+            osi_quantidade: toDecimal(g.osi_quantidade),
+            osi_perc_desc: toDecimal(g.osi_perc_desc),
+            osi_valor_liquido:
+              toDecimal(g.osi_valor_bruto) *
+              toDecimal(g.osi_quantidade) *
+              (1 - toDecimal(g.osi_perc_desc) / 100),
+          };
+          itens.push(it);
+        });
 
         const objCad = {
-          serv_emp_id: null,
-          serv_id: formData.serv_id ? parseInt(formData.serv_id, 10) : null,
-          serv_codigo: formData.serv_codigo,
-          serv_titulo: formData.serv_titulo,
-          serv_descricao: formData.serv_descricao,
-          serv_horas: formData.serv_horas,
-          serv_valor: toDecimal(formData.serv_valor),
-
-          serv_usr_id: null,
-          serv_situacao: formData.serv_situacao,
+          os_emp_id: null,
+          os_id: formData.os_id ? parseInt(formData.os_id, 10) : null,
+          os_tecnico_id: formData.os_tecnico_id,
+          os_cli_id: formData.os_cli_id,
+          os_data_emissao: format(dataEmiss, 'yyyy-MM-dd HH:mm:ss'),
+          os_data_baixa: format(dataBaixa, 'yyyy-MM-dd HH:mm:ss'),
+          os_classificacao: formData.os_classificacao,
+          os_solicitacao_cli: solicitacaoCliente,
+          os_atividade: servRealizado,
+          os_fpgto_id: formData.os_fpgto_id || null,
+          os_condvcto_id: formData.os_condvcto_id || null,
+          os_grprec_id: formData.os_grprec_id || null,
+          os_valor: toDecimal(totalServ.toFixed(2)),
+          os_vlr_desc: toDecimal(totalDesc),
+          os_vinculada_id: null,
+          os_tipo: formData.os_tipo,
+          os_situacao: '1',
+          itens,
         };
 
-        const retorno = await api.post('v1/serv/servicos', objCad);
+        const retorno = await api.post('v1/serv/os', objCad);
         if (retorno.data.success) {
-          frmCadastro.current.setFieldValue(
-            'serv_id',
-            retorno.data.retorno.serv_id
-          );
-          toast.info('Cadastro atualizado com sucesso!!!', toastOptions);
+          frmCadastro.current.setFieldValue('os_id', retorno.data.retorno);
+          toast.info('Cadastro concluído com sucesso!!!', toastOptions);
         } else {
           toast.error(
             `Houve erro no processamento!! ${retorno.data.message}`,
@@ -312,36 +437,90 @@ export default function SERV3() {
         setLoading(false);
         toast.error(`Erro salvar cadastro: ${err}`, toastOptions);
       }
+      frmCadastro.current.setFieldError(
+        'os_tecnico_id',
+        validationErrors.os_tecnico_id
+      );
+      frmCadastro.current.setFieldError(
+        'os_cli_id',
+        validationErrors.os_cli_id
+      );
+      frmCadastro.current.setFieldError(
+        'os_classificacao',
+        validationErrors.os_classificacao
+      );
+      frmCadastro.current.setFieldError('os_tipo', validationErrors.os_tipo);
+    }
+  }
 
+  async function handleImpressao() {
+    try {
+      if (dataGridPesqSelected.length > 0) {
+        setLoading(true);
+        const url = `v1/servico/report/os?os_id=${dataGridPesqSelected[0].os_id}`;
+
+        const response = await api.get(url);
+        const link = response.data;
+        setLoading(false);
+        window.open(link, '_blank');
+      } else {
+        toast.info('Selecione uma O.S para imprimir', toastOptions);
+      }
+    } catch (error) {
+      setLoading(false);
+      toast.error(`Erro ao imprimir O.S \n${error}`, toastOptions);
+    }
+  }
+
+  async function handleFecharOS() {
+    try {
+      const formData = frmCadastro.current.getData();
+      frmCadastro.current.setErrors({});
+      await schemaClose.validate(formData, {
+        abortEarly: false,
+      });
+    } catch (err) {
+      const validationErrors = {};
+      if (err instanceof Yup.ValidationError) {
+        err.inner.forEach((error) => {
+          validationErrors[error.path] = error.message;
+        });
+      } else {
+        setLoading(false);
+        toast.error(`Erro Fechar O.S: ${err}`, toastOptions);
+      }
       frmCadastro.current.setFieldError(
-        'serv_codigo',
-        validationErrors.serv_codigo
+        'os_fpgto_id',
+        validationErrors.os_fpgto_id
       );
       frmCadastro.current.setFieldError(
-        'serv_titulo',
-        validationErrors.serv_titulo
+        'os_condvcto_id',
+        validationErrors.os_condvcto_id
       );
       frmCadastro.current.setFieldError(
-        'serv_horas',
-        validationErrors.serv_horas
+        'os_grprec_id',
+        validationErrors.os_grprec_id
       );
     }
   }
 
   const handleChangeTab = async (event, newValue) => {
+    let cadastro = frmCadastro.current.getData();
     if (newValue === 0) {
-      limpaForm();
+      setDataGridPesqSelected([]);
       setValueTab(newValue);
       await listarOS();
     } else if (newValue === 1) {
-      const cadastro = frmCadastro.current.getData();
-      if (cadastro.ct_id) {
-        setValueTab(newValue);
-      } else {
+      cadastro = frmCadastro.current.getData();
+      if (!cadastro.os_id) {
         await handleEdit();
-      }
-    } else setValueTab(newValue);
+        setValueTab(newValue);
+      } else setValueTab(newValue);
+    } else if (newValue === 2) {
+      setValueTab(newValue);
+    }
   };
+
   const onChangeEditorSolicit = (vlr) => {
     setSolicitacaoCliente(vlr);
   };
@@ -352,12 +531,40 @@ export default function SERV3() {
 
   function handleSelectServico(s) {
     if (s) {
+      const found = gridServico.filter((f) => s.serv_codigo === f.serv_codigo);
+      if (found.length > 0) {
+        toast.error(
+          'ESTE SERVIÇO JÁ FOI LANÇADO... SE NECESSÁRIO ALTERE A QUANTIDADE',
+          toastOptions
+        );
+        return;
+      }
       const grid = [];
+      const obj = {
+        osi_os_emp_id: null,
+        osi_os_id: frmCadastro.current.getData().os_id || null,
+        osi_id: null,
+        osi_serv_id: s.serv_id,
+        serv_titulo: s.serv_titulo,
+        serv_codigo: s.serv_codigo,
+        osi_valor_bruto: s.serv_valor,
+        osi_quantidade: 1,
+        osi_perc_desc: 0,
+        osi_valor_liquido: s.serv_valor,
+        persistido: false,
+      };
+
       gridServico.forEach((g) => {
         grid.push(g);
       });
-      grid.push(s);
+      grid.push(obj);
       setGridServico(grid);
+
+      let valor = totalServ;
+      valor += toDecimal(s.serv_valor);
+      setTotalServ(valor);
+
+      setResumoItens(`Valor total O.S: ${FormataMoeda(valor)}`);
     }
   }
 
@@ -369,20 +576,91 @@ export default function SERV3() {
     return true;
   };
 
-  const handleEditarQuantidade = async (prm) => {
+  const handleEditarQuantidade = async () => {
     try {
-      console.warn(prm);
+      let vliq = 0;
+      let valor = 0; // valor do pedido atualizado
+      let vlrDesc = 0; // valor do desconto
+
+      setGridServico((gprev) => {
+        gprev.forEach((g) => {
+          vliq =
+            toDecimal(g.osi_quantidade) *
+            toDecimal(g.osi_valor_bruto) *
+            (1 - toDecimal(g.osi_perc_desc) / 100);
+
+          valor += vliq;
+          g.osi_valor_liquido = vliq;
+          vlrDesc +=
+            toDecimal(g.osi_quantidade) *
+            toDecimal(g.osi_valor_bruto) *
+            (toDecimal(g.osi_perc_desc) / 100);
+        });
+        return gprev;
+      });
+
+      setTotalDesc((desc) => {
+        desc = vlrDesc;
+        return desc;
+      });
+
+      // atualizar total do serviço
+      setTotalServ((ts) => {
+        ts = valor;
+        return ts;
+      });
+
+      // atualizar mensagem resumo
+      setResumoItens((res) => {
+        res = `Valor total O.S: ${FormataMoeda(valor)}`;
+        return res;
+      });
     } catch (err) {
       setLoading(false);
       toast.error(`Erro ao alterar quantidade: ${err}`, toastOptions);
     }
   };
 
+  async function handleDeleteItem(param) {
+    try {
+      setGridServico((prev) => prev.filter((f) => f !== param));
+
+      setTotalServ((prev) => {
+        let valor = prev;
+
+        valor -= toDecimal(param.osi_valor_liquido);
+        setResumoItens((res) => {
+          res = `Valor total O.S: ${FormataMoeda(valor)}`;
+          return res;
+        });
+
+        return valor;
+      });
+
+      // desconto
+      setTotalDesc((desc) => {
+        let vdesc = desc;
+        vdesc -=
+          toDecimal(param.osi_valor_bruto) *
+          toDecimal(param.osi_quantidade) *
+          (toDecimal(param.osi_perc_desc) / 100);
+        return vdesc;
+      });
+    } catch (error) {
+      setLoading(false);
+      toast.error(`Erro ao excluir serviço: ${error}`);
+    }
+  }
+
   useEffect(() => {
-    listarOS();
+    frmPesquisa.current.setFieldValue('pesq_tpData', optDATA[0]);
     getComboUsers(0);
     comboGeral(34);
     getComboServicos();
+    getComboCondVcto();
+    handleGrupoRec();
+    getComboFpgto();
+    listarOS();
     setValueTab(0);
   }, []);
 
@@ -399,7 +677,7 @@ export default function SERV3() {
       lockVisible: true,
     },
     {
-      field: 'data_emissao',
+      field: 'emissao',
       headerName: 'DATA EMISSÃO',
       width: 160,
       sortable: true,
@@ -408,7 +686,7 @@ export default function SERV3() {
       lockVisible: true,
     },
     {
-      field: 'cliente',
+      field: 'cli_razao_social',
       headerName: 'CLIENTE',
       width: 350,
       sortable: true,
@@ -426,7 +704,7 @@ export default function SERV3() {
       lockVisible: true,
     },
     {
-      field: 'tipo',
+      field: 'os_tipo',
       headerName: 'TIPO',
       width: 180,
       sortable: true,
@@ -435,7 +713,7 @@ export default function SERV3() {
       lockVisible: true,
     },
     {
-      field: 'situacao',
+      field: 'os_situacao',
       headerName: 'SITUAÇÃO',
       width: 180,
       sortable: true,
@@ -454,9 +732,26 @@ export default function SERV3() {
 
   const gridColumnServico = [
     {
+      field: 'osi_serv_id',
+      headerName: 'DEL',
+      width: 55,
+      lockVisible: true,
+      cellRendererFramework(prm) {
+        return (
+          <>
+            <BootstrapTooltip title="Excluir Serviço" placement="top">
+              <button type="button" onClick={() => handleDeleteItem(prm.data)}>
+                <FaTrashAlt size={18} color="#253739" />
+              </button>
+            </BootstrapTooltip>
+          </>
+        );
+      },
+    },
+    {
       field: 'serv_codigo',
       headerName: 'CÓDIGO',
-      width: 120,
+      width: 100,
       sortable: true,
       resizable: true,
       filter: false,
@@ -465,7 +760,7 @@ export default function SERV3() {
     {
       field: 'serv_titulo',
       headerName: 'IDENTIFICAÇÃO SERVIÇO',
-      width: 300,
+      width: 270,
       sortable: true,
       resizable: true,
       filter: false,
@@ -473,8 +768,8 @@ export default function SERV3() {
     },
     {
       field: 'osi_quantidade',
-      headerName: 'QTD. LANÇADA',
-      width: 110,
+      headerName: 'QTDE',
+      width: 65,
       sortable: true,
       editable: true,
       type: 'rightAligned',
@@ -488,9 +783,37 @@ export default function SERV3() {
       cellClass: 'cell_quantity',
     },
     {
-      field: 'serv_valor',
-      headerName: 'VALOR',
-      width: 130,
+      field: 'osi_valor_bruto',
+      headerName: 'VLR UNIT',
+      width: 100,
+      sortable: true,
+      resizable: true,
+      filter: false,
+      lockVisible: true,
+      type: 'rightAligned',
+      valueFormatter: GridCurrencyFormatter,
+      cellStyle: { color: '#000', fontWeight: 'bold' },
+    },
+    {
+      field: 'osi_perc_desc',
+      headerName: '% Desc',
+      width: 75,
+      sortable: true,
+      editable: true,
+      type: 'rightAligned',
+      /* metodo para edição na grid  */
+      onCellValueChanged: handleEditarQuantidade,
+      cellEditorParams: {
+        validacoes: gridValidationsQtd,
+      },
+      resizable: true,
+      lockVisible: true,
+      cellClass: 'cell_quantity',
+    },
+    {
+      field: 'osi_valor_liquido',
+      headerName: 'VLR TOTAL',
+      width: 100,
       sortable: true,
       resizable: true,
       filter: false,
@@ -516,17 +839,26 @@ export default function SERV3() {
           </button>
         </BootstrapTooltip>
         <DivLimitador hg="10px" />
+
         <BootstrapTooltip title="Salvar Cadastro" placement="left">
           <button type="button" onClick={() => handleSubmit()}>
             <FaSave size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
+
+        <DivLimitador hg="10px" />
+        <BootstrapTooltip title="Imprimir O.S" placement="left">
+          <button type="button" onClick={handleImpressao}>
+            <FaPrint size={25} color="#fff" />
+          </button>
+        </BootstrapTooltip>
+
         <DivLimitador hg="20px" />
         <Linha />
         <DivLimitador hg="20px" />
-        <BootstrapTooltip title="ABRIR ORDEM DE SERVIÇO" placement="left">
-          <button type="button" onClick={() => null}>
-            <FaTools size={25} color="#fff" />
+        <BootstrapTooltip title="ABRIR CADASTRO SERVIÇOS" placement="left">
+          <button type="button" onClick={() => window.open('/serv2', '_blank')}>
+            <FaHammer size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
         <DivLimitador hg="10px" />
@@ -622,7 +954,7 @@ export default function SERV3() {
                   <AreaComp wd="100">
                     <FormSelect
                       label="filtrar por"
-                      name="pesq_data"
+                      name="pesq_tpData"
                       optionsList={optDATA}
                       placeholder="NÃO INFORMADO"
                       zindex="153"
@@ -680,6 +1012,7 @@ export default function SERV3() {
                       onChangeDate={(date) => setDataEmiss(new Date(date))}
                       value={dataEmiss}
                       label="Data Emissão"
+                      dateAndTime
                     />
                   </AreaComp>
                   <AreaComp wd="100">
@@ -693,7 +1026,7 @@ export default function SERV3() {
                   <AreaComp wd="100">
                     <FormSelect
                       label="tipo cadastro"
-                      name="pesq_data"
+                      name="os_tipo"
                       optionsList={optTipo}
                       placeholder="NÃO INFORMADO"
                       zindex="153"
@@ -703,7 +1036,7 @@ export default function SERV3() {
                   <AreaComp wd="100">
                     <FormSelect
                       label="Classificação"
-                      name="pesq_data"
+                      name="os_classificacao"
                       optionsList={optClassific}
                       placeholder="NÃO INFORMADO"
                       zindex="153"
@@ -729,7 +1062,7 @@ export default function SERV3() {
                   <AreaComp wd="100">
                     <FormSelect
                       label="técnico/atendente"
-                      name="pesq_data"
+                      name="os_tecnico_id"
                       optionsList={optUsers}
                       placeholder="NÃO INFORMADO"
                       zindex="152"
@@ -737,7 +1070,7 @@ export default function SERV3() {
                     />
                   </AreaComp>
                 </BoxItemCad>
-                <BoxItemCad fr="1fr 1fr">
+                <BoxItemCad fr="2fr 3fr">
                   <AreaComp wd="100" lblWeight="700">
                     <EditorContainer>
                       <label>SOLICITAÇÃO DO CLIENTE</label>
@@ -756,7 +1089,7 @@ export default function SERV3() {
                       onChange={(s) => {
                         if (s) handleSelectServico(s);
                       }}
-                      zindex="153"
+                      zindex="151"
                     />
                     <GridContainerItens className="ag-theme-balham">
                       <AgGridReact
@@ -769,6 +1102,16 @@ export default function SERV3() {
                     </GridContainerItens>
                   </AreaComp>
                 </BoxItemCad>
+                <BoxItemCadNoQuery fr="1fr">
+                  <AreaComp
+                    wd="100"
+                    h3talign="center"
+                    bckgndh3="#fff"
+                    ptop="7px"
+                  >
+                    <h3>{remumoItens}</h3>
+                  </AreaComp>
+                </BoxItemCadNoQuery>
               </Panel>
             </TabPanel>
 
@@ -789,6 +1132,60 @@ export default function SERV3() {
                       />
                     </EditorFechamento>
                   </AreaComp>
+                </BoxItemCadNoQuery>
+                <h1>FECHAMENTO FINANCEIRO DA O.S</h1>
+                <BoxItemCad fr="1fr 1fr 1fr 1fr">
+                  <AreaComp wd="100" lblWeight="700">
+                    <label>VALOR TOTAL DA O.S</label>
+                    <Input
+                      type="text"
+                      name="valorOS"
+                      readOnly
+                      className="input_destaque"
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100" lblWeight="700">
+                    <FormSelect
+                      name="os_fpgto_id"
+                      label="Forma de Pagamento"
+                      optionsList={optFpgto}
+                      isClearable
+                      placeholder="INFORME"
+                      zindex="151"
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100" lblWeight="700">
+                    <FormSelect
+                      name="os_condvcto_id"
+                      label="Condição de Vencimento"
+                      optionsList={optCvto}
+                      isClearable
+                      placeholder="INFORME"
+                      zindex="151"
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100" lblWeight="700">
+                    <FormSelect
+                      label="grupo de receita"
+                      name="os_grprec_id"
+                      optionsList={optGrpRec}
+                      isClearable
+                      placeholder="INFORME"
+                      zindex="152"
+                    />
+                  </AreaComp>
+                </BoxItemCad>
+                <BoxItemCadNoQuery fr="1fr" ptop="40px" just="center">
+                  <DivGeral wd="230px">
+                    <button
+                      type="button"
+                      className="btn2"
+                      onClick={handleFecharOS}
+                    >
+                      {loading ? 'Aguarde Processando...' : 'Fechar O.S'}
+                      <FaCheckCircle size={22} color="#fff" />
+                    </button>
+                  </DivGeral>
                 </BoxItemCadNoQuery>
               </Panel>
             </TabPanel>

@@ -83,6 +83,30 @@ export default createGlobalStyle`
         background: ${darken(0.1, '#EEF3F5')};
       }
   }
+
+  .input_destaque{
+    background: #EEF3F5;
+      border: solid 1px #ccc;
+      border-radius: 4px;
+      height: 27px;
+      padding: 3px 5px 3px 5px;
+      color: #D87301;
+      font-size: 16px;
+      font-weight: 700;
+     
+      width:100%;
+      transition: background 0.3s;
+
+      &::placeholder {
+        color: rgba(0, 0, 0, 0.4);
+      }
+
+      &:focus {
+        background: ${darken(0.1, '#fff')};
+      }
+  }
+
+
   .btnGeral {
       margin: 5px 0 0;
       height: 35px;

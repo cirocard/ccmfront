@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 
-export const EditorContainer = styled.section`
+export const EditorContainer = styled.div`
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -8,23 +8,30 @@ export const EditorContainer = styled.section`
 
   .jodit_wysiwyg {
     color: #303531;
+
     padding: 10px;
-    overflow-x: auto;
-    min-height: 40px;
+    overflow: auto;
+    min-height: 100% !important;
   }
 
   .jodit-container,
-  .jodit-wysiwyg,
-  .jodit-container .jodit-wysiwyg,
-  .jodit-wysiwyg_iframe,
   .jodit-wysiwyg_iframe {
-    height: 100% !important;
     width: 100%;
+    height: 100% !important;
+    background: #f7fad1;
+    position: relative;
   }
 
-  .jodit-container .jodit-workplace {
+  .jodit_theme_default,
+  .jodit-wysiwyg_mode {
+    width: 100%;
+    height: 100% !important;
+  }
+
+  .jodit-workplace {
     color: #303531;
-    height: 88% !important;
+    position: relative;
+    height: 85% !important;
   }
 
   .jodit-status-bar {
