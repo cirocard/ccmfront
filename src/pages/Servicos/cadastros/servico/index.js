@@ -342,7 +342,7 @@ export default function SERV2() {
         <Linha />
         <DivLimitador hg="20px" />
         <BootstrapTooltip title="ABRIR ORDEM DE SERVIÇO" placement="left">
-          <button type="button" onClick={() => null}>
+          <button type="button" onClick={() => window.open('/serv3', '_blank')}>
             <FaTools size={25} color="#fff" />
           </button>
         </BootstrapTooltip>

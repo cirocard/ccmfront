@@ -48,23 +48,27 @@ export const EditorContainer = styled.div`
 
   /* altura da div */
   @media (min-height: 300px) {
-    height: 31vh;
+    height: 30vh;
+    border-bottom: solid 1px #000;
+    overflow: auto;
   }
 
   @media (min-height: 600px) {
-    height: 39vh;
+    height: 34vh;
+    border-bottom: solid 1px #000;
+    overflow: auto;
   }
 
   @media (min-height: 680px) {
-    height: 43vh;
+    height: 38vh;
   }
 
   @media (min-height: 780px) {
-    height: 49vh;
+    height: 42vh;
   }
 
   @media (min-height: 880px) {
-    height: 59vh;
+    height: 45vh;
   }
 `;
 
@@ -75,24 +79,28 @@ export const EditorFechamento = styled.div`
   padding-top: ${({ pdtop }) => pdtop}px;
 
   /* altura da div */
+  @media (min-height: 300px) {
+    height: 26vh;
+    border-bottom: solid 1px #000;
+    overflow: auto;
+  }
+
   @media (min-height: 600px) {
-    height: 200px;
+    height: 28vh;
+    border-bottom: solid 1px #000;
+    overflow: auto;
   }
 
-  @media (min-height: 700px) {
-    height: 210px;
+  @media (min-height: 680px) {
+    height: 31vh;
   }
 
-  @media (min-height: 770px) {
-    height: 250px;
+  @media (min-height: 780px) {
+    height: 35vh;
   }
 
-  @media (min-height: 800px) {
-    height: 270px;
-  }
-
-  @media (min-height: 840px) {
-    height: 300px;
+  @media (min-height: 880px) {
+    height: 38vh;
   }
 `;
 
@@ -177,24 +185,31 @@ export const GridContainerItens = styled.div`
     cursor: pointer;
   }
 
+  .cell_quantity {
+    font-weight: bold;
+    font-size: 14px;
+    color: #000 !important;
+    text-align: right;
+  }
+
   @media (min-height: 300px) {
-    height: 29vh;
+    height: 26vh;
   }
 
   @media (min-height: 600px) {
-    height: 32vh;
+    height: 28vh;
   }
 
   @media (min-height: 680px) {
-    height: 36vh;
+    height: 31vh;
   }
 
   @media (min-height: 780px) {
-    height: 42vh;
+    height: 35vh;
   }
 
   @media (min-height: 880px) {
-    height: 53vh;
+    height: 38vh;
   }
 `;
 
@@ -232,4 +247,10 @@ export const GridContainerMain = styled.div`
   @media (min-height: 880px) {
     height: 66vh;
   }
+`;
+
+export const DivGeral = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: ${(props) => props.wd || '200px'};
 `;
