@@ -214,7 +214,7 @@ export default function SUPR6() {
           selectedGrid.push(obj);
         }
       });
-      console.warn('selectedGrid ', selectedGrid);
+
       const gridAtualizado = [];
 
       if (!update_quantidade) {
