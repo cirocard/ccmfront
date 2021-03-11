@@ -143,7 +143,7 @@ export default function FAT2() {
   const [inputDesable, setInputDesable] = useState(true);
   const [representante, setRepresentante] = useState([]);
   const [nParcela, setNParcela] = useState(1);
-  const [optGrpRec, setOptGrpRec] = useState(1);
+  const [optClassificFina, setOptClassificFina] = useState(1);
 
   const toastOptions = {
     autoClose: 5000,
@@ -250,17 +250,17 @@ export default function FAT2() {
   };
 
   // grupo de receita
-  async function handleGrupoRec() {
+  async function handleClassificFina() {
     try {
-      const response = await api.get(`v1/combos/agrupador_recdesp/1/2`);
+      const response = await api.get(`v1/combos/parm_mov_fina?tipo=E`);
       const dados = response.data.retorno;
       if (dados) {
-        setOptGrpRec(dados);
+        setOptClassificFina(dados);
       }
     } catch (error) {
       setLoading(false);
       toast.error(
-        `Erro ao gerar referencia agrupadora \n${error}`,
+        `Erro ao carregar combo parametros financeiro \n${error}`,
         toastOptions
       );
     }
@@ -1563,9 +1563,9 @@ export default function FAT2() {
       }
 
       if (geraFina === 'S') {
-        if (!formFina.fina_grprec_id) {
+        if (!formFina.fina_classificacao) {
           toast.error(
-            `VOCÊ ESTÁ USANDO UMA OPERAÇÃO QUE MOVIMENTA FINANCEIRO... INFORME O GRUPO DE RECEITA!!!`,
+            `VOCÊ ESTÁ USANDO UMA OPERAÇÃO QUE MOVIMENTA FINANCEIRO... INFORME A CLASSIFICAÇÃO FINANCEIRA!!`,
             toastOptions
           );
           return;
@@ -1677,7 +1677,7 @@ export default function FAT2() {
               fina_perc_desc: formFina.fina_perc_desc,
               fina_perc_juro: formFina.fina_perc_juro,
               fina_valor_final: formFina.fina_valor_final,
-              fina_grprec_id: formFina.fina_grprec_id,
+              fina_classificacao: formFina.fina_classificacao,
               persistido: 'N',
             };
 
@@ -1789,7 +1789,7 @@ export default function FAT2() {
             fina_perc_desc: toDecimal(g.fina_perc_desc),
             fina_perc_juro: toDecimal(g.fina_perc_juro),
             fina_valor_final: toDecimal(g.fina_valor_final),
-            fina_grprec_id: g.fina_grprec_id || null,
+            fina_classificacao: g.fina_classificacao || null,
           };
           cad.push(obj);
         });
@@ -2454,7 +2454,7 @@ export default function FAT2() {
     getComboCondVcto();
     getComboTabPreco();
     getParamSistema();
-    handleGrupoRec();
+    handleClassificFina();
     setDesableSave(true);
     setValueTab(0);
   }, []);
@@ -3131,9 +3131,9 @@ export default function FAT2() {
                 <BoxItemCad fr="1fr 1fr 1fr">
                   <AreaComp wd="100">
                     <FormSelect
-                      label="grupo de receita"
-                      name="fina_grprec_id"
-                      optionsList={optGrpRec}
+                      label="classificação financeira"
+                      name="fina_classificacao"
+                      optionsList={optClassificFina}
                       isClearable
                       placeholder="INFORME"
                       zindex="153"
