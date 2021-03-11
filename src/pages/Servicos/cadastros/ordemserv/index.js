@@ -82,7 +82,7 @@ export default function SERV3() {
   const [remumoItens, setResumoItens] = useState('');
   const [totalServ, setTotalServ] = useState(0);
   const [totalDesc, setTotalDesc] = useState(0);
-  const [optGrpRec, setOptGrpRec] = useState([]);
+  const [optClassificFina, setOptClassificFina] = useState([]);
   const [optCvto, setOptCvto] = useState([]);
   const [optFpgto, setOptFpgto] = useState([]);
 
@@ -126,18 +126,18 @@ export default function SERV3() {
     }
   };
 
-  // grupo de receita
-  async function handleGrupoRec() {
+  // parametro financeiro
+  async function handleClassificFina() {
     try {
-      const response = await api.get(`v1/combos/agrupador_recdesp/1/2`);
+      const response = await api.get(`v1/combos/parm_mov_fina?tipo=E`);
       const dados = response.data.retorno;
       if (dados) {
-        setOptGrpRec(dados);
+        setOptClassificFina(dados);
       }
     } catch (error) {
       setLoading(false);
       toast.error(
-        `Erro ao gerar referencia agrupadora \n${error}`,
+        `Erro ao carregar combo parametros financeiro \n${error}`,
         toastOptions
       );
     }
@@ -221,7 +221,7 @@ export default function SERV3() {
   const schemaClose = Yup.object().shape({
     os_fpgto_id: Yup.string().required('(??)'),
     os_condvcto_id: Yup.string().required('(??)'),
-    os_grprec_id: Yup.string().required('(??)'),
+    os_classificacao_fina: Yup.string().required('(??)'),
   });
   // #endregion
 
@@ -315,11 +315,12 @@ export default function SERV3() {
             )
           );
 
-          if (capa.os_grprec_id) {
+          if (capa.os_classificacao_fina) {
             frmCadastro.current.setFieldValue(
-              'os_grprec_id',
-              optGrpRec.find(
-                (op) => op.value.toString() === capa.os_grprec_id.toString()
+              'os_classificacao_fina',
+              optClassificFina.find(
+                (op) =>
+                  op.value.toString() === capa.os_classificacao_fina.toString()
               )
             );
           }
@@ -408,7 +409,7 @@ export default function SERV3() {
           os_atividade: servRealizado,
           os_fpgto_id: formData.os_fpgto_id || null,
           os_condvcto_id: formData.os_condvcto_id || null,
-          os_grprec_id: formData.os_grprec_id || null,
+          os_classificacao_fina: formData.os_classificacao_fina || null,
           os_valor: toDecimal(totalServ.toFixed(2)),
           os_vlr_desc: toDecimal(totalDesc),
           os_vinculada_id: null,
@@ -495,7 +496,7 @@ export default function SERV3() {
         os_atividade: servRealizado,
         os_fpgto_id: formData.os_fpgto_id || null,
         os_condvcto_id: formData.os_condvcto_id || null,
-        os_grprec_id: formData.os_grprec_id || null,
+        os_classificacao_fina: formData.os_classificacao_fina || null,
         os_valor: toDecimal(totalServ.toFixed(2)),
         os_vlr_desc: toDecimal(totalDesc),
         os_tipo: formData.os_tipo,
@@ -532,8 +533,8 @@ export default function SERV3() {
         validationErrors.os_condvcto_id
       );
       frmCadastro.current.setFieldError(
-        'os_grprec_id',
-        validationErrors.os_grprec_id
+        'os_classificacao_fina',
+        validationErrors.os_classificacao_fina
       );
     }
   }
@@ -740,7 +741,7 @@ export default function SERV3() {
     comboGeral(34);
     getComboServicos();
     getComboCondVcto();
-    handleGrupoRec();
+    handleClassificFina();
     getComboFpgto();
     listarOS();
     setValueTab(0);
@@ -1265,12 +1266,12 @@ export default function SERV3() {
                   </AreaComp>
                   <AreaComp wd="100" lblWeight="700">
                     <FormSelect
-                      label="grupo de receita"
-                      name="os_grprec_id"
-                      optionsList={optGrpRec}
+                      label="classificação financeira"
+                      name="os_classificacao_fina"
+                      optionsList={optClassificFina}
                       isClearable
                       placeholder="INFORME"
-                      zindex="152"
+                      zindex="153"
                     />
                   </AreaComp>
                 </BoxItemCad>

@@ -63,7 +63,7 @@ export default function FINA9() {
   const [dataIni, setDataIni] = useState(moment().add(-1, 'day'));
   const [dataFin, setDataFin] = useState(moment().add(30, 'day'));
   const [dataEmissao, setDataEmissao] = useState(moment());
-  const [optGrpRec, setOptGrprec] = useState([]);
+  const [optClassificFina, setOptClassificFina] = useState([]);
   const [cliente, setCliente] = useState([]);
   const [cli_id, setCli_id] = useState([]);
   const [optCvto, setOptCvto] = useState([]);
@@ -111,17 +111,18 @@ export default function FINA9() {
     }
   };
 
-  async function handleGrupoRec() {
+  // parametro financeiro
+  async function handleClassificFina() {
     try {
-      const response = await api.get(`v1/combos/agrupador_recdesp/1/2`);
+      const response = await api.get(`v1/combos/parm_mov_fina?tipo=E`);
       const dados = response.data.retorno;
       if (dados) {
-        setOptGrprec(dados);
+        setOptClassificFina(dados);
       }
     } catch (error) {
       setLoading(false);
       toast.error(
-        `Erro ao gerar referencia agrupadora \n${error}`,
+        `Erro ao carregar combo parametros financeiro \n${error}`,
         toastOptions
       );
     }
@@ -164,7 +165,7 @@ export default function FINA9() {
     rec_vlr_liquido: Yup.string().required('(??)'),
     rec_forma_pgto_id: Yup.string().required('(??)'),
     rec_cvto_id: Yup.string().required('(??)'),
-    rec_grprec_id: Yup.string().required('(??)'),
+    rec_classific_fina: Yup.string().required('(??)'),
   });
 
   // #endregion
@@ -217,7 +218,7 @@ export default function FINA9() {
     frmCadastro.current.setFieldValue('rec_observacao', '');
     frmCadastro.current.setFieldValue('rec_situacao', '');
     frmCadastro.current.setFieldValue('rec_origem', '');
-    frmCadastro.current.setFieldValue('rec_grprec_id', '');
+    frmCadastro.current.setFieldValue('rec_classific_fina', '');
     frmCadastro.current.setFieldValue('rec_cvto_id', '');
     frmCadastro.current.setFieldValue('rec_forma_pgto_id', '');
     frmCadastro.current.setFieldValue('rec_vlr_liquido', '');
@@ -274,10 +275,11 @@ export default function FINA9() {
           );
           frmCadastro.current.setFieldValue('rec_origem', dados[0].capa.origem);
           frmCadastro.current.setFieldValue(
-            'rec_grprec_id',
-            optGrpRec.find(
+            'rec_classific_fina',
+            optClassificFina.find(
               (op) =>
-                op.value.toString() === dados[0].capa.rec_grprec_id.toString()
+                op.value.toString() ===
+                dados[0].capa.rec_classific_fina.toString()
             )
           );
           frmCadastro.current.setFieldValue(
@@ -368,8 +370,7 @@ export default function FINA9() {
           rec_forma_pgto_tab: 6,
           rec_forma_pgto_id: formData.rec_forma_pgto_id,
           rec_cvto_id: formData.rec_cvto_id,
-          rec_grprec_tab: 20,
-          rec_grprec_id: formData.rec_grprec_id,
+          rec_classific_fina: formData.rec_classific_fina,
           rec_origem: '1',
           rec_usr_id: null,
           rec_editavel: 'S',
@@ -432,8 +433,8 @@ export default function FINA9() {
         validationErrors.rec_cvto_id
       );
       frmCadastro.current.setFieldError(
-        'rec_grprec_id',
-        validationErrors.rec_grprec_id
+        'rec_classific_fina',
+        validationErrors.rec_classific_fina
       );
     }
   }
@@ -449,7 +450,7 @@ export default function FINA9() {
 
   useEffect(() => {
     frmPesquisa.current.setFieldValue('pesq_data', '1');
-    handleGrupoRec();
+    handleClassificFina();
     comboGeral(6);
     getComboCondVcto();
     listarCtaRec();
@@ -863,9 +864,9 @@ export default function FINA9() {
                 <BoxItemCad fr="1fr 1fr 1fr 1fr">
                   <AreaComp wd="100">
                     <FormSelect
-                      label="grupo de receita"
-                      name="rec_grprec_id"
-                      optionsList={optGrpRec}
+                      label="classificação financeira"
+                      name="rec_classific_fina"
+                      optionsList={optClassificFina}
                       isClearable
                       placeholder="INFORME"
                       zindex="153"
