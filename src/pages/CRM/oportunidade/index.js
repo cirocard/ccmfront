@@ -22,11 +22,7 @@ import {
   Controles,
   Space,
 } from './styles';
-import {
-  maskDecimal,
-  FormataMoeda,
-  FormataNumeroBd,
-} from '~/services/func.uteis';
+import { maskDecimal, FormataMoeda, toDecimal } from '~/services/func.uteis';
 import {
   TitleBar,
   AreaComp,
@@ -217,34 +213,21 @@ export default function Crm5() {
       });
 
       setLoading(true);
-      let oportunity;
-      if (formData.neg_id) {
-        oportunity = {
-          neg_id: formData.neg_id,
-          neg_nome: formData.neg_nome,
-          neg_descricao: formData.neg_descricao,
 
-          neg_entidade: parseInt(formData.neg_entidade),
-          neg_valor: FormataNumeroBd(formData.neg_valor),
-          neg_responsavel: parseInt(formData.neg_responsavel),
-          neg_situacao: formData.neg_situacao,
-          neg_classificacao: parseInt(formData.neg_classificacao),
-          neg_motivo_perda: formData.neg_motivo_perda || null,
-          neg_ativo: formData.neg_ativo,
-        };
-      } else {
-        oportunity = {
-          neg_nome: formData.neg_nome,
-          neg_descricao: formData.neg_descricao,
-          neg_entidade: parseInt(formData.neg_entidade),
-          neg_valor: FormataNumeroBd(formData.neg_valor),
-          neg_responsavel: parseInt(formData.neg_responsavel),
-          neg_situacao: formData.neg_situacao,
-          neg_classificacao: parseInt(formData.neg_classificacao),
-          neg_motivo_perda: formData.neg_motivo_perda || null,
-          neg_ativo: formData.neg_ativo,
-        };
-      }
+      const oportunity = {
+        neg_id: formData.neg_id,
+        neg_nome: formData.neg_nome,
+        neg_descricao: formData.neg_descricao,
+        neg_entidade: parseInt(formData.neg_entidade, 10),
+        neg_valor: toDecimal(formData.neg_valor || 0),
+        neg_responsavel: parseInt(formData.neg_responsavel),
+        neg_situacao: formData.neg_situacao,
+        neg_classificacao: parseInt(formData.neg_classificacao),
+        neg_motivo_perda: formData.neg_motivo_perda || null,
+        neg_ativo: formData.neg_ativo,
+      };
+
+      if (!formData.neg_id) delete oportunity.neg_id;
 
       const retorno = await api.post('v1/crm/cad/negocio', oportunity);
       if (retorno.data.success) {

@@ -1219,7 +1219,6 @@ export default function SERV3() {
             <TabPanel value={valueTab} index={2}>
               <Panel lefth1="left" bckgnd="#dae2e5">
                 <h1>FECHAMENTO DA O.S</h1>
-
                 <BoxItemCadNoQuery fr="1fr">
                   <AreaComp wd="100" lblWeight="700">
                     <EditorFechamento>
