@@ -29,7 +29,6 @@ export default function TextEditor({
       'right',
       'justify',
       'hr',
-
       'fullsize',
     ],
 
@@ -66,7 +65,7 @@ export default function TextEditor({
 
   return (
     <EditorContainer>
-      <JoditEditor config={config} onChange={onChangeFn} value={value} />
+      <JoditEditor config={config} onChange={onChangeFn} value={value || ''} />
     </EditorContainer>
   );
 }

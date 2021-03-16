@@ -94,6 +94,10 @@ export default function Parametros() {
       document.getElementsByName('aliqSimples')[0].value = obj.par_aliq_simples;
       document.getElementsByName('chbDiferenciaNum')[0].value =
         obj.par_diferencia_num_dev;
+
+      document.getElementsByName('chb_par_movfina_contabilizado')[0].checked =
+        obj.par_movfina_contabilizado === 'S';
+
       document.getElementsByName('msgFiscal')[0].value = obj.par_msg_padrao;
 
       document.getElementById('rbPrecoAbsoluto').checked =
@@ -249,6 +253,11 @@ export default function Parametros() {
         par_tab_padrao_consignado: tabPrecoConsig,
         par_tab_padrao_prevenda: tabPrecoPrevend,
         par_cota_consignada: document.getElementsByName('percentCota')[0].value,
+        par_movfina_contabilizado: document.getElementsByName(
+          'chb_par_movfina_contabilizado'
+        )[0].checked
+          ? 'S'
+          : 'N',
       };
 
       const retorno = await api.post('v1/cadastros/param', param);
@@ -535,6 +544,23 @@ export default function Parametros() {
                   step="any"
                   className="input_cad"
                 />
+              </AreaComp>
+            </BoxItemCad>
+            <Linha />
+            <h1>CONFIGURAÇÕES DO MÓDULO FINANCEIRO...</h1>
+            <BoxItemCad fr="1fr 1fr 1fr">
+              <AreaComp wd="100">
+                <CCheck>
+                  <input
+                    type="checkbox"
+                    id="par_movfina_contabilizado"
+                    name="chb_par_movfina_contabilizado"
+                    value="S"
+                  />
+                  <label htmlFor="par_movfina_contabilizado">
+                    Nas vendas gerar movimentação já contabilizada
+                  </label>
+                </CCheck>
               </AreaComp>
             </BoxItemCad>
             <Linha />

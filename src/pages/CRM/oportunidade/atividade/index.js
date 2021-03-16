@@ -4,7 +4,6 @@ import * as Yup from 'yup';
 import { useLocation } from 'react-router-dom';
 import { Form } from '@unform/web';
 import { toast } from 'react-toastify';
-import JoditEditor from 'jodit-react';
 import Select from 'react-select';
 import { format } from 'date-fns';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -17,6 +16,8 @@ import {
 import { FaRegAddressCard, FaEdit, FaCheckCircle } from 'react-icons/fa';
 import Dialog from '@material-ui/core/Dialog';
 import { Slide } from '@material-ui/core';
+import TextEditor from '~/componentes/Editor';
+
 import DatePickerInput from '~/componentes/DatePickerInput';
 import Input from '~/componentes/Input';
 import FormSelect from '~/componentes/Select';
@@ -72,22 +73,8 @@ export default function Crm6() {
   const [indFimAtv, setIndFimAtv] = useState(0);
   const frmCadPessoa = useRef(null);
   const frmCadAtv = useRef(null);
-  const editor = useRef(null);
-
-  const configEditor = {
-    readonly: false, // all options from https://xdsoft.net/jodit/doc/
-    toolbar: true,
-    language: 'pt_br',
-    // theme: 'dark',
-    toolbarButtonSize: 'small',
-    buttons:
-      'bold,strikethrough,underline,eraser,brush,ul,ol,outdent,indent,font,fontsize,image,video,table,link,align,undo,redo,selectall,hr,fullsize',
-    height: 285,
-    allowResizeY: false,
-    uploader: {
-      insertImageAsBase64URI: true,
-    },
-  };
+  const [regAtv, setRegAtv] = useState({});
+  // const editor = useRef(null);
 
   const toastOptions = {
     autoClose: 4000,
@@ -209,6 +196,8 @@ export default function Crm6() {
       if (dados) {
         setAtivdade(dados);
       }
+
+      // toast.info('NÃO HÁ ATIVIDADE PARA O FILTRO SELECIONADO', toastOptions);
     } catch (error) {
       toast.error(`Erro ao carregar registro \n${error}`);
     }
@@ -388,9 +377,16 @@ export default function Crm6() {
     }
   }
 
-  async function handleFinishAtv(id) {
-    if (id) {
-      document.getElementById('atvid').value = id;
+  async function handleFinishAtv(atv) {
+    if (atv.atv_data_conclusao) {
+      toast.error(
+        'ATIVIDADE JÁ FINALIZADA... NAO PODE MAIS SER ALTERADA',
+        toastOptions
+      );
+      return;
+    }
+    if (atv.atv_id) {
+      document.getElementById('atvid').value = atv.atv_id;
       setOpenFimAtv(true);
     }
   }
@@ -398,10 +394,14 @@ export default function Crm6() {
   async function handleFinalizar() {
     try {
       setLoading(true);
+
+      await api.post(`v1/crm/cad/atividade`, regAtv);
+
       const atv = document.getElementById('atvid').value;
       const response = await api.put(
         `v1/crm/cad/atividade/${atv}/${indFimAtv}`
       );
+      await listaAtividade(0);
       toast.info(response.data.message, toastOptions);
       setLoading(false);
     } catch (error) {
@@ -482,11 +482,7 @@ export default function Crm6() {
       atv_neg_id: neg_id,
       atv_registros: content,
     };
-    console.warn(reg);
-    const response = await api.post(`v1/crm/cad/atividade`, reg);
-    if (response.data.success) {
-      await listaAtividade();
-    }
+    setRegAtv(reg);
   }
 
   useEffect(() => {
@@ -569,16 +565,16 @@ export default function Crm6() {
                   <button type="button" onClick={() => listaAtividade(0)}>
                     TODAS ATIVIDADES
                   </button>
-                  <button type="button" onClick={() => listaAtividade(1)}>
+                  <button type="button" onClick={() => listaAtividade(0)}>
                     ATIVIDADES EM ATRASO
                   </button>
-                  <button type="button" onClick={() => listaAtividade(2)}>
+                  <button type="button" onClick={() => listaAtividade(0)}>
                     ATIVIDADES DE HOJE
                   </button>
-                  <button type="button" onClick={() => listaAtividade(3)}>
+                  <button type="button" onClick={() => listaAtividade(0)}>
                     ATIVIDADES FUTURA
                   </button>
-                  <button type="button" onClick={() => listaAtividade(4)}>
+                  <button type="button" onClick={() => listaAtividade(0)}>
                     ATIVIDADES CONCLUÍDAS
                   </button>
                 </BtnFiltroAtv>
@@ -604,7 +600,7 @@ export default function Crm6() {
                         >
                           <button
                             type="button"
-                            onClick={() => handleFinishAtv(at.atv_id)}
+                            onClick={() => handleFinishAtv(at)}
                           >
                             <FaCheckCircle size={20} color="#325797" />
                           </button>
@@ -662,15 +658,11 @@ export default function Crm6() {
                         <ColunaAtv bleft="solid 1px #80583B">
                           <AreaComp wd="100">
                             <span>REGISTROS DA ATIVIDADE</span>
-                            <JoditEditor
-                              ref={editor}
-                              value={
-                                at.atv_registros || 'Nenhum evento registrado!!'
+                            <TextEditor
+                              onChangeFn={(content) =>
+                                handleEditor(content, at.atv_id)
                               }
-                              config={configEditor}
-                              onBlur={(newContent) =>
-                                handleEditor(newContent, at.atv_id)
-                              }
+                              value={at.atv_registros || ' '}
                             />
                           </AreaComp>
                         </ColunaAtv>
