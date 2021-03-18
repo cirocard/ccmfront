@@ -83,6 +83,26 @@ export const Content = styled.div`
   }
 `;
 
+export const Panel = styled.div`
+  width: 100%;
+  border-radius: 4px;
+  margin-left: 0px;
+  padding: ${(props) => props.pdding || '1px'};
+  margin-top: ${(props) => props.mtop || '-10px'};
+
+  h1 {
+    width: ${(props) => props.wdh1 || '100%'};
+    margin-top: 0px;
+    text-align: ${(props) => props.lefth1 || 'center'};
+    font-size: 16px;
+    font-weight: 700;
+    padding: 5px;
+    margin-left: 0px;
+    color: ${(props) => props.fontcolor || '#244448'};
+    background: ${(props) => props.bckgnd || '#244448'};
+  }
+`;
+
 export const BoxRaia = styled.div`
   display: flex;
   width: 100%;
