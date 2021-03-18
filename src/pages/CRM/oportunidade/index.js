@@ -4,11 +4,13 @@ import * as Yup from 'yup';
 import { Form } from '@unform/web';
 import { toast } from 'react-toastify';
 import { MdClose, MdAdd, MdSave } from 'react-icons/md';
-import { FaEdit, FaTasks } from 'react-icons/fa';
+import { FaEdit, FaTasks, FaUserTie, FaPrint } from 'react-icons/fa';
 import Dialog from '@material-ui/core/Dialog';
 import { Slide } from '@material-ui/core';
 import Select from 'react-select';
+import DialogInfo from '~/componentes/DialogInfo';
 import Input from '~/componentes/Input';
+import Popup from '~/componentes/Popup';
 import FormSelect from '~/componentes/Select';
 import AsyncSelectForm from '~/componentes/Select/selectAsync';
 import {
@@ -21,6 +23,7 @@ import {
   BoxControles,
   Controles,
   Space,
+  Panel,
 } from './styles';
 import { maskDecimal, FormataMoeda, toDecimal } from '~/services/func.uteis';
 import {
@@ -42,6 +45,7 @@ export default function Crm5() {
   const api = ApiService.getInstance(ApiTypes.API1);
   const [loading, setLoading] = useState(false);
   const [openCadastro, setOpenCadastro] = useState(false);
+  const [openDlgImpressao, setOpenDlgImpressao] = useState(false);
   const [sitNegocio, setSitNegocio] = useState([]);
   const [oportunityPanel, setOportunityPanel] = useState([]);
   const [pesqCli_id, setPesqCliId] = useState([]);
@@ -52,6 +56,8 @@ export default function Crm5() {
   const [filtroClassific, setFiltroClassific] = useState('');
   const [filtroSitNeg, setFiltroSitNeg] = useState('');
   const frmCadastro = useRef(null);
+  const frmImpressao = useRef(null);
+
   let oportunityRaia = [];
   const toastOptions = {
     autoClose: 4000,
@@ -360,6 +366,22 @@ export default function Crm5() {
     }
   }
 
+  async function handleImpressao() {
+    try {
+      setLoading(true);
+      const frm = frmImpressao.current.getData();
+      const url = `v1/crm/report/rel_oportunidade?neg_situacao=${frm.imp_situacao}&mot_perda=${frm.imp_motivo_perda}&neg_responsavel=${frm.imp_responsavel}`;
+
+      const response = await api.get(url);
+      const link = response.data;
+      setLoading(false);
+      window.open(link, '_blank');
+    } catch (error) {
+      setLoading(false);
+      toast.error(`Erro ao gerar impressão \n${error}`, toastOptions);
+    }
+  }
+
   useEffect(() => {
     listaGeral(30); // situação do negocio
     listaOpPainel('', '', '');
@@ -379,6 +401,23 @@ export default function Crm5() {
         <BootstrapTooltip title="Cadastrar nova oportunidade" placement="left">
           <button type="button" onClick={handleNovo}>
             <MdAdd size={38} color="#fff" />
+          </button>
+        </BootstrapTooltip>
+        <DivLimitador hg="10px" />
+
+        <BootstrapTooltip title="CADASTRO GERAL DE CLIENTES" placement="left">
+          <button type="button" onClick={() => window.open('/crm4', '_blank')}>
+            <FaUserTie size={25} color="#fff" />
+          </button>
+        </BootstrapTooltip>
+        <DivLimitador hg="15px" />
+
+        <BootstrapTooltip
+          title="RELATÓRIO DE CLIENTES EM NEGOCIAÇÃO"
+          placement="left"
+        >
+          <button type="button" onClick={() => setOpenDlgImpressao(true)}>
+            <FaPrint size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
       </ToolBar>
@@ -643,6 +682,75 @@ export default function Crm5() {
         </Dialog>
       </Slide>
       {/* fim popup cadastro */}
+
+      {/* popup para impressao... */}
+      <Popup
+        isOpen={openDlgImpressao}
+        closeDialogFn={() => setOpenDlgImpressao(false)}
+        title="RELATÓRIO DE CLIENTES EM NEGOCIAÇÃO"
+        size="sm"
+      >
+        <Panel
+          lefth1="left"
+          bckgnd="#dae2e5"
+          mtop="1px"
+          pdding="5px 7px 7px 10px"
+        >
+          <Form id="frmImpressao" ref={frmImpressao}>
+            <BoxItemCad fr="1fr 1fr">
+              <AreaComp wd="100">
+                <FormSelect
+                  label="Atendente/vendedor(a)"
+                  name="imp_responsavel"
+                  optionsList={optResponsavel}
+                  zindex="153"
+                  placeholder="Informe"
+                />
+              </AreaComp>
+              <AreaComp wd="100">
+                <FormSelect
+                  label="Motivo de Perda"
+                  name="imp_motivo_perda"
+                  optionsList={optPerda}
+                  placeholder="Informe"
+                />
+              </AreaComp>
+            </BoxItemCad>
+            <BoxItemCad fr="1fr 1fr">
+              <AreaComp wd="100">
+                <FormSelect
+                  label="Situação"
+                  name="imp_situacao"
+                  zindex="152"
+                  optionsList={optSituacao}
+                  placeholder="Informe"
+                />
+              </AreaComp>
+            </BoxItemCad>
+            <BoxItemCadNoQuery fr="1fr" ptop="15px">
+              <AreaComp wd="100" ptop="10px">
+                <button
+                  type="button"
+                  className="btnGeralForm"
+                  onClick={handleImpressao}
+                >
+                  GERAR IMPRESSÃO
+                </button>
+              </AreaComp>
+            </BoxItemCadNoQuery>
+          </Form>
+        </Panel>
+      </Popup>
+
+      {/* popup para aguarde... */}
+      <DialogInfo
+        isOpen={loading}
+        closeDialogFn={() => {
+          setLoading(false);
+        }}
+        title="CRM - GESTÃO DE CLIENTES"
+        message="Aguarde Processamento..."
+      />
     </>
   );
 }
