@@ -12,7 +12,6 @@ export const ContentBar = styled.div`
   flex-direction: row;
   justify-content: center;
   align-items: center;
-
   width: 100%;
 
   margin: 0 auto;
@@ -22,7 +21,7 @@ export const ContentBar = styled.div`
 export const ToolBar = styled.div`
   display: flex;
   flex-direction: column;
-  padding-top: 120px;
+  padding-top: ${(props) => props.ptop || '120px'};
   width: ${(props) => props.wd};
   height: ${(props) => props.hg};
   margin-left: ${(props) => props.mleft || -10}px;
@@ -50,11 +49,20 @@ export const Container = styled.div`
   box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.2);
 `;
 
+export const ContainerConsulta = styled.div`
+  width: calc(100% - 40px);
+  height: 98%;
+  border-radius: 1px;
+  margin-left: 5px;
+  background: #fff;
+`;
+
 export const Panel = styled.div`
   width: 100%;
   border-radius: 4px;
   margin-left: 0px;
-  margin-top: -10px;
+  padding: ${(props) => props.pdding || '1px'};
+  margin-top: ${(props) => props.mtop || '-10px'};
 
   h1 {
     width: 100%;
@@ -67,14 +75,10 @@ export const Panel = styled.div`
     color: ${(props) => props.fontcolor || '#244448'};
     background: ${(props) => props.bckgnd || '#244448'};
   }
+`;
 
-  img {
-    height: 250px;
-    width: 250px;
-    border-radius: 50%;
-    border: 3px solid rgba(255, 255, 255, 0.3);
-    background: #fff;
-  }
+export const ContentConsulta = styled.div`
+  display: flex;
 `;
 
 export const Content = styled.div`
@@ -118,21 +122,7 @@ export const BoxPesquisa = styled.div`
   border-radius: 5px;
 `;
 
-export const GridContainerForn = styled.div`
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  padding: 8px 5px 0 0;
-
-  button {
-    border: 0;
-    background: none;
-    cursor: pointer;
-  }
-  height: 23vh;
-`;
-
-export const GridContainerMain = styled.div`
+export const GridContainer = styled.div`
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -145,99 +135,22 @@ export const GridContainerMain = styled.div`
   }
 
   @media (min-height: 300px) {
-    height: 40vh;
+    height: 29vh;
   }
 
   @media (min-height: 600px) {
-    height: 45vh;
+    height: 32vh;
   }
 
   @media (min-height: 680px) {
-    height: 50vh;
+    height: 36vh;
   }
 
   @media (min-height: 780px) {
-    height: 57vh;
+    height: 42vh;
   }
 
   @media (min-height: 880px) {
-    height: 67vh;
-  }
-`;
-
-export const GridContainerClassific = styled.div`
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  padding: 8px 5px 0 0;
-
-  button {
-    border: 0;
-    background: none;
-    cursor: pointer;
-  }
-
-  @media (min-height: 300px) {
-    height: 20vh;
-  }
-
-  @media (min-height: 600px) {
-    height: 24vh;
-  }
-
-  @media (min-height: 680px) {
-    height: 25vh;
-  }
-
-  @media (min-height: 780px) {
-    height: 28vh;
-  }
-
-  @media (min-height: 900px) {
-    height: 34vh;
-  }
-`;
-
-export const GridContainerEstoque = styled.div`
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  padding: 8px 5px 0 0;
-
-  button {
-    border: 0;
-    background: none;
-    cursor: pointer;
-  }
-  .cell_total {
-    font-weight: bold;
-    font-size: 14px;
-    text-align: right;
-  }
-
-  .cell_destaque {
-    font-weight: bold;
-    color: #a75f09;
-    font-size: 13px;
-  }
-
-  @media (min-height: 300px) {
-    height: 40vh;
-  }
-
-  @media (min-height: 600px) {
-    height: 45vh;
-  }
-
-  @media (min-height: 680px) {
-    height: 50vh;
-  }
-
-  @media (min-height: 780px) {
-    height: 57vh;
-  }
-
-  @media (min-height: 880px) {
-    height: 67vh;
+    height: 53vh;
   }
 `;

@@ -325,38 +325,43 @@ export function Menu() {
     dispatch(loadMenu(modulo));
   }
 
-  useEffect(() => {
-    async function getFullMenu() {
-      try {
-        if (menu.length > 0) {
-          setMenuGerado(menu);
+  async function getFullMenu() {
+    try {
+      if (menu.length > 0) {
+        setMenuGerado(menu);
+      } else {
+        let response;
+        if (usr_tipo === '1') {
+          response = await api.get('/v1/accounts/listar_modulos_full');
         } else {
-          let response;
-          if (usr_tipo === '1') {
-            response = await api.get('/v1/accounts/listar_modulos_full');
-          } else {
-            response = await api.get(`/v1/users/grupo_user/${usr_grupo_id}`);
-          }
-          if (response.data.success) {
-            const dados = response.data.retorno;
-            if (dados) {
-              await montaTreeMenu(dados);
-            }
-          } else {
-            toast.error(
-              `Usuário sem acesso configurado. Procure o administrador do sistema`,
-              toastOptions
-            );
-            dispatch(logOut());
-          }
+          response = await api.get(`/v1/users/grupo_user/${usr_grupo_id}`);
         }
-      } catch (error) {
-        toast.error(`Houve um erro ao carregar menu \n${error}`, toastOptions);
+        if (response.data.success) {
+          const dados = response.data.retorno;
+          if (dados) {
+            await montaTreeMenu(dados);
+          }
+        } else {
+          toast.error(
+            `Usuário sem acesso configurado. Procure o administrador do sistema`,
+            toastOptions
+          );
+          dispatch(logOut());
+        }
       }
+    } catch (error) {
+      toast.error(`Houve um erro ao carregar menu \n${error}`, toastOptions);
     }
+  }
+
+  useEffect(() => {
     window.loadMenu();
     getFullMenu();
   }, []);
+
+  useEffect(() => {
+    console.warn('menu ', menu);
+  }, [menu]);
 
   return (
     <>
