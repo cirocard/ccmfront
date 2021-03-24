@@ -981,7 +981,6 @@ export default function SUPR4() {
       toast.error(`Erro ao atualizar fornecedor \n${error}`, toastOptions);
     }
   }
-
   // F10 adiciona o fornecedor a grid
   async function handleAddFornec() {
     try {

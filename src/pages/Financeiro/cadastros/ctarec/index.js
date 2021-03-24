@@ -14,6 +14,7 @@ import {
   FaPlusCircle,
   FaUserTie,
   FaFileSignature,
+  FaTrashAlt,
 } from 'react-icons/fa';
 import moment from 'moment';
 import DatePickerInput from '~/componentes/DatePickerInput';
@@ -26,6 +27,7 @@ import Input from '~/componentes/Input';
 import TextArea from '~/componentes/TextArea';
 import { BootstrapTooltip } from '~/componentes/ToolTip';
 import history from '~/services/history';
+import Confirmation from '~/componentes/DialogChoice';
 import {
   a11yProps,
   maskDecimal,
@@ -439,6 +441,43 @@ export default function FINA9() {
     }
   }
 
+  async function handleCancelar() {
+    try {
+      if (dataGridPesqSelected.length > 0) {
+        if (
+          dataGridPesqSelected[0].situacao === '2' ||
+          dataGridPesqSelected[0].situacao === '4'
+        ) {
+          toast.warning(
+            'ATENÇÃO!! ESTE TITULO NÃO PODE SER EXCLUÍDO.  VERIFIQUE A SITUACÃO!!!',
+            toastOptions
+          );
+          return;
+        }
+
+        const confirmation = await Confirmation.show(
+          'VOCÊ TEM CERTEZA QUE QUER EXCLUIR O TITULO???'
+        );
+
+        if (confirmation) {
+          setLoading(true);
+          const url = `v1/fina/ctarec/excluir?rec_id=${dataGridPesqSelected[0].rec_id}`;
+          const response = await api.put(url);
+          setLoading(false);
+          if (response.data.success) {
+            await listarCtaRec();
+            toast.info('Título excluído com sucesso!!!', toastOptions);
+          }
+        }
+      } else {
+        toast.info('Selecione um título para excluir', toastOptions);
+      }
+    } catch (error) {
+      setLoading(false);
+      toast.error(`Erro ao excluir título: \n${error}`, toastOptions);
+    }
+  }
+
   const handleChangeTab = async (event, newValue) => {
     if (newValue === 0) {
       limpaForm();
@@ -672,6 +711,12 @@ export default function FINA9() {
           </button>
         </BootstrapTooltip>
         <DivLimitador hg="20px" />
+        <BootstrapTooltip title="Excluir Titulo" placement="left">
+          <button type="button" onClick={handleCancelar}>
+            <FaTrashAlt size={25} color="#fff" />
+          </button>
+        </BootstrapTooltip>
+        <DivLimitador hg="10px" />
         <Linha />
         <DivLimitador hg="20px" />
 

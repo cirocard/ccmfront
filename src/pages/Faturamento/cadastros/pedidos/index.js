@@ -32,6 +32,7 @@ import {
   FaDollarSign,
   FaUserTie,
   FaCcAmazonPay,
+  FaPagelines,
 } from 'react-icons/fa';
 import Dialog from '@material-ui/core/Dialog';
 import { Slide } from '@material-ui/core';
@@ -46,6 +47,7 @@ import TextArea from '~/componentes/TextArea';
 import FormSelect from '~/componentes/Select';
 import AsyncSelectForm from '~/componentes/Select/selectAsync';
 import Confirmation from '~/componentes/DialogChoice';
+import CONSULTA_PRODUTO from '~/pages/Suprimentos/cadastros/produto/consulta';
 import {
   Container,
   Panel,
@@ -144,6 +146,7 @@ export default function FAT2() {
   const [representante, setRepresentante] = useState([]);
   const [nParcela, setNParcela] = useState(1);
   const [optClassificFina, setOptClassificFina] = useState(1);
+  const [dlgConsProduto, setDlgConsProduto] = useState(false);
 
   const toastOptions = {
     autoClose: 5000,
@@ -2537,9 +2540,15 @@ export default function FAT2() {
         <DivLimitador hg="20px" />
         <Linha />
         <DivLimitador hg="10px" />
-        <BootstrapTooltip title="Consultar Produto" placement="left">
+        <BootstrapTooltip title="ACESSAR CADASTRO DE PRODUTOS" placement="left">
           <button type="button" onClick={handleProduto}>
             <FaCubes size={25} color="#fff" />
+          </button>
+        </BootstrapTooltip>
+        <DivLimitador hg="10px" />
+        <BootstrapTooltip title="CONSULTA RÁPIDA DE PRODUTOS" placement="right">
+          <button type="button" onClick={() => setDlgConsProduto(true)}>
+            <FaPagelines size={28} color="#fff" />
           </button>
         </BootstrapTooltip>
         <DivLimitador hg="10px" />
@@ -3601,6 +3610,17 @@ export default function FAT2() {
         </Panel>
       </Popup>
 
+      {/* popup para consulta de produtos... */}
+      <Popup
+        isOpen={dlgConsProduto}
+        closeDialogFn={() => {
+          setDlgConsProduto(false);
+        }}
+        title="CONSULTA RÁPIDA DE PRODUTOS"
+        size="lg"
+      >
+        <CONSULTA_PRODUTO />
+      </Popup>
       {/* popup para aguarde... */}
       <DialogInfo
         isOpen={loading}
