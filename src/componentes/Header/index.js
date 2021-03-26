@@ -1,6 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { FaPowerOff, FaUserEdit, FaWindowClose } from 'react-icons/fa';
+import { FaPowerOff, FaUserEdit, FaWindowClose, FaBell } from 'react-icons/fa';
 import { Form } from '@unform/web';
 import { format } from 'date-fns';
 import pt from 'date-fns/locale/pt';
@@ -16,6 +16,7 @@ import { logOut } from '~/store/modules/auth/actions';
 import { BootstrapTooltip } from '~/componentes/ToolTip';
 import { BotaoEmpresa } from '../SelectEmpresa';
 import { ApiService, ApiTypes } from '~/services/api';
+import Popup from '~/componentes/Popup';
 import {
   TitleBar,
   AreaComp,
@@ -23,7 +24,9 @@ import {
   CModal,
   Scroll,
   Linha,
+  DivLimitador,
 } from '~/pages/general.styles';
+import NOTIFICACOES from '~/componentes/Notificacao';
 
 export default function Header() {
   const api = ApiService.getInstance(ApiTypes.API1);
@@ -32,6 +35,8 @@ export default function Header() {
   const frmUser = useRef(null);
   const [loading, setLoading] = useState(false);
   const [openDlgUser, setOpenDlgUser] = useState(false);
+  const [qtdNotific, setQtdNotific] = useState(0);
+  const [dlgNotificacoes, setDlgNotificacoes] = useState(false);
   const toastOptions = {
     autoClose: 4000,
     position: toast.POSITION.TOP_CENTER,
@@ -83,6 +88,23 @@ export default function Header() {
     }
   }
 
+  async function handleQtdNotific() {
+    try {
+      const response = await api.get(`v1/crm/consulta/notific_cliente_qtd`);
+      const dados = response.data.retorno;
+      if (dados) {
+        setQtdNotific(dados);
+      }
+    } catch (error) {
+      setLoading(false);
+      toast.error(`Erro ao consultar notificaçoes \n${error}`, toastOptions);
+    }
+  }
+
+  useEffect(() => {
+    handleQtdNotific();
+  }, []);
+
   return (
     <>
       <Container>
@@ -91,7 +113,8 @@ export default function Header() {
             <Nav mleft="30px">
               <Menu />
             </Nav>
-            <Nav wd="60%">
+
+            <Nav wd="70%">
               <span>Empresa Ativa:</span>
               <BotaoEmpresa />
             </Nav>
@@ -105,20 +128,37 @@ export default function Header() {
               </div>
             </Profile>
             <Actions>
+              <DivLimitador wd="5px" />
+              {qtdNotific > 0 ? (
+                <button type="button" onClick={() => setDlgNotificacoes(true)}>
+                  <span className="notif">{qtdNotific}</span>
+                </button>
+              ) : (
+                <></>
+              )}
+
+              <BootstrapTooltip title="Notificações" placement="top-start">
+                <button type="button" onClick={null}>
+                  <FaBell size={25} color="#fafafa" />
+                </button>
+              </BootstrapTooltip>
+
+              <DivLimitador wd="15px" />
               <BootstrapTooltip
                 title="Editar meu login de acesso"
                 placement="top-start"
               >
                 <button type="button" onClick={() => setOpenDlgUser(true)}>
-                  <FaUserEdit size={22} color="#fafafa" />
+                  <FaUserEdit size={29} color="#fafafa" />
                 </button>
               </BootstrapTooltip>
+              <DivLimitador wd="10px" />
               <BootstrapTooltip
                 title="Sair do Sistema com segurança"
                 placement="top-start"
               >
                 <button type="button" onClick={handleLogoff}>
-                  <FaPowerOff size={22} color="#fafafa" />
+                  <FaPowerOff size={26} color="#fafafa" />
                 </button>
               </BootstrapTooltip>
             </Actions>
@@ -184,6 +224,18 @@ export default function Header() {
           </Scroll>
         </Dialog>
       </Slide>
+
+      {/* popup DE NOTIFICAÇÕES... */}
+      <Popup
+        isOpen={dlgNotificacoes}
+        closeDialogFn={() => {
+          setDlgNotificacoes(false);
+        }}
+        title="NOTIFICAÇÕES DO SISTEMA"
+        size="md"
+      >
+        <NOTIFICACOES />
+      </Popup>
     </>
   );
 }
