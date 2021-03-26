@@ -359,10 +359,6 @@ export function Menu() {
     getFullMenu();
   }, []);
 
-  useEffect(() => {
-    console.warn('menu ', menu);
-  }, [menu]);
-
   return (
     <>
       <Container>

@@ -63,13 +63,31 @@ export const Nav = styled.nav`
 
 export const Actions = styled.div`
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   justify-content: center;
   align-content: center;
-
+  align-items: baseline;
   button {
     border: 0;
     background: none;
+  }
+
+  .notif {
+    display: block;
+    position: relative;
+    top: -20px;
+    left: 33px;
+    line-height: 16px;
+    height: 20px;
+    padding: 1px 6px;
+    font-family: Arial, sans-serif;
+    background: #dc2a03;
+    color: white;
+    text-shadow: 0 1px rgba(0, 0, 0, 0.25);
+    border: 1px solid #000;
+    border-radius: 10px;
+    box-shadow: inset 0 1px rgba(255, 255, 255, 0.3),
+      0 1px 1px rgba(0, 0, 0, 0.09);
   }
 `;
 
@@ -86,7 +104,7 @@ export const Profile = styled.div`
     strong {
       display: block;
       color: #fff;
-      font-size: 12px;
+      font-size: 13px;
     }
 
     a {

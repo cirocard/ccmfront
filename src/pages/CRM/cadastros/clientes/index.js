@@ -7,7 +7,6 @@ import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import KeyboardEventHandler from 'react-keyboard-event-handler';
-
 import { MdClose } from 'react-icons/md';
 import {
   FaSave,
@@ -18,6 +17,7 @@ import {
   FaTrashAlt,
   FaRegAddressCard,
 } from 'react-icons/fa';
+import { format } from 'date-fns';
 import AsyncSelectForm from '~/componentes/Select/selectAsync';
 import TextArea from '~/componentes/TextArea';
 import FormSelect from '~/componentes/Select';
@@ -25,6 +25,7 @@ import DialogInfo from '~/componentes/DialogInfo';
 import { gridTraducoes } from '~/services/gridTraducoes';
 import TabPanel from '~/componentes/TabPanel';
 import Input from '~/componentes/Input';
+import DatePickerInput from '~/componentes/DatePickerInput';
 import { BootstrapTooltip } from '~/componentes/ToolTip';
 import history from '~/services/history';
 import {
@@ -51,6 +52,7 @@ import {
   BoxItemCadNoQuery,
   Scroll,
   DivLimitador,
+  CCheck,
 } from '~/pages/general.styles';
 
 export default function Crm9() {
@@ -63,7 +65,6 @@ export default function Crm9() {
   const [loading, setLoading] = useState(false);
   const [gridPesquisa, setGridPesquisa] = useState([]);
   const [dataGridPesqSelected, setDataGridPesqSelected] = useState([]);
-
   const [gridEndereco, setGridEndereco] = useState([]);
   const [optTipoCliente, setOptTipoCliente] = useState([]);
   const [optSegmento, setOptSegmento] = useState([]);
@@ -73,6 +74,7 @@ export default function Crm9() {
   const [optPais, setOptPais] = useState([]);
   const [representante, setRepresentante] = useState([]);
   const [perfil, setPerfil] = useState('0');
+  const [dataNasc, setDataNasc] = useState(new Date());
 
   const toastOptions = {
     autoClose: 4000,
@@ -451,6 +453,24 @@ export default function Crm9() {
           'cli_insc_suframa',
           dataGridPesqSelected[0].cli_insc_suframa
         );
+
+        if (dataGridPesqSelected[0].cli_datanasc) {
+          setDataNasc(
+            new Date(
+              format(
+                Date.parse(
+                  dataGridPesqSelected[0].cli_datanasc.substring(0, 19)
+                ),
+                'yyy/MM/dd'
+              )
+            )
+          );
+        } else {
+          setDataNasc('hoje');
+        }
+        document.getElementById('cli_exibir_notificacao').checked =
+          dataGridPesqSelected[0].cli_exibir_notificacao === 'S';
+
         await loadOptionsRepresentante(
           dataGridPesqSelected[0].cli_representante,
           setRepresentante
@@ -507,6 +527,15 @@ export default function Crm9() {
           cli_insc_municipal: formData.cli_insc_municipal || null,
           cli_insc_suframa: formData.cli_insc_suframa || null,
           cli_representante: formData.cli_representante || null,
+          cli_datanasc:
+            dataNasc.toString() === 'hoje'
+              ? null
+              : format(dataNasc, 'yyy/MM/dd'),
+          cli_exibir_notificacao: document.getElementById(
+            'cli_exibir_notificacao'
+          ).checked
+            ? 'S'
+            : 'N',
         };
 
         const cadastro = { cliente };
@@ -1037,7 +1066,7 @@ export default function Crm9() {
             <Panel lefth1="left" bckgnd="#dae2e5">
               <Form id="frmCadastro" ref={frmCadastro}>
                 <h1>IDENTIFICAÇÃO DO CLIENTE</h1>
-                <BoxItemCad fr="1fr 2fr 2fr">
+                <BoxItemCad fr="1fr 4fr 4fr 2fr">
                   <AreaComp wd="100">
                     <label>Código</label>
                     <Input
@@ -1061,6 +1090,13 @@ export default function Crm9() {
                       type="text"
                       name="cli_fantasia"
                       className="input_cad"
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <DatePickerInput
+                      onChangeDate={(date) => setDataNasc(new Date(date))}
+                      value={dataNasc}
+                      label="Data Nascimento"
                     />
                   </AreaComp>
                 </BoxItemCad>
@@ -1293,6 +1329,19 @@ export default function Crm9() {
                         placeholder="Informe"
                       />
                     </BootstrapTooltip>
+                  </AreaComp>
+                  <AreaComp wd="100" ptop="22px">
+                    <CCheck>
+                      <input
+                        type="checkbox"
+                        id="cli_exibir_notificacao"
+                        name="cli_exibir_notificacao"
+                        value="S"
+                      />
+                      <label htmlFor="cli_exibir_notificacao">
+                        Enviar notificações
+                      </label>
+                    </CCheck>
                   </AreaComp>
                 </BoxItemCad>
               </Form>

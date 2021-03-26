@@ -58,4 +58,12 @@ export const AreaComp = styled.div`
   .css-1uccc91-singleValue {
     color: #fafafa;
   }
+
+  .css-1okebmr-indicatorSeparator {
+    background: transparent;
+  }
+
+  .css-6q0nyr-Svg {
+    background: #244448;
+  }
 `;
