@@ -6,6 +6,7 @@ import Main from '~/pages/Main';
 import Login from '~/pages/Login';
 import Parametros from '~/pages/admSistema/Parametros';
 import Adm1 from '~/pages/admSistema/cadMenu/index';
+import Adm3 from '~/pages/admSistema/empresa';
 import Adm4 from '~/pages/admSistema/grupoUser/index';
 import Adm5 from '~/pages/admSistema/usuario';
 import Adm6 from '~/pages/admSistema/cadMenu/empresa';
@@ -65,6 +66,7 @@ export default function Routes() {
       <Route path="/" exact component={Main} isPrivate />
       <Route path="/adm1" component={Adm1} isPrivate />
       <Route path="/adm2" component={Parametros} isPrivate />
+      <Route path="/adm3" component={Adm3} isPrivate />
       <Route path="/adm4" component={Adm4} isPrivate />
       <Route path="/adm5" component={Adm5} isPrivate />
       <Route path="/adm6" component={Adm6} isPrivate />

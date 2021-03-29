@@ -44,6 +44,7 @@ export function* signIn({ payload }) {
       token,
       emp_id,
       emp_razao_social,
+      emp_financeiro,
       usr_id,
       usr_tipo,
       usr_grupo_id,
@@ -59,6 +60,7 @@ export function* signIn({ payload }) {
           token,
           emp_id,
           emp_razao_social,
+          emp_financeiro,
           usr_id,
           usr_tipo,
           usr_grupo_id,
@@ -119,7 +121,7 @@ export function* setNewEmp({ payload }) {
       return;
     }
 
-    const { token, emp_razao_social, usr_grupo_id } = retorno;
+    const { token, emp_razao_social, emp_financeiro, usr_grupo_id } = retorno;
 
     if (success) {
       api.defaults.headers.Authorization = `Bearer ${token}`;
@@ -129,6 +131,7 @@ export function* setNewEmp({ payload }) {
           token,
           emp_id,
           emp_razao_social,
+          emp_financeiro,
           usr_id,
           usr_tipo,
           usr_grupo_id,

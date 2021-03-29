@@ -10,6 +10,7 @@ const INITIAL_STATE = {
   usr_email: '',
   emp_id: '',
   emp_razao_social: '',
+  emp_financeiro: '',
   optionsEmp: [],
   menu: [],
 };
@@ -31,6 +32,7 @@ export default function auth(state = INITIAL_STATE, action) {
         draft.usr_tipo = action.payload.usr_tipo;
         draft.usr_grupo_id = action.payload.usr_grupo_id;
         draft.usr_email = action.payload.usr_email;
+        draft.emp_financeiro = action.payload.emp_financeiro;
         if (action.payload.optionsEmp) {
           draft.optionsEmp = action.payload.optionsEmp;
         }
@@ -52,6 +54,7 @@ export default function auth(state = INITIAL_STATE, action) {
         draft.emp_id = action.payload.emp_id;
         draft.emp_razao_social = action.payload.emp_razao_social;
         draft.menu = action.payload.menu;
+        draft.emp_financeiro = action.payload.emp_financeiro;
         break;
       }
       case '@auth/SIGN_FAILURE': {

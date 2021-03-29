@@ -1,5 +1,7 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable eqeqeq */
 import React, { useEffect, useState, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import { useRouteMatch } from 'react-router-dom';
 import * as Yup from 'yup';
 import { Form } from '@unform/web';
@@ -94,7 +96,6 @@ export default function FAT2() {
   const frmDesc = useRef(null);
   const frmCredito = useRef(null);
   const frmFinanceiro = useRef(null);
-  const [geraFina, setGeraFina] = useState('N');
   const [optOperFat, setOptOperFat] = useState([]);
   const [optCvto, setOptCvto] = useState([]);
   const [optFpgto, setOptFpgto] = useState([]);
@@ -147,6 +148,8 @@ export default function FAT2() {
   const [nParcela, setNParcela] = useState(1);
   const [optClassificFina, setOptClassificFina] = useState(1);
   const [dlgConsProduto, setDlgConsProduto] = useState(false);
+
+  const { emp_financeiro } = useSelector((state) => state.auth);
 
   const toastOptions = {
     autoClose: 5000,
@@ -1565,7 +1568,7 @@ export default function FAT2() {
         return;
       }
 
-      if (geraFina === 'S') {
+      if (emp_financeiro === 'S') {
         if (!formFina.fina_classificacao) {
           toast.error(
             `VOCÊ ESTÁ USANDO UMA OPERAÇÃO QUE MOVIMENTA FINANCEIRO... INFORME A CLASSIFICAÇÃO FINANCEIRA!!`,
@@ -1810,7 +1813,7 @@ export default function FAT2() {
           return;
         }
         const retorno = await api.post(
-          `v1/fat/pedido_financeiro?gera_fina=${geraFina}`,
+          `v1/fat/pedido_financeiro?gera_fina=${emp_financeiro}`,
           cad
         );
         if (retorno.data.success) {
@@ -2797,9 +2800,6 @@ export default function FAT2() {
                       optionsList={optOperFat}
                       isClearable
                       placeholder="INFORME"
-                      onChange={(op) => {
-                        if (op) setGeraFina(op.gera_fina || 'N');
-                      }}
                       zindex="153"
                     />
                   </AreaComp>
@@ -3334,6 +3334,8 @@ export default function FAT2() {
                     >
                       {loading
                         ? 'Aguarde Processando...'
+                        : emp_financeiro === 'S'
+                        ? 'Confirmar Recebimento'
                         : 'Confirmar Negociação'}
                       <FaCheckCircle size={22} color="#fff" />
                     </button>
