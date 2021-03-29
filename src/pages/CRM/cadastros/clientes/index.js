@@ -293,6 +293,7 @@ export default function Crm9() {
     frmCadastro.current.setFieldValue('cli_insc_municipal', '');
     frmCadastro.current.setFieldValue('cli_insc_suframa', '');
     frmCadastro.current.setFieldValue('cli_representante', '');
+    document.getElementById('cli_exibir_notificacao').checked = false;
     setGridEndereco([]);
     setDataGridPesqSelected([]);
   };
