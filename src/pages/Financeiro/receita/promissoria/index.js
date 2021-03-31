@@ -130,6 +130,7 @@ export default function FINA10() {
       if (dados) {
         setGridPesquisa(dados);
       }
+      setGridItens([]);
       setLoading(false);
     } catch (error) {
       setLoading(false);

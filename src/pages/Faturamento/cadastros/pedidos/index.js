@@ -1696,9 +1696,7 @@ export default function FAT2() {
 
             if (vlr_atualizado === 0) {
               setInfoVlrPedidoNegociado(
-                `VALOR DO PEDIDDO APÓS NEGOCIAÇÃ0: ${FormataMoeda(
-                  vlrNeg.toString()
-                )}`
+                `VALOR A RECEBER DO CLIENTE: ${FormataMoeda(vlrNeg.toString())}`
               );
             } else {
               setInfoVlrPedidoNegociado('');
@@ -1730,7 +1728,7 @@ export default function FAT2() {
       let excluiu = false;
       if (prm.persistido === 'S') {
         const response = await api.delete(
-          `v1/fat/excluir_aba_financeiro?cp_id=${prm.fina_cp_id}`
+          `v1/fat/excluir_aba_financeiro?cp_id=${prm.fina_cp_id}&gera_fina=${emp_financeiro}`
         );
         if (response.data.success) {
           setGridFinanceiro([]);
@@ -2362,7 +2360,7 @@ export default function FAT2() {
     },
     {
       field: 'fina_valor_final',
-      headerName: 'VALOR A PAGAR',
+      headerName: 'VALOR A RECEBER',
       width: 160,
       sortable: true,
       resizable: true,
@@ -3180,16 +3178,18 @@ export default function FAT2() {
                       isClearable
                       placeholder="INFORME"
                       onChange={(cvto) => {
-                        setNParcela(cvto.parcelas);
-                        frmFinanceiro.current.setFieldValue(
-                          'fina_valor_final',
-                          ''
-                        );
-                        frmFinanceiro.current.setFieldValue(
-                          'fina_perc_desc',
-                          ''
-                        );
-                        document.getElementsByName('fina_valor')[0].focus();
+                        if (cvto) {
+                          setNParcela(cvto.parcelas);
+                          frmFinanceiro.current.setFieldValue(
+                            'fina_valor_final',
+                            ''
+                          );
+                          frmFinanceiro.current.setFieldValue(
+                            'fina_perc_desc',
+                            ''
+                          );
+                          document.getElementsByName('fina_valor')[0].focus();
+                        }
                       }}
                       zindex="153"
                     />
