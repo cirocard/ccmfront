@@ -59,7 +59,7 @@ import {
   DivLimitador,
   Linha,
 } from '~/pages/general.styles';
-import CONULTA_PEDIDO from '~/pages/Financeiro/cadastros/bordero/consulta';
+import CONULTA_PEDIDO from '~/pages/Financeiro/cadastros/cheque/bordero/consulta';
 import CONSULTA_CHEQUE from '~/componentes/ConsultaCheque';
 
 export default function FINA6() {

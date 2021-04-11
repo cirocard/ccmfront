@@ -35,6 +35,7 @@ import {
   FaUserTie,
   FaCcAmazonPay,
   FaPagelines,
+  FaWpforms,
 } from 'react-icons/fa';
 import Dialog from '@material-ui/core/Dialog';
 import { Slide } from '@material-ui/core';
@@ -545,6 +546,31 @@ export default function FAT2() {
         const link = response.data;
         setLoading(false);
         window.open(link, '_blank');
+      } else {
+        toast.info('Selecione um pedido para imprimir', toastOptions);
+      }
+    } catch (error) {
+      setLoading(false);
+      toast.error(`Erro ao imprimir pedido \n${error}`, toastOptions);
+    }
+  }
+
+  // impressao de nota promissória
+  async function handlePrintPromissoria() {
+    try {
+      if (dataGridPesqSelected.length > 0) {
+        setLoading(true);
+        const response = await api.get(
+          `v1/fina/report/promissoria/pedido?cp_id=${dataGridPesqSelected[0].cp_id}`
+        );
+        if (response.data.success) {
+          const link = response.data.retorno;
+          setLoading(false);
+          window.open(link, '_blank');
+        } else {
+          setLoading(false);
+          toast.error(response.data.errors, toastOptions);
+        }
       } else {
         toast.info('Selecione um pedido para imprimir', toastOptions);
       }
@@ -2540,6 +2566,13 @@ export default function FAT2() {
         </BootstrapTooltip>
         <DivLimitador hg="20px" />
         <Linha />
+
+        <DivLimitador hg="10px" />
+        <BootstrapTooltip title="IMPRESSÃO DE PROMISSÓRIAS" placement="left">
+          <button type="button" onClick={handlePrintPromissoria}>
+            <FaWpforms size={25} color="#fff" />
+          </button>
+        </BootstrapTooltip>
         <DivLimitador hg="10px" />
         <BootstrapTooltip title="ACESSAR CADASTRO DE PRODUTOS" placement="left">
           <button type="button" onClick={handleProduto}>

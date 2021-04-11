@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import React, { useEffect, useState, useRef } from 'react';
 import * as Yup from 'yup';
 import { Form } from '@unform/web';
@@ -12,8 +11,6 @@ import {
   FaSave,
   FaSearch,
   FaPlusCircle,
-  FaFolderPlus,
-  FaMoneyCheckAlt,
   FaFileSignature,
   FaEdit,
 } from 'react-icons/fa';
@@ -25,7 +22,7 @@ import TabPanel from '~/componentes/TabPanel';
 import Input from '~/componentes/Input';
 import { BootstrapTooltip } from '~/componentes/ToolTip';
 import history from '~/services/history';
-import { a11yProps, GridCurrencyFormatter } from '~/services/func.uteis';
+import { a11yProps } from '~/services/func.uteis';
 import { ApiService, ApiTypes } from '~/services/api';
 import { Container, Panel, ToolBar, GridContainerMain } from './styles';
 import {
@@ -48,7 +45,7 @@ export default function FINA11() {
   const [gridPesquisa, setGridPesquisa] = useState([]);
   const [gridParametro, setGridParametro] = useState([]);
   const [dataGridPesqSelected, setDataGridPesqSelected] = useState([]);
-  const [optFpgto, setOptFpgto] = useState([]);
+
   const [optConta, setOptConta] = useState([]);
   const [rowAlterar, setRowalterar] = useState([]);
   const [optGrpRecDesp, setOptGrprecDesp] = useState([]);
@@ -71,21 +68,6 @@ export default function FINA11() {
     { value: '1', label: 'ATIVO' },
     { value: '2', label: 'INATIVO' },
   ];
-
-  // combo geral
-  async function comboGeral(tab_id) {
-    try {
-      const response = await api.get(`v1/combos/geral/${tab_id}`);
-      const dados = response.data.retorno;
-      if (dados) {
-        if (tab_id === 6) {
-          setOptFpgto(dados);
-        }
-      }
-    } catch (error) {
-      toast.error(`Erro ao carregar registro \n${error}`);
-    }
-  }
 
   async function handleGrupoRecDesp(tipoGrupo) {
     try {
@@ -355,7 +337,7 @@ export default function FINA11() {
 
   useEffect(() => {
     frmCadastro.current.setFieldValue('prm_tipo', optTipoParam[0]);
-    comboGeral(6); // fpgto
+
     handleComboContas();
     listarParametros();
     setValueTab(0);

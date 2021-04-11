@@ -36,12 +36,13 @@ import FINA2 from '~/pages/Financeiro/parametros/geral';
 import FINA3 from '~/pages/Financeiro/parametros/grupo_recdesp';
 import FINA4 from '~/pages/Financeiro/parametros/contas';
 import FINA5 from '~/pages/Financeiro/cadastros/cheque';
-import FINA6 from '~/pages/Financeiro/cadastros/bordero';
+import FINA6 from '~/pages/Financeiro/cadastros/cheque/bordero';
 import FINA7 from '~/pages/Financeiro/relatorios';
-import FINA9 from '~/pages/Financeiro/cadastros/ctarec';
+import FINA9 from '~/pages/Financeiro/conta_receber/ctarec';
 import FINA8 from '~/pages/Financeiro/cadastros/bloco';
-import FINA10 from '~/pages/Financeiro/receita/promissoria';
+import FINA10 from '~/pages/Financeiro/conta_receber/promissoria';
 import FINA11 from '~/pages/Financeiro/parametros/movfina';
+import FINA12 from '~/pages/Financeiro/conta_receber/bordero';
 
 // SUPRIMENTOS
 import SUPR1 from '~/pages/Suprimentos/dashboard';
@@ -102,6 +103,7 @@ export default function Routes() {
       <Route path="/fina9" component={FINA9} isPrivate />
       <Route path="/fina10" component={FINA10} isPrivate />
       <Route path="/fina11" component={FINA11} isPrivate />
+      <Route path="/fina12" component={FINA12} isPrivate />
 
       {/* MÓDULO SUPRIMENTOS */}
       <Route path="/supr1" component={SUPR1} isPrivate />
