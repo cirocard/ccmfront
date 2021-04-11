@@ -330,3 +330,6 @@ exports.JurosTotal = (valor, parcelas, taxa) => {
   const valorDaParcela = cfet * valor;
   return (parcelas * valorDaParcela).toFixed(2);
 };
+
+exports.sleep = (milliseconds) =>
+  new Promise((resolve) => setTimeout(resolve, milliseconds));

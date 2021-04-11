@@ -722,7 +722,7 @@ export default function FINA9() {
 
         <DivLimitador hg="10px" />
         <BootstrapTooltip title="ABRIR CADASTRO DE CLIENTES" placement="left">
-          <button type="button" onClick={null}>
+          <button type="button" onClick={() => window.open('/crm9', '_blank')}>
             <FaUserTie size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
@@ -1039,6 +1039,7 @@ export default function FINA9() {
           </TabPanel>
         </Scroll>
       </Container>
+
       {/* popup para aguarde... */}
       <DialogInfo
         isOpen={loading}

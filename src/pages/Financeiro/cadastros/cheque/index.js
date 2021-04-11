@@ -16,6 +16,7 @@ import {
   FaUserTie,
   FaMoneyCheckAlt,
   FaCog,
+  FaColumns,
 } from 'react-icons/fa';
 import moment from 'moment';
 import DatePickerInput from '~/componentes/DatePickerInput';
@@ -620,8 +621,17 @@ export default function FINA5() {
         <Linha />
         <DivLimitador hg="20px" />
         <BootstrapTooltip title="ABRIR BORDERÔ DE CHEQUE" placement="left">
-          <button type="button" onClick={() => null}>
+          <button type="button" onClick={() => window.open('/fina6', '_blank')}>
             <FaMoneyCheckAlt size={25} color="#fff" />
+          </button>
+        </BootstrapTooltip>
+        <DivLimitador hg="10px" />
+        <BootstrapTooltip title="RELATÓRIO DE CHEQUES" placement="left">
+          <button
+            type="button"
+            onClick={() => window.open('/fina7/cheque', '_blank')}
+          >
+            <FaColumns size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
         <DivLimitador hg="10px" />
