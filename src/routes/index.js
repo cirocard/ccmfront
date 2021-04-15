@@ -34,7 +34,7 @@ import FAT5 from '~/pages/Faturamento/relatorios';
 import FINA1 from '~/pages/Financeiro/dashboard';
 import FINA2 from '~/pages/Financeiro/parametros/geral';
 import FINA3 from '~/pages/Financeiro/parametros/grupo_recdesp';
-import FINA4 from '~/pages/Financeiro/parametros/contas';
+import FINA4 from '~/pages/Financeiro/caixaBanco/contas';
 import FINA5 from '~/pages/Financeiro/cadastros/cheque';
 import FINA6 from '~/pages/Financeiro/cadastros/cheque/bordero';
 import FINA7 from '~/pages/Financeiro/relatorios';
@@ -43,6 +43,7 @@ import FINA8 from '~/pages/Financeiro/cadastros/bloco';
 import FINA10 from '~/pages/Financeiro/conta_receber/promissoria';
 import FINA11 from '~/pages/Financeiro/parametros/movfina';
 import FINA12 from '~/pages/Financeiro/conta_receber/bordero';
+import FINA13 from '~/pages/Financeiro/caixaBanco/movcontas';
 
 // SUPRIMENTOS
 import SUPR1 from '~/pages/Suprimentos/dashboard';
@@ -104,6 +105,7 @@ export default function Routes() {
       <Route path="/fina10" component={FINA10} isPrivate />
       <Route path="/fina11" component={FINA11} isPrivate />
       <Route path="/fina12" component={FINA12} isPrivate />
+      <Route path="/fina13" component={FINA13} isPrivate />
 
       {/* MÓDULO SUPRIMENTOS */}
       <Route path="/supr1" component={SUPR1} isPrivate />

@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import React, { useEffect, useState, useRef } from 'react';
 import * as Yup from 'yup';
 import { Form } from '@unform/web';
@@ -7,7 +6,6 @@ import { AgGridReact } from 'ag-grid-react';
 import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
-import { format, parse } from 'date-fns';
 import { MdClose } from 'react-icons/md';
 import {
   FaSave,
@@ -32,7 +30,6 @@ import history from '~/services/history';
 import Popup from '~/componentes/Popup';
 import {
   a11yProps,
-  maskDecimal,
   GridCurrencyFormatter,
   toDecimal,
   FormataData,
@@ -417,7 +414,7 @@ export default function FINA12() {
         return [];
       });
       await sleep(100);
-      setGridTitulos((t) => auxGrid);
+      setGridTitulos(() => auxGrid);
     } catch (err) {
       setLoading(false);
       toast.error(`Erro ao alterar quantidade: ${err}`, toastOptions);

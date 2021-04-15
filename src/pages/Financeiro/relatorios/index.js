@@ -7,10 +7,12 @@ import { TitleBar } from '~/pages/general.styles';
 import { BootstrapTooltip } from '~/componentes/ToolTip';
 import history from '~/services/history';
 import REL_CHEQUE from '~/pages/Financeiro/relatorios/cheque/cheque';
+import REL_CTAREC from '~/pages/Financeiro/relatorios/ctarec';
 
 export default function FINA7() {
   const { params } = useRouteMatch();
   const [dlgCheque, setDlgCheque] = useState(false);
+  const [dlgCtarec, setDlgCtarec] = useState(false);
   function handleDashboard() {
     history.push('/fina1', '_blank');
     history.go(0);
@@ -19,6 +21,8 @@ export default function FINA7() {
   useEffect(() => {
     if (params.tipo === 'cheque') {
       setDlgCheque(true);
+    } else if (params.tipo === 'receber') {
+      setDlgCtarec(true);
     }
   }, []);
 
@@ -48,6 +52,19 @@ export default function FINA7() {
         size="md"
       >
         <REL_CHEQUE />
+      </Popup>
+
+      {/* popup RELATÓRIO TITULOS CONTAS A RECEBER... */}
+      <Popup
+        isOpen={dlgCtarec}
+        closeDialogFn={() => {
+          history.push('/fina1', '_blank');
+          history.go(0);
+        }}
+        title="RELATÓRIO TITULOS DO CONTAS A RECEBER"
+        size="sm"
+      >
+        <REL_CTAREC />
       </Popup>
     </>
   );
