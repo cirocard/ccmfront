@@ -1172,6 +1172,7 @@ export default function Crm9() {
                     <Input
                       type="text"
                       name="cli_celular"
+                      maxlength="15"
                       className="input_cad"
                       onChange={maskFone}
                     />

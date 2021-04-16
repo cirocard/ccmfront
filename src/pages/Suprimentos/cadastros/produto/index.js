@@ -1959,7 +1959,7 @@ export default function SUPR4() {
                     <Input
                       type="number"
                       step="any"
-                      name="prod_fator_conf"
+                      name="prod_fator_conv"
                       className="input_cad"
                     />
                   </AreaComp>

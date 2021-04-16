@@ -13,9 +13,10 @@ import {
   FaPlusCircle,
   FaSearchPlus,
   FaUserTie,
-  FaMoneyCheckAlt,
   FaFileSignature,
   FaCheckCircle,
+  FaTrashAlt,
+  FaColumns,
 } from 'react-icons/fa';
 import moment from 'moment';
 import DatePickerInput from '~/componentes/DatePickerInput';
@@ -54,6 +55,7 @@ import {
   Linha,
 } from '~/pages/general.styles';
 import CONULTA_TITULOS from '~/pages/Financeiro/conta_receber/bordero/titulos';
+import REL_CTAREC from '~/pages/Financeiro/relatorios/ctarec';
 
 export default function FINA12() {
   const api = ApiService.getInstance(ApiTypes.API1);
@@ -68,6 +70,7 @@ export default function FINA12() {
   const [dataFin, setDataFin] = useState(moment());
   const [cliente, setCliente] = useState([]);
   const [dlgTitulos, setDlgTitulos] = useState(false);
+  const [dlgRelCtarec, setDlgRelCtarec] = useState(false);
 
   const toastOptions = {
     autoClose: 4000,
@@ -179,6 +182,13 @@ export default function FINA12() {
         }
 
         const formData = frmCadastro.current.getData();
+        if (formData.br_situacao === 'BORDERÔ BAIXADO') {
+          toast.error(
+            'BORDERÔ BAIXADO!! NÃO PODE MAIS SER ALTERADO',
+            toastOptions
+          );
+          return;
+        }
         frmCadastro.current.setErrors({});
         await schemaCad.validate(formData, {
           abortEarly: false,
@@ -275,7 +285,6 @@ export default function FINA12() {
 
         const dados = response.data.retorno;
         if (dados) {
-          console.warn(dados);
           setGridTitulos(dados.itens);
 
           frmCadastro.current.setFieldValue('br_id', dados.capa.br_id);
@@ -391,8 +400,30 @@ export default function FINA12() {
     setDlgTitulos(false);
   }
 
+  async function handleDeleteItem(prm) {
+    const formData = frmCadastro.current.getData();
+    if (formData.br_situacao === 'BORDERÔ BAIXADO') {
+      toast.error('BORDERÔ BAIXADO!! NÃO PODE MAIS SER ALTERADO', toastOptions);
+      return;
+    }
+    setGridTitulos((prev) => {
+      prev = prev.filter((item) => item !== prm);
+      return prev;
+    });
+    await sleep(100);
+    toast.warning(`SALVE O BORDERÔ PARA CONFIRMAR A EXCLUSÃO!!!`, toastOptions);
+  }
+
   const handleEditarValor = async (prm) => {
     try {
+      const formData = frmCadastro.current.getData();
+      if (formData.br_situacao === 'BORDERÔ BAIXADO') {
+        toast.error(
+          'BORDERÔ BAIXADO!! NÃO PODE MAIS SER ALTERADO',
+          toastOptions
+        );
+        return;
+      }
       if (Number.isNaN(Number(prm.newValue))) {
         prm.data.bri_valor_pago = prm.oldValue;
       } else if (
@@ -506,6 +537,28 @@ export default function FINA12() {
   // #region GRID ITENS  =========================
   const gridColunaItens = [
     {
+      field: 'bri_id',
+      headerName: 'AÇÕES',
+      width: 70,
+      lockVisible: true,
+      cellRendererFramework(prm) {
+        return (
+          <>
+            <BootstrapTooltip title="EXCLUIR TITULO DO BORDERÔ" placement="top">
+              <button
+                type="button"
+                onClick={async () => {
+                  await handleDeleteItem(prm.data);
+                }}
+              >
+                <FaTrashAlt size={18} color="#253739" />
+              </button>
+            </BootstrapTooltip>
+          </>
+        );
+      },
+    },
+    {
       field: 'cli_razao_social',
       headerName: 'CLIENTE',
       width: 350,
@@ -615,12 +668,7 @@ export default function FINA12() {
             <FaPlusCircle size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
-        <DivLimitador hg="10px" />
-        <BootstrapTooltip title="Salvar Cadastro" placement="left">
-          <button type="button" onClick={handleSalvar}>
-            <FaSave size={25} color="#fff" />
-          </button>
-        </BootstrapTooltip>
+
         <DivLimitador hg="10px" />
         <BootstrapTooltip title="LOCALIZAR TITULOS PARA BAIXA" placement="left">
           <button
@@ -633,6 +681,12 @@ export default function FINA12() {
           </button>
         </BootstrapTooltip>
         <DivLimitador hg="10px" />
+        <BootstrapTooltip title="Salvar Cadastro" placement="left">
+          <button type="button" onClick={handleSalvar}>
+            <FaSave size={25} color="#fff" />
+          </button>
+        </BootstrapTooltip>
+        <DivLimitador hg="10px" />
         <BootstrapTooltip title="CONFIRMAR BAIXA DO BORDERÔ" placement="left">
           <button type="button" onClick={handleBaixar}>
             <FaCheckCircle size={25} color="#fff" />
@@ -641,14 +695,14 @@ export default function FINA12() {
         <DivLimitador hg="20px" />
         <Linha />
         <DivLimitador hg="20px" />
-        <BootstrapTooltip title="ABRIR BORDERÔ DE CHEQUE" placement="left">
-          <button type="button" onClick={() => null}>
-            <FaMoneyCheckAlt size={25} color="#fff" />
+        <BootstrapTooltip title="ABRIR RELATÓRIO DE TITULOS" placement="left">
+          <button type="button" onClick={() => setDlgRelCtarec(true)}>
+            <FaColumns size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
         <DivLimitador hg="10px" />
         <BootstrapTooltip title="ABRIR CADASTRO DE CLIENTES" placement="left">
-          <button type="button" onClick={null}>
+          <button type="button" onClick={() => window.open('/crm9', '_blank')}>
             <FaUserTie size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
@@ -888,6 +942,18 @@ export default function FINA12() {
         size="xl"
       >
         <CONULTA_TITULOS getTitulos={getTitulos} />
+      </Popup>
+
+      {/* popup RELATÓRIO TITULOS CONTAS A RECEBER... */}
+      <Popup
+        isOpen={dlgRelCtarec}
+        closeDialogFn={() => {
+          setDlgRelCtarec(false);
+        }}
+        title="RELATÓRIO TITULOS DO CONTAS A RECEBER"
+        size="sm"
+      >
+        <REL_CTAREC />
       </Popup>
     </>
   );
