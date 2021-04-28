@@ -175,9 +175,12 @@ export default function Adm4() {
   }
 
   const onCheck = (itens, nodeClicked) => {
+    console.warn('itens ', itens);
+    console.warn('nodeClic ', nodeClicked);
     const todos = [];
 
     if (nodeClicked.children) {
+      if (nodeClicked.parent.value) todos.push(nodeClicked.value);
       nodeClicked.children.forEach((e) => {
         todos.push(e.value);
         if (e.children) {
@@ -193,7 +196,7 @@ export default function Adm4() {
         todos.push(i);
       });
     }
-
+    console.warn('todos ', todos);
     setChecked(todos);
   };
 
@@ -256,8 +259,12 @@ export default function Adm4() {
             descricao: selectedGrupo.label,
           });
         });
+        console.warn('gravar ', menuGravar);
         const retorno = await api.post('v1/users/grupo_user', menuGravar);
         if (retorno.data.success) {
+          if (!selectedGrupo.value) {
+            window.location.reload();
+          }
           montaTreeMenu(retorno.data.retorno, retorno.data.message);
           toast.info('Menu salvo com sucesso!!!', toastOptions);
         } else {
@@ -282,7 +289,6 @@ export default function Adm4() {
       if (selectedGrupo && checkedGrupo.length > 0) {
         setLoading(true);
         const menuExcluir = [];
-
         checkedGrupo.forEach((c) => {
           menuExcluir.push({
             grupo_id: selectedGrupo.value,
@@ -290,7 +296,7 @@ export default function Adm4() {
             item_id: c,
           });
         });
-
+        console.warn('excluir ', menuExcluir);
         const retorno = await api.post(
           'v1/users/delete_grupo_user',
           menuExcluir
