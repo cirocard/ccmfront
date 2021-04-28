@@ -15,7 +15,12 @@ import TabPanel from '~/componentes/TabPanel';
 import Input from '~/componentes/Input';
 import { BootstrapTooltip } from '~/componentes/ToolTip';
 import history from '~/services/history';
-import { a11yProps, maskDecimal, toDecimal } from '~/services/func.uteis';
+import {
+  a11yProps,
+  GridCurrencyFormatter,
+  maskDecimal,
+  toDecimal,
+} from '~/services/func.uteis';
 import { ApiService, ApiTypes } from '~/services/api';
 import { Container, Panel, ToolBar, GridContainerMain } from './styles';
 import {
@@ -420,6 +425,9 @@ export default function FINA4() {
       resizable: true,
       filter: true,
       lockVisible: true,
+      type: 'rightAligned',
+      valueFormatter: GridCurrencyFormatter,
+      cellStyle: { color: '#000', fontWeight: 'bold' },
       flex: 1,
     },
   ];

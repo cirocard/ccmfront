@@ -17,6 +17,8 @@ import {
   FaUserTie,
   FaMoneyCheckAlt,
   FaFileSignature,
+  FaCheckSquare,
+  FaUniversity,
 } from 'react-icons/fa';
 import moment from 'moment';
 import DatePickerInput from '~/componentes/DatePickerInput';
@@ -33,9 +35,8 @@ import {
   a11yProps,
   maskDecimal,
   GridCurrencyFormatter,
-  maskCNPJCPF,
   toDecimal,
-  RetirarMascara,
+  FormataData,
 } from '~/services/func.uteis';
 import { ApiService, ApiTypes } from '~/services/api';
 import { Container, Panel, ToolBar, GridContainerMain } from './styles';
@@ -60,7 +61,7 @@ export default function FINA13() {
   const [dataGridPesqSelected, setDataGridPesqSelected] = useState([]);
   const [dataVencimento, setDataVencimento] = useState(moment());
   const [dataIni, setDataIni] = useState(moment());
-  const [dataFin, setDataFin] = useState(moment().add(60, 'day'));
+  const [dataFin, setDataFin] = useState(moment());
   const [optFpgto, setOptFpgto] = useState([]);
   const [optGrupoRec, setOptGrupoRec] = useState([]);
   const [optConta, setOptConta] = useState([]);
@@ -77,6 +78,14 @@ export default function FINA13() {
   const optOperacao = [
     { value: 'E', label: 'ENTRADA' },
     { value: 'S', label: 'SAÍDA' },
+  ];
+
+  const optOrigem = [
+    { value: '1', label: 'CONTAS A RECEBER' },
+    { value: '2', label: 'CONTAS A PAGAR' },
+    { value: '3', label: 'PEDIDO VENDA' },
+    { value: '4', label: 'CAD. DESPESAS' },
+    { value: '5', label: 'MOVIMENTAÇÃO MANUAL' },
   ];
 
   // combo geral
@@ -129,7 +138,12 @@ export default function FINA13() {
 
   // #region SCHEMA VALIDATIONS =====================
   const schemaCad = Yup.object().shape({
-    chq_bco_id: Yup.string().required('(??)'),
+    mov_operacao: Yup.string().required('(??)'),
+    mov_ct_id: Yup.string().required('(??)'),
+    mov_valor: Yup.string().required('(??)'),
+    mov_descricao: Yup.string().required('(??)'),
+    mov_fpgto_id: Yup.string().required('(??)'),
+    mov_grupo_id: Yup.string().required('(??)'),
   });
 
   // #endregion
@@ -147,20 +161,264 @@ export default function FINA13() {
   };
 
   const limpaForm = () => {
-    frmCadastro.current.setFieldValue('chq_id', '');
-
-    setDataVencimento(new Date());
+    frmCadastro.current.setFieldValue('mov_id', '');
+    frmCadastro.current.setFieldValue('mov_operacao', '');
+    frmCadastro.current.setFieldValue('mov_origem', '');
+    frmCadastro.current.setFieldValue('mov_ct_id', '');
+    frmCadastro.current.setFieldValue('mov_datamov', '');
+    frmCadastro.current.setFieldValue('mov_valor', '');
+    frmCadastro.current.setFieldValue('mov_descricao', '');
+    frmCadastro.current.setFieldValue('mov_usr_id', '');
+    frmCadastro.current.setFieldValue('mov_fpgto_id', '');
+    frmCadastro.current.setFieldValue('mov_grupo_id', '');
   };
+
+  async function handleNovoCadastro() {
+    limpaForm();
+    setValueTab(1);
+  }
+
+  async function listarMovimentacoes() {
+    try {
+      setLoading(true);
+      const formPesq = frmPesquisa.current.getData();
+      let contabilizadas = '';
+      if (document.getElementById('pesq_mov_contabilizado').checked)
+        contabilizadas = 'S';
+      else contabilizadas = 'N';
+
+      const d1 = moment(dataIni).format('YYYY-MM-DD');
+      const d2 = moment(dataFin).format('YYYY-MM-DD');
+      const response = await api.get(
+        `v1/fina/mov/listar_movimentacoes?data_ini=${d1}&data_fin=${d2}&operacao=${formPesq.pesq_mov_operacao}&origem=${formPesq.pesq_mov_origem}&contabilizadas=${contabilizadas}`
+      );
+      const dados = response.data.retorno;
+      if (dados) {
+        setGridPesquisa(dados);
+      }
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      toast.error(`Erro ao consultar movimentacoes\n${error}`);
+    }
+  }
+
+  async function handleSubmit() {
+    try {
+      if (parseInt(valueTab, 10) > 0) {
+        const formData = frmCadastro.current.getData();
+        frmCadastro.current.setErrors({});
+        await schemaCad.validate(formData, {
+          abortEarly: false,
+        });
+
+        if (dataGridPesqSelected[0].mov_contabilizado.toString() === 'S') {
+          toast.error(
+            `Movimentação contabilizada não pode mais ser alterada...`,
+            toastOptions
+          );
+          return;
+        }
+        setLoading(true);
+
+        const objCad = {
+          mov_emp_id: null,
+          mov_id: formData.mov_id ? parseInt(formData.mov_id, 10) : null,
+          mov_operacao: formData.mov_operacao,
+          mov_ct_id: formData.mov_ct_id,
+          mov_valor: toDecimal(formData.mov_valor),
+          mov_descricao: formData.mov_descricao,
+          mov_usr_id: null,
+          mov_origem: '5', // cadastro manual
+          mov_id_origem: 0,
+          mov_contabilizado: 'N',
+          mov_fpgto_id: formData.mov_fpgto_id,
+          mov_grupo_id: formData.mov_grupo_id,
+        };
+
+        const retorno = await api.post('v1/fina/mov/cadastrar', objCad);
+        if (retorno.data.success) {
+          frmCadastro.current.setFieldValue(
+            'mov_id',
+            retorno.data.retorno.mov_id
+          );
+          toast.info('Cadastro atualizado com sucesso!!!', toastOptions);
+        } else {
+          toast.error(
+            `Houve erro no processamento!! ${retorno.data.message}`,
+            toastOptions
+          );
+        }
+        setLoading(false);
+      } else {
+        toast.info(`Altere ou inicie um cadastro para salvar...`, toastOptions);
+      }
+    } catch (err) {
+      const validationErrors = {};
+      if (err instanceof Yup.ValidationError) {
+        err.inner.forEach((error) => {
+          validationErrors[error.path] = error.message;
+        });
+      } else {
+        setLoading(false);
+        toast.error(`Erro salvar cadastro: ${err}`, toastOptions);
+      }
+
+      frmCadastro.current.setFieldError(
+        'mov_operacao',
+        validationErrors.mov_operacao
+      );
+      frmCadastro.current.setFieldError(
+        'mov_ct_id',
+        validationErrors.mov_ct_id
+      );
+      frmCadastro.current.setFieldError(
+        'mov_valor',
+        validationErrors.mov_valor
+      );
+      frmCadastro.current.setFieldError(
+        'mov_descricao',
+        validationErrors.mov_descricao
+      );
+      frmCadastro.current.setFieldError(
+        'mov_fpgto_id',
+        validationErrors.mov_fpgto_id
+      );
+      frmCadastro.current.setFieldError(
+        'mov_grupo_id',
+        validationErrors.mov_grupo_id
+      );
+    }
+  }
+
+  async function handleEdit() {
+    try {
+      if (dataGridPesqSelected.length > 0) {
+        setLoading(true);
+
+        frmCadastro.current.setFieldValue(
+          'mov_id',
+          dataGridPesqSelected[0].mov_id
+        );
+        frmCadastro.current.setFieldValue(
+          'mov_operacao',
+          optOperacao.find(
+            (op) => op.value.toString() === dataGridPesqSelected[0].mov_operacao
+          )
+        );
+        frmCadastro.current.setFieldValue(
+          'mov_origem',
+          optOrigem.find(
+            (op) => op.value.toString() === dataGridPesqSelected[0].mov_origem
+          )
+        );
+        frmCadastro.current.setFieldValue(
+          'mov_ct_id',
+          dataGridPesqSelected[0].mov_ct_id
+        );
+        frmCadastro.current.setFieldValue(
+          'mov_datamov',
+          FormataData(dataGridPesqSelected[0].mov_datamov, 2)
+        );
+        frmCadastro.current.setFieldValue(
+          'mov_valor',
+          dataGridPesqSelected[0].mov_valor
+        );
+        frmCadastro.current.setFieldValue(
+          'mov_descricao',
+          dataGridPesqSelected[0].mov_descricao
+        );
+        frmCadastro.current.setFieldValue(
+          'mov_usr_id',
+          dataGridPesqSelected[0].username
+        );
+
+        frmCadastro.current.setFieldValue(
+          'mov_fpgto_id',
+          optFpgto.find(
+            (op) =>
+              op.value.toString() ===
+              dataGridPesqSelected[0].mov_fpgto_id.toString()
+          )
+        );
+        frmCadastro.current.setFieldValue(
+          'mov_grupo_id',
+          optGrupoRec.find(
+            (op) =>
+              op.value.toString() ===
+              dataGridPesqSelected[0].mov_grupo_id.toString()
+          )
+        );
+        frmCadastro.current.setFieldValue(
+          'mov_ct_id',
+          optConta.find(
+            (op) => op.value.toString() === dataGridPesqSelected[0].mov_ct_id
+          )
+        );
+
+        setValueTab(1);
+        setLoading(false);
+      } else {
+        setValueTab(0);
+      }
+    } catch (error) {
+      setLoading(false);
+      toast.error(`Erro ao listar cadastro \n${error}`, toastOptions);
+    }
+  }
+
+  async function handleContabilizar() {
+    try {
+      if (dataGridPesqSelected.length > 0) {
+        if (dataGridPesqSelected[0].mov_contabilizado === 'S') {
+          toast.error(`ESTA MOVIMENTAÇÃO JÁ FOI CONTABILIZADA`, toastOptions);
+          return;
+        }
+        setLoading(true);
+        const response = await api.put(
+          `v1/fina/mov/contabilizar?mov_id=${dataGridPesqSelected[0].mov_id}`
+        );
+        if (response.data.success) {
+          toast.success(response.data.retorno, toastOptions);
+          await listarMovimentacoes();
+        } else toast.error(response.data.errors, toastOptions);
+      } else {
+        toast.error(
+          `SELECIONE UMA MOVIMENTAÇÃO PARA CONTABILIZAR...`,
+          toastOptions
+        );
+        return;
+      }
+    } catch (error) {
+      setLoading(false);
+      toast.error(`Erro ao contabilizar movimentação \n${error}`, toastOptions);
+    }
+  }
 
   const handleChangeTab = async (event, newValue) => {
     if (newValue === 0) {
+      limpaForm();
+      await listarMovimentacoes();
       setValueTab(newValue);
     } else if (newValue === 1) {
-      setValueTab(newValue);
+      const cadastro = frmCadastro.current.getData();
+      if (cadastro.mov_id) {
+        setValueTab(newValue);
+      } else {
+        await handleEdit();
+      }
     }
   };
 
   useEffect(() => {
+    frmPesquisa.current.setFieldValue(
+      'pesq_mov_origem',
+      optOrigem.find((op) => op.value.toString() === '5')
+    );
+    frmPesquisa.current.setFieldValue(
+      'pesq_mov_operacao',
+      optOperacao.find((op) => op.value.toString() === 'E')
+    );
     comboGeral(6);
     comboGrupoReceita();
     comboContas();
@@ -174,6 +432,15 @@ export default function FINA13() {
       field: 'mov_id',
       headerName: 'Nº MOV.',
       width: 110,
+      sortable: true,
+      resizable: true,
+      filter: false,
+      lockVisible: true,
+    },
+    {
+      field: 'datamov',
+      headerName: 'DATA MOV.',
+      width: 140,
       sortable: true,
       resizable: true,
       filter: false,
@@ -237,28 +504,28 @@ export default function FINA13() {
       <ToolBar hg="100%" wd="40px">
         <DivLimitador hg="10px" />
         <BootstrapTooltip title="Novo Cadastro" placement="left">
-          <button type="button" onClick={null}>
+          <button type="button" onClick={handleNovoCadastro}>
             <FaPlusCircle size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
         <DivLimitador hg="10px" />
         <BootstrapTooltip title="Salvar Cadastro" placement="left">
-          <button type="button" onClick={null}>
+          <button type="button" onClick={handleSubmit}>
             <FaSave size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
         <DivLimitador hg="20px" />
         <Linha />
         <DivLimitador hg="20px" />
-        <BootstrapTooltip title="ABRIR BORDERÔ DE CHEQUE" placement="left">
-          <button type="button" onClick={() => null}>
-            <FaMoneyCheckAlt size={25} color="#fff" />
+        <BootstrapTooltip title="CONTABILIZAR MOVIMENTAÇÃO" placement="left">
+          <button type="button" onClick={handleContabilizar}>
+            <FaCheckSquare size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
-        <DivLimitador hg="10px" />
-        <BootstrapTooltip title="ABRIR CADASTRO DE CLIENTES" placement="left">
-          <button type="button" onClick={null}>
-            <FaUserTie size={25} color="#fff" />
+        <DivLimitador hg="20px" />
+        <BootstrapTooltip title="CADASTRO DE CONTAS" placement="left">
+          <button type="button" onClick={() => window.open('/fina4', '_blank')}>
+            <FaUniversity size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
       </ToolBar>
@@ -313,7 +580,7 @@ export default function FINA13() {
             <Panel lefth1="left" bckgnd="#dae2e5">
               <Form id="frmPesquisa" ref={frmPesquisa}>
                 <h1>CONSULTAR MOVIMENTAÇÕES FINANCEIRA</h1>
-                <BoxItemCad fr="1fr 1fr 1fr 2fr">
+                <BoxItemCad fr="1fr 1fr 1fr 2fr 3fr">
                   <AreaComp wd="100">
                     <DatePickerInput
                       onChangeDate={(date) => setDataIni(new Date(date))}
@@ -335,6 +602,17 @@ export default function FINA13() {
                       optionsList={optOperacao}
                       placeholder="NÃO INFORMADO"
                       zindex="153"
+                      clearable={false}
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <FormSelect
+                      label="origem movimento"
+                      name="pesq_mov_origem"
+                      optionsList={optOrigem}
+                      placeholder="NÃO INFORMADO"
+                      zindex="153"
+                      clearable={false}
                     />
                   </AreaComp>
                   <AreaComp wd="100" ptop="25px">
@@ -372,7 +650,7 @@ export default function FINA13() {
             <Panel lefth1="left" bckgnd="#dae2e5">
               <Form id="frmCadastro" ref={frmCadastro}>
                 <h1>CADASTRO DE MOVIMENTAÇÃO FINANCEIRA</h1>
-                <BoxItemCad fr="1fr 2fr 4fr 1fr">
+                <BoxItemCad fr="1fr 1fr 4fr 1fr">
                   <AreaComp wd="100">
                     <label>Código</label>
                     <Input
