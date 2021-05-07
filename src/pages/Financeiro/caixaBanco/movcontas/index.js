@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import React, { useEffect, useState, useRef } from 'react';
 import * as Yup from 'yup';
 import { Form } from '@unform/web';
@@ -7,22 +6,17 @@ import { AgGridReact } from 'ag-grid-react';
 import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
-import { format, parse } from 'date-fns';
 import { MdClose } from 'react-icons/md';
 import {
   FaSave,
   FaSearch,
   FaPlusCircle,
-  FaFolderPlus,
-  FaUserTie,
-  FaMoneyCheckAlt,
   FaFileSignature,
   FaCheckSquare,
   FaUniversity,
 } from 'react-icons/fa';
 import moment from 'moment';
 import DatePickerInput from '~/componentes/DatePickerInput';
-import AsyncSelectForm from '~/componentes/Select/selectAsync';
 import FormSelect from '~/componentes/Select';
 import DialogInfo from '~/componentes/DialogInfo';
 import { gridTraducoes } from '~/services/gridTraducoes';
@@ -59,7 +53,6 @@ export default function FINA13() {
   const [loading, setLoading] = useState(false);
   const [gridPesquisa, setGridPesquisa] = useState([]);
   const [dataGridPesqSelected, setDataGridPesqSelected] = useState([]);
-  const [dataVencimento, setDataVencimento] = useState(moment());
   const [dataIni, setDataIni] = useState(moment());
   const [dataFin, setDataFin] = useState(moment());
   const [optFpgto, setOptFpgto] = useState([]);
@@ -73,8 +66,6 @@ export default function FINA13() {
 
   // #region COMBO ========================
 
-  const ORIGEM = '5'; // movimentaçao manual
-
   const optOperacao = [
     { value: 'E', label: 'ENTRADA' },
     { value: 'S', label: 'SAÍDA' },
@@ -86,6 +77,7 @@ export default function FINA13() {
     { value: '3', label: 'PEDIDO VENDA' },
     { value: '4', label: 'CAD. DESPESAS' },
     { value: '5', label: 'MOVIMENTAÇÃO MANUAL' },
+    { value: '6', label: 'TRANSFERÊNCIA ENTRE CONTAS' },
   ];
 
   // combo geral
@@ -184,8 +176,8 @@ export default function FINA13() {
       const formPesq = frmPesquisa.current.getData();
       let contabilizadas = '';
       if (document.getElementById('pesq_mov_contabilizado').checked)
-        contabilizadas = 'S';
-      else contabilizadas = 'N';
+        contabilizadas = 'N';
+      else contabilizadas = 'S';
 
       const d1 = moment(dataIni).format('YYYY-MM-DD');
       const d2 = moment(dataFin).format('YYYY-MM-DD');
@@ -312,10 +304,7 @@ export default function FINA13() {
             (op) => op.value.toString() === dataGridPesqSelected[0].mov_origem
           )
         );
-        frmCadastro.current.setFieldValue(
-          'mov_ct_id',
-          dataGridPesqSelected[0].mov_ct_id
-        );
+
         frmCadastro.current.setFieldValue(
           'mov_datamov',
           FormataData(dataGridPesqSelected[0].mov_datamov, 2)
@@ -341,18 +330,24 @@ export default function FINA13() {
               dataGridPesqSelected[0].mov_fpgto_id.toString()
           )
         );
-        frmCadastro.current.setFieldValue(
-          'mov_grupo_id',
-          optGrupoRec.find(
-            (op) =>
-              op.value.toString() ===
-              dataGridPesqSelected[0].mov_grupo_id.toString()
-          )
-        );
+
+        if (dataGridPesqSelected[0].mov_grupo_id) {
+          frmCadastro.current.setFieldValue(
+            'mov_grupo_id',
+            optGrupoRec.find(
+              (op) =>
+                op.value.toString() ===
+                dataGridPesqSelected[0].mov_grupo_id.toString()
+            )
+          );
+        } else frmCadastro.current.setFieldValue('mov_grupo_id', '');
+
         frmCadastro.current.setFieldValue(
           'mov_ct_id',
           optConta.find(
-            (op) => op.value.toString() === dataGridPesqSelected[0].mov_ct_id
+            (op) =>
+              op.value.toString() ===
+              dataGridPesqSelected[0].mov_ct_id.toString()
           )
         );
 

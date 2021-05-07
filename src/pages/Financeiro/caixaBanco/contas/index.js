@@ -7,7 +7,13 @@ import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import { MdClose } from 'react-icons/md';
-import { FaSave, FaSearch, FaPlusCircle, FaFolderPlus } from 'react-icons/fa';
+import {
+  FaSave,
+  FaSearch,
+  FaPlusCircle,
+  FaFolderPlus,
+  FaExchangeAlt,
+} from 'react-icons/fa';
 import FormSelect from '~/componentes/Select';
 import DialogInfo from '~/componentes/DialogInfo';
 import { gridTraducoes } from '~/services/gridTraducoes';
@@ -15,6 +21,7 @@ import TabPanel from '~/componentes/TabPanel';
 import Input from '~/componentes/Input';
 import { BootstrapTooltip } from '~/componentes/ToolTip';
 import history from '~/services/history';
+import Popup from '~/componentes/Popup';
 import {
   a11yProps,
   GridCurrencyFormatter,
@@ -38,10 +45,15 @@ export default function FINA4() {
   const [valueTab, setValueTab] = useState(0);
   const frmPesquisa = useRef(null);
   const frmCadastro = useRef(null);
+  const frmTransf = useRef(null);
   const [loading, setLoading] = useState(false);
   const [gridPesquisa, setGridPesquisa] = useState([]);
   const [dataGridPesqSelected, setDataGridPesqSelected] = useState([]);
   const [optBanco, setOptBanco] = useState([]);
+  const [dlgTransf, setDlgTranf] = useState(false);
+  const [optConta, setOptConta] = useState([]);
+  const [optFpgto, setOptFpgto] = useState([]);
+  const [saldoOrigem, setSaldoOrigem] = useState(0);
 
   const toastOptions = {
     autoClose: 4000,
@@ -76,12 +88,27 @@ export default function FINA4() {
       const response = await api.get(`v1/combos/geral/${tab_id}`);
       const dados = response.data.retorno;
       if (dados) {
-        if (tab_id === 24) {
+        if (tab_id === 6) {
+          setOptFpgto(dados);
+        } else if (tab_id === 24) {
           setOptBanco(dados);
         }
       }
     } catch (error) {
       toast.error(`Erro ao carregar registro \n${error}`);
+    }
+  }
+
+  async function comboContas() {
+    try {
+      const response = await api.get(`v1/combos/contas`);
+      const dados = response.data.retorno;
+      if (dados) {
+        setOptConta(dados);
+      }
+    } catch (error) {
+      setLoading(false);
+      toast.error(`Erro ao carregar contas \n${error}`, toastOptions);
     }
   }
 
@@ -92,6 +119,13 @@ export default function FINA4() {
     ct_descricao: Yup.string().required('(??)'),
     ct_tipoconta: Yup.string().required('(??)'),
     ct_situacao: Yup.string().required('(??)'),
+  });
+
+  const schemaTransf = Yup.object().shape({
+    conta_origem: Yup.string().required('(??)'),
+    conta_destino: Yup.string().required('(??)'),
+    transf_valor: Yup.string().required('(??)'),
+    fpgto_id: Yup.string().required('(??)'),
   });
 
   // #endregion
@@ -365,6 +399,78 @@ export default function FINA4() {
     }
   }
 
+  async function handleTransf() {
+    try {
+      const formData = frmTransf.current.getData();
+      frmTransf.current.setErrors({});
+      await schemaTransf.validate(formData, {
+        abortEarly: false,
+      });
+
+      if (formData.conta_origem === formData.conta_destino) {
+        toast.error(
+          'A CONTA DE ORIGEM  NÃO PODE SER IGUAL A CONTA DESTINO',
+          toastOptions
+        );
+        return;
+      }
+
+      if (toDecimal(formData.transf_valor) > saldoOrigem) {
+        toast.error(
+          `O VALOR INFORMADO É MAIOR QUE O SALDO (${saldoOrigem}) DA CONTA DE ORIGEM`,
+          toastOptions
+        );
+        return;
+      }
+
+      setLoading(true);
+
+      const retorno = await api.post(
+        `v1/fina/mov/transferencia?origem=${formData.conta_origem}&destino=${formData.conta_destino}&valor=${formData.transf_valor}&fpgto_id=${formData.fpgto_id}`
+      );
+      if (retorno.data.success) {
+        setValueTab(0);
+        frmTransf.current.setFieldValue('conta_origem', '');
+        frmTransf.current.setFieldValue('conta_destino', '');
+        frmTransf.current.setFieldValue('transf_valor', '');
+        frmTransf.current.setFieldValue('fpgto_id', '');
+        toast.info('Transferência concluída com sucesso!!!', toastOptions);
+
+        await listarContas();
+      } else {
+        toast.error(
+          `Houve erro no processamento!! ${retorno.data.errors}`,
+          toastOptions
+        );
+      }
+      setLoading(false);
+    } catch (err) {
+      const validationErrors = {};
+      if (err instanceof Yup.ValidationError) {
+        err.inner.forEach((error) => {
+          validationErrors[error.path] = error.message;
+        });
+      } else {
+        setLoading(false);
+        toast.error(`Erro ao confirmar transferência: ${err}`, toastOptions);
+      }
+
+      frmTransf.current.setFieldError(
+        'conta_origem',
+        validationErrors.conta_origem
+      );
+      frmTransf.current.setFieldError(
+        'conta_destino',
+        validationErrors.conta_destino
+      );
+      frmTransf.current.setFieldError('fpgto_id', validationErrors.fpgto_id);
+      frmTransf.current.setFieldError(
+        'transf_valor',
+        validationErrors.transf_valor
+      );
+    }
+  }
+
   const handleChangeTab = async (event, newValue) => {
     if (newValue === 0) {
       limpaForm();
@@ -383,6 +489,8 @@ export default function FINA4() {
   useEffect(() => {
     listarContas();
     comboGeral(24);
+    comboGeral(6);
+    comboContas();
     setValueTab(0);
     document.getElementById('pesq_todas').checked = true;
   }, []);
@@ -452,6 +560,12 @@ export default function FINA4() {
         <BootstrapTooltip title="Salvar Cadastro" placement="left">
           <button type="button" onClick={handleSubmit}>
             <FaSave size={25} color="#fff" />
+          </button>
+        </BootstrapTooltip>
+        <DivLimitador hg="15px" />
+        <BootstrapTooltip title="TRANSFERÊNCIA ENTRE CONTAS" placement="left">
+          <button type="button" onClick={() => setDlgTranf(true)}>
+            <FaExchangeAlt size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
       </ToolBar>
@@ -788,6 +902,87 @@ export default function FINA4() {
           </TabPanel>
         </Scroll>
       </Container>
+
+      {/* POPUT TRANSFERENCIA DE CONTAS... */}
+      <Popup
+        isOpen={dlgTransf}
+        closeDialogFn={() => setDlgTranf(false)}
+        title="TRANSFERÊNCIA ENTRE CONTAS"
+        size="sm"
+      >
+        <Panel
+          lefth1="left"
+          bckgnd="#dae2e5"
+          mtop="1px"
+          pdding="5px 7px 7px 10px"
+        >
+          <Form id="frmTransf" ref={frmTransf}>
+            <BoxItemCadNoQuery fr="1fr">
+              <AreaComp wd="100">
+                <FormSelect
+                  label="conta de origem"
+                  name="conta_origem"
+                  optionsList={optConta}
+                  isClearable
+                  onChange={(ct) => {
+                    if (ct) setSaldoOrigem(ct.saldo);
+                    else setSaldoOrigem(0);
+                  }}
+                  placeholder="CONTA"
+                  zindex="153"
+                />
+              </AreaComp>
+            </BoxItemCadNoQuery>
+            <BoxItemCadNoQuery fr="1fr">
+              <AreaComp wd="100">
+                <FormSelect
+                  label="conta destino"
+                  name="conta_destino"
+                  optionsList={optConta}
+                  isClearable
+                  placeholder="CONTA"
+                  zindex="152"
+                />
+              </AreaComp>
+            </BoxItemCadNoQuery>
+            <BoxItemCadNoQuery fr="1fr">
+              <AreaComp wd="100">
+                <FormSelect
+                  label="forma pagamento da movimentação"
+                  name="fpgto_id"
+                  optionsList={optFpgto}
+                  isClearable
+                  placeholder="CONTA"
+                  zindex="151"
+                />
+              </AreaComp>
+            </BoxItemCadNoQuery>
+            <BoxItemCadNoQuery fr="1fr">
+              <AreaComp wd="100">
+                <label>valor a transferir</label>
+                <Input
+                  type="text"
+                  name="transf_valor"
+                  className="input_cad"
+                  onChange={maskDecimal}
+                />
+              </AreaComp>
+            </BoxItemCadNoQuery>
+            <BoxItemCadNoQuery fr="1fr" ptop="15px">
+              <AreaComp wd="100" ptop="10px">
+                <button
+                  type="button"
+                  className="btnGeral"
+                  onClick={handleTransf}
+                >
+                  {loading ? 'Aguarde Processando...' : 'Confirmar'}
+                </button>
+              </AreaComp>
+            </BoxItemCadNoQuery>
+          </Form>
+        </Panel>
+      </Popup>
+
       {/* popup para aguarde... */}
       <DialogInfo
         isOpen={loading}
