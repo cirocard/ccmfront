@@ -77,6 +77,11 @@ export default function SUPR5() {
     { value: '3', label: 'TODAS AS TABELAS' },
   ];
 
+  const optOrdenar = [
+    { value: '1', label: 'REFERÊNCIA' },
+    { value: '2', label: 'DESCRIÇÃO DO PRODUTO' },
+  ];
+
   const loadOptionsProduto = async (inputText, callback) => {
     const descricao = inputText.toUpperCase();
     if (descricao.length > 2) {
@@ -427,6 +432,7 @@ export default function SUPR5() {
         v_prod_id: prmImp.imp_prod_id,
         v_tpImp: prmImp.imp_tpImp,
         v_especie_id: prmImp.imp_especie_id,
+        v_ordenar: prmImp.imp_ordenar,
       };
 
       const url = `v1/supr/tabpreco/rel_tab_preco`;
@@ -643,6 +649,7 @@ export default function SUPR5() {
             type="button"
             onClick={() => {
               frmImpressao.current.setFieldValue('imp_tpImp', '1');
+              frmImpressao.current.setFieldValue('imp_ordenar', '1');
               frmImpressao.current.setFieldValue(
                 'imp_tab_preco',
                 optTabPreco[0]
@@ -1035,12 +1042,21 @@ export default function SUPR5() {
                   />
                 </AreaComp>
               </BoxItemCadNoQuery>
-              <BoxItemCadNoQuery>
+              <BoxItemCadNoQuery fr="1fr 1fr">
                 <AreaComp wd="100">
                   <FormSelect
                     label="Tipo de Impressão"
                     name="imp_tpImp"
                     optionsList={optTipoImp}
+                    placeholder="NÃO INFORMADO"
+                    zindex="150"
+                  />
+                </AreaComp>
+                <AreaComp wd="100">
+                  <FormSelect
+                    label="ordenar por"
+                    name="imp_ordenar"
+                    optionsList={optOrdenar}
                     placeholder="NÃO INFORMADO"
                     zindex="150"
                   />

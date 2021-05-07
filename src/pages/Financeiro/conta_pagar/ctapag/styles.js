@@ -53,8 +53,7 @@ export const Panel = styled.div`
   width: 100%;
   border-radius: 4px;
   margin-left: 0px;
-  padding: ${(props) => props.pdding || '1px'};
-  margin-top: ${(props) => props.mtop || '-10px'};
+  margin-top: -10px;
 
   h1 {
     width: 100%;
@@ -123,62 +122,23 @@ export const GridContainerItens = styled.div`
   }
 
   @media (min-height: 300px) {
-    height: 29vh;
+    height: 21vh;
   }
 
   @media (min-height: 600px) {
-    height: 32vh;
+    height: 24vh;
   }
 
   @media (min-height: 680px) {
-    height: 36vh;
+    height: 28vh;
   }
 
   @media (min-height: 780px) {
-    height: 42vh;
+    height: 34vh;
   }
 
   @media (min-height: 880px) {
-    height: 53vh;
-  }
-`;
-
-export const GridContainerGrade = styled.div`
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  padding: 8px 5px 0 0;
-
-  button {
-    border: 0;
-    background: none;
-    cursor: pointer;
-  }
-
-  @media (min-height: 300px) {
-    height: 29vh;
-  }
-
-  @media (min-height: 600px) {
-    height: 32vh;
-  }
-
-  @media (min-height: 680px) {
-    height: 36vh;
-  }
-
-  @media (min-height: 780px) {
-    height: 42vh;
-  }
-
-  @media (min-height: 880px) {
-    height: 53vh;
-  }
-
-  h3 {
-    font-size: 18px;
-    color: #4d2679;
-    margin-bottom: 16px;
+    height: 44vh;
   }
 `;
 
@@ -198,22 +158,22 @@ export const GridContainerMain = styled.div`
   }
 
   @media (min-height: 300px) {
-    height: 40vh;
+    height: 42vh;
   }
 
   @media (min-height: 600px) {
-    height: 45vh;
+    height: 46vh;
   }
 
   @media (min-height: 680px) {
-    height: 50vh;
+    height: 51vh;
   }
 
   @media (min-height: 780px) {
-    height: 55vh;
+    height: 56vh;
   }
 
   @media (min-height: 880px) {
-    height: 65vh;
+    height: 66vh;
   }
 `;

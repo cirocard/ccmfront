@@ -82,6 +82,7 @@ import {
   GridCurrencyFormatter,
   FormataMoeda,
   JurosTotal,
+  addMes,
 } from '~/services/func.uteis';
 import { ApiService, ApiTypes } from '~/services/api';
 
@@ -104,6 +105,8 @@ export default function FAT2() {
   const [pesqDataIni, setPesqDataIni] = useState(moment());
   const [pesqDataFin, setPesqDataFin] = useState(moment());
   const [dataEmiss, setDataEmiss] = useState(moment());
+  const [minDataEmiss, setMinDataEmiss] = useState(moment());
+  const [maxDataEmiss, setMaxDataEmiss] = useState(moment());
   const [dataSaida, setDataSaida] = useState(moment());
   const [pesqCli_id, setPesqCliId] = useState([]);
   const [pesqSituacao, setPesqSituacao] = useState();
@@ -2471,6 +2474,16 @@ export default function FAT2() {
     }
   };
 
+  const handleDataEmis = async (dt) => {
+    if (dt > maxDataEmiss || dt < minDataEmiss) {
+      toast.error(
+        'DATA INVÁLIDA!!! INFOME UMA DATA NO MÊS CORRENTE OU NO PRÓXIMO MÊS',
+        toastOptions
+      );
+      setDataEmiss(new Date());
+    } else setDataEmiss(new Date(dt));
+  };
+
   useEffect(() => {
     setColunaItens(gridColumnItens);
     if (params.tipo === '2') {
@@ -2486,6 +2499,14 @@ export default function FAT2() {
     getParamSistema();
     handleClassificFina();
     setDesableSave(true);
+
+    const hoje = new Date();
+    const mindate = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+    const maxDate = addMes(hoje, 1);
+
+    setMaxDataEmiss(maxDate);
+    setMinDataEmiss(mindate);
+
     setValueTab(0);
   }, []);
 
@@ -2786,9 +2807,11 @@ export default function FAT2() {
                     <div>
                       <span>
                         <DatePickerInput
-                          onChangeDate={(date) => setDataEmiss(new Date(date))}
+                          onChangeDate={(dt) => handleDataEmis(dt)}
                           value={dataEmiss}
                           label="Data Emissão"
+                          minDate={minDataEmiss}
+                          maxDate={maxDataEmiss}
                         />
                       </span>
                     </div>

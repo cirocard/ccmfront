@@ -107,6 +107,15 @@ exports.FormataData = (valor, tipo) => {
   }
 };
 
+exports.addMes = (date, months) => {
+  const d = date.getDate();
+  date.setMonth(date.getMonth() + +months);
+  if (date.getDate() !== d) {
+    date.setDate(0);
+  }
+  return date;
+};
+
 exports.DataBd = (pDate) => {
   if (pDate) {
     if (pDate.length > 11) {
