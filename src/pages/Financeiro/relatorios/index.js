@@ -7,7 +7,7 @@ import { TitleBar } from '~/pages/general.styles';
 import { BootstrapTooltip } from '~/componentes/ToolTip';
 import history from '~/services/history';
 import REL_CHEQUE from '~/pages/Financeiro/relatorios/cheque/cheque';
-import REL_CTAREC from '~/pages/Financeiro/relatorios/ctarec';
+import REL_CTAREC from '~/pages/Financeiro/relatorios/titulos';
 
 export default function FINA7() {
   const { params } = useRouteMatch();
@@ -64,7 +64,7 @@ export default function FINA7() {
         title="RELATÓRIO TITULOS DO CONTAS A RECEBER"
         size="sm"
       >
-        <REL_CTAREC />
+        <REL_CTAREC tipo="R" />
       </Popup>
     </>
   );

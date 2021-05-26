@@ -44,7 +44,7 @@ export const Container = styled.div`
   width: calc(100% - 55px);
   height: 98%;
   border-radius: 4px;
-  margin-left: ${(props) => props.mleft || '5px'};
+  margin-left: 5px;
   background: #fff;
   box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.2);
 `;

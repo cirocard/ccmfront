@@ -78,6 +78,7 @@ export default function FINA13() {
     { value: '4', label: 'CAD. DESPESAS' },
     { value: '5', label: 'MOVIMENTAÇÃO MANUAL' },
     { value: '6', label: 'TRANSFERÊNCIA ENTRE CONTAS' },
+    { value: '0', label: 'TODAS AS MOVIMENTAÇÕES' },
   ];
 
   // combo geral

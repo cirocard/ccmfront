@@ -15,6 +15,7 @@ import {
   FaUserTie,
   FaFileSignature,
   FaTrashAlt,
+  FaObjectGroup,
 } from 'react-icons/fa';
 import moment from 'moment';
 import DatePickerInput from '~/componentes/DatePickerInput';
@@ -714,6 +715,15 @@ export default function FINA14() {
         <BootstrapTooltip title="ABRIR CADASTRO DE FORNECEDOR" placement="left">
           <button type="button" onClick={() => window.open('/supr2', '_blank')}>
             <FaUserTie size={25} color="#fff" />
+          </button>
+        </BootstrapTooltip>
+        <DivLimitador hg="10px" />
+        <BootstrapTooltip title="ABRIR BORDERÔ DE PAGAMENTO" placement="left">
+          <button
+            type="button"
+            onClick={() => window.open('/fina15', '_blank')}
+          >
+            <FaObjectGroup size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
       </ToolBar>
