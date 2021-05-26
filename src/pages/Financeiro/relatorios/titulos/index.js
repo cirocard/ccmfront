@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import PropTypes from 'prop-types';
 import { Form } from '@unform/web';
 import { toast } from 'react-toastify';
 import moment from 'moment';
@@ -19,11 +20,11 @@ import {
   CCheck,
 } from '~/pages/general.styles';
 
-export default function REL_CTAREC() {
+export default function REL_TITULOS({ tipo }) {
   const api = ApiService.getInstance(ApiTypes.API1);
   const frmRel = useRef(null);
   const [loading, setLoading] = useState(false);
-  const [cliente, setCliente] = useState([]);
+  const [clienteForn, setClienteForn] = useState([]);
   const [dataIni, setDataIni] = useState(moment());
   const [dataFin, setDataFin] = useState(moment());
 
@@ -57,6 +58,20 @@ export default function REL_CTAREC() {
     }
   };
 
+  const loadOptionsFornec = async (inputText, callback) => {
+    if (inputText) {
+      const valor = inputText.toUpperCase();
+      if (valor.length > 2) {
+        const response = await api.get(
+          `v1/combos/combo_fornecedor?valor=${valor}`
+        );
+        callback(
+          response.data.retorno.map((i) => ({ value: i.value, label: i.label }))
+        );
+      }
+    }
+  };
+
   // #endregion
 
   // #endregion
@@ -73,12 +88,20 @@ export default function REL_CTAREC() {
       else if (document.getElementById('tit_vencido').checked) tpRel = '3';
       else tpRel = '1';
 
-      const url = `v1/fina/report/titctarec?tpRel=${tpRel}&data_ini=${moment(
-        dataIni
-      ).format('YYYY-MM-DD')}&data_fin=${moment(dataFin).format(
-        'YYYY-MM-DD'
-      )}&cliente=${param.cliente || ''}`;
-
+      let url = ``;
+      if (tipo === 'R') {
+        url = `v1/fina/report/titctarec?tpRel=${tpRel}&data_ini=${moment(
+          dataIni
+        ).format('YYYY-MM-DD')}&data_fin=${moment(dataFin).format(
+          'YYYY-MM-DD'
+        )}&cliente=${param.clifornec || ''}`;
+      } else {
+        url = `v1/fina/report/titctapag?tpRel=${tpRel}&data_ini=${moment(
+          dataIni
+        ).format('YYYY-MM-DD')}&data_fin=${moment(dataFin).format(
+          'YYYY-MM-DD'
+        )}&fornec=${param.clifornec || ''}&ordenar=`;
+      }
       const response = await api.get(url);
       const link = response.data;
       setLoading(false);
@@ -113,14 +136,16 @@ export default function REL_CTAREC() {
               <BoxItemCad fr="1fr">
                 <AreaComp wd="100">
                   <AsyncSelectForm
-                    name="cliente"
-                    label="cliente"
+                    name="clifornec"
+                    label={tipo === 'R' ? 'CLIENTE' : 'FORNECEDOR'}
                     placeholder="NÃO INFORMADO"
                     defaultOptions
                     cacheOptions
-                    value={cliente}
-                    onChange={(c) => setCliente(c || [])}
-                    loadOptions={loadOptionsCliente}
+                    value={clienteForn}
+                    onChange={(c) => setClienteForn(c || [])}
+                    loadOptions={
+                      tipo === 'R' ? loadOptionsCliente : loadOptionsFornec
+                    }
                     isClearable
                     zindex="153"
                   />
@@ -196,3 +221,7 @@ export default function REL_CTAREC() {
     </>
   );
 }
+
+REL_TITULOS.propTypes = {
+  tipo: PropTypes.string.isRequired,
+};

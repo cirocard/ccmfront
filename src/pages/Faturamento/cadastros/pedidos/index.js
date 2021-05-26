@@ -1917,9 +1917,11 @@ export default function FAT2() {
         setValueTab(3);
       } else {
         toast.info('SELECIONE UM PEDIDO FINALIZADO', toastOptions);
+        setLoading(false);
       }
     } else {
       toast.info('SELECIONE UM PEDIDO FINALIZADO', toastOptions);
+      setLoading(false);
     }
   }
 
@@ -2663,17 +2665,21 @@ export default function FAT2() {
                   icon={<FaClipboardList size={29} color="#244448" />}
                 />
               </BootstrapTooltip>
-              <BootstrapTooltip
-                title="Registro de negociação financeira do cliente"
-                placement="top-end"
-              >
-                <Tab
-                  disabled={false}
-                  label="FINANCEIRO"
-                  {...a11yProps(3)}
-                  icon={<FaCcAmazonPay size={29} color="#244448" />}
-                />
-              </BootstrapTooltip>
+              {params.tipo === '2' ? (
+                <BootstrapTooltip
+                  title="Registro de negociação financeira do cliente"
+                  placement="top-end"
+                >
+                  <Tab
+                    disabled={false}
+                    label="FINANCEIRO"
+                    {...a11yProps(3)}
+                    icon={<FaCcAmazonPay size={29} color="#244448" />}
+                  />
+                </BootstrapTooltip>
+              ) : (
+                <div />
+              )}
             </Tabs>
           </AppBar>
 
@@ -3679,6 +3685,7 @@ export default function FAT2() {
       >
         <CONSULTA_PRODUTO />
       </Popup>
+
       {/* popup para aguarde... */}
       <DialogInfo
         isOpen={loading}

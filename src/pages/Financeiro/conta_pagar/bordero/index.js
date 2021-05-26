@@ -11,14 +11,13 @@ import {
   FaSave,
   FaSearch,
   FaPlusCircle,
+  FaSearchPlus,
   FaUserTie,
   FaFileSignature,
   FaCheckCircle,
   FaTrashAlt,
   FaColumns,
-  FaHandHoldingUsd,
-  FaSearchDollar,
-  FaHandsHelping,
+  FaTags,
 } from 'react-icons/fa';
 import moment from 'moment';
 import DatePickerInput from '~/componentes/DatePickerInput';
@@ -56,11 +55,10 @@ import {
   DivLimitador,
   Linha,
 } from '~/pages/general.styles';
-import CONULTA_TITULOS from '~/pages/Financeiro/conta_receber/bordero/titulos';
-import NEGOCIAR_CTAREC from '~/pages/Financeiro/conta_receber/bordero/negociar';
+import CONULTA_TITULOS from '~/pages/Financeiro/conta_pagar/bordero/titulos';
 import REL_TITULOS from '~/pages/Financeiro/relatorios/titulos';
 
-export default function FINA12() {
+export default function FINA15() {
   const api = ApiService.getInstance(ApiTypes.API1);
   const [valueTab, setValueTab] = useState(0);
   const frmPesquisa = useRef(null);
@@ -71,11 +69,9 @@ export default function FINA12() {
   const [dataGridPesqSelected, setDataGridPesqSelected] = useState([]);
   const [dataIni, setDataIni] = useState(moment());
   const [dataFin, setDataFin] = useState(moment());
-  const [cliente, setCliente] = useState([]);
+  const [fornecedor, setFornecedor] = useState([]);
   const [dlgTitulos, setDlgTitulos] = useState(false);
   const [dlgRelCtarec, setDlgRelCtarec] = useState(false);
-  const [dlgNegociar, setDlgNegociar] = useState(false);
-  const [tabNeg, setTabNeg] = useState(0);
 
   const toastOptions = {
     autoClose: 4000,
@@ -83,7 +79,7 @@ export default function FINA12() {
   };
 
   const schemaCad = Yup.object().shape({
-    br_descricao: Yup.string().required('(??)'),
+    bp_descricao: Yup.string().required('(??)'),
   });
 
   // #region COMBO ========================
@@ -95,21 +91,12 @@ export default function FINA12() {
     { value: '3', label: 'CANCELADOS' },
   ];
 
-  const loadOptionsCliente = async (inputText, callback) => {
+  const loadOptionsFornec = async (inputText, callback) => {
     if (inputText) {
-      const descricao = inputText.toUpperCase();
-
-      if (descricao.length > 2) {
+      const valor = inputText.toUpperCase();
+      if (valor.length > 2) {
         const response = await api.get(
-          `v1/combos/combo_cliente?perfil=0&nome=${descricao}`
-        );
-        callback(
-          response.data.retorno.map((i) => ({ value: i.value, label: i.label }))
-        );
-      } else if (!Number.isNaN(descricao)) {
-        // consultar com menos de 3 digitos só se for numerico como codigo do cliente
-        const response = await api.get(
-          `v1/combos/combo_cliente?perfil=0&nome=${descricao}`
+          `v1/combos/combo_fornecedor?valor=${valor}`
         );
         callback(
           response.data.retorno.map((i) => ({ value: i.value, label: i.label }))
@@ -133,14 +120,14 @@ export default function FINA12() {
   };
 
   const limpaForm = () => {
-    frmCadastro.current.setFieldValue('br_id', '');
-    frmCadastro.current.setFieldValue('br_descricao', '');
-    frmCadastro.current.setFieldValue('br_datacad', '');
-    frmCadastro.current.setFieldValue('br_databaixa', '');
-    frmCadastro.current.setFieldValue('br_valor', '');
-    frmCadastro.current.setFieldValue('br_situacao', '');
-    frmCadastro.current.setFieldValue('br_valor_recebido', '');
-    document.getElementsByName('br_descricao')[0].focus();
+    frmCadastro.current.setFieldValue('bp_id', '');
+    frmCadastro.current.setFieldValue('bp_descricao', '');
+    frmCadastro.current.setFieldValue('bp_datacad', '');
+    frmCadastro.current.setFieldValue('bp_databaixa', '');
+    frmCadastro.current.setFieldValue('bp_valor', '');
+    frmCadastro.current.setFieldValue('bp_situacao', '');
+    frmCadastro.current.setFieldValue('bp_valor_recebido', '');
+    document.getElementsByName('bp_descricao')[0].focus();
     setGridTitulos([]);
   };
 
@@ -154,10 +141,10 @@ export default function FINA12() {
       setLoading(true);
       const formPesq = frmPesquisa.current.getData();
 
-      const url = `v1/fina/ctarec/listar_bordero?cli_id=${
+      const url = `v1/fina/ctapag/listar_bordero?forn_id=${
         formPesq.pesq_cli_id || ''
-      }&situacao=${formPesq.pesq_br_situacao || '1'}&br_id=${
-        formPesq.pesq_br_id
+      }&situacao=${formPesq.pesq_bp_situacao || '1'}&bp_id=${
+        formPesq.pesq_bp_id
       }&data_ini=${moment(dataIni).format('YYYY-MM-DD')}&data_fin=${moment(
         dataFin
       ).format('YYYY-MM-DD')}`;
@@ -187,7 +174,7 @@ export default function FINA12() {
         }
 
         const formData = frmCadastro.current.getData();
-        if (formData.br_situacao === 'BORDERÔ BAIXADO') {
+        if (formData.bp_situacao === 'BORDERÔ BAIXADO') {
           toast.error(
             'BORDERÔ BAIXADO!! NÃO PODE MAIS SER ALTERADO',
             toastOptions
@@ -204,50 +191,50 @@ export default function FINA12() {
 
         gridTitulos.forEach((t) => {
           const titulos = {
-            bri_br_emp_id: null,
-            bri_br_id: null,
-            bri_id: null,
-            bri_ctarec_id: t.bri_ctarec_id,
-            bri_ctarec_parc_id: t.bri_ctarec_parc_id,
-            bri_vlr_juro: toDecimal(t.bri_vlr_juro),
-            bri_vlr_desconto: toDecimal(t.bri_vlr_desconto),
-            bri_valor_pago: toDecimal(t.bri_valor_pago),
-            bri_valor_titulo: toDecimal(t.bri_valor_titulo),
+            bpi_bp_emp_id: null,
+            bpi_bp_id: null,
+            bpi_id: null,
+            bpi_ctapag_id: t.bpi_ctapag_id,
+            bpi_ctapag_parc_id: t.bpi_ctapag_parc_id,
+            bpi_vlr_juro: toDecimal(t.bpi_vlr_juro),
+            bpi_vlr_desconto: toDecimal(t.bpi_vlr_desconto),
+            bpi_valor_pago: toDecimal(t.bpi_valor_pago),
+            bpi_valor_titulo: toDecimal(t.bpi_valor_titulo),
           };
           itens.push(titulos);
         });
 
         const bordero = {
-          br_emp_id: null,
-          br_id: formData.br_id ? parseInt(formData.br_id, 10) : null,
-          br_descricao: formData.br_descricao.toUpperCase(),
-          br_valor: 0,
-          br_situacao: '1',
-          br_valor_recebido: 0,
-          br_usr_id: null,
-          br_itens: itens,
+          bp_emp_id: null,
+          bp_id: formData.bp_id ? parseInt(formData.bp_id, 10) : null,
+          bp_descricao: formData.bp_descricao.toUpperCase(),
+          bp_valor: 0,
+          bp_situacao: '1',
+          bp_valor_recebido: 0,
+          bp_usr_id: null,
+          bp_itens: itens,
         };
 
-        const retorno = await api.post('v1/fina/ctarec/bordero', bordero);
+        const retorno = await api.post('v1/fina/ctapag/bordero', bordero);
         if (retorno.data.success) {
           frmCadastro.current.setFieldValue(
-            'br_id',
-            retorno.data.retorno.br_id
+            'bp_id',
+            retorno.data.retorno.bp_id
           );
           frmCadastro.current.setFieldValue(
-            'br_datacad',
-            FormataData(retorno.data.retorno.br_datacad)
+            'bp_datacad',
+            FormataData(retorno.data.retorno.bp_datacad)
           );
           frmCadastro.current.setFieldValue(
-            'br_valor',
-            FormataMoeda(retorno.data.retorno.br_valor)
+            'bp_valor',
+            FormataMoeda(retorno.data.retorno.bp_valor)
           );
           frmCadastro.current.setFieldValue(
-            'br_valor_recebido',
-            FormataMoeda(retorno.data.retorno.br_valor_recebido)
+            'bp_valor_recebido',
+            FormataMoeda(retorno.data.retorno.bp_valor_recebido)
           );
           frmCadastro.current.setFieldValue(
-            'br_situacao',
+            'bp_situacao',
             retorno.data.retorno.situacao
           );
           toast.info('Cadastro atualizado com sucesso!!!', toastOptions);
@@ -273,8 +260,8 @@ export default function FINA12() {
       }
 
       frmCadastro.current.setFieldError(
-        'br_descricao',
-        validationErrors.br_descricao
+        'bp_descricao',
+        validationErrors.bp_descricao
       );
     }
   }
@@ -285,31 +272,31 @@ export default function FINA12() {
         setLoading(true);
         setGridTitulos([]);
 
-        const url = `v1/fina/ctarec/get_bordero?br_id=${dataGridPesqSelected[0].br_id}`;
+        const url = `v1/fina/ctapag/get_bordero?bp_id=${dataGridPesqSelected[0].bp_id}`;
         const response = await api.get(url);
 
         const dados = response.data.retorno;
         if (dados) {
           setGridTitulos(dados.itens);
 
-          frmCadastro.current.setFieldValue('br_id', dados.capa.br_id);
+          frmCadastro.current.setFieldValue('bp_id', dados.capa.bp_id);
           frmCadastro.current.setFieldValue(
-            'br_descricao',
-            dados.capa.br_descricao
+            'bp_descricao',
+            dados.capa.bp_descricao
           );
           frmCadastro.current.setFieldValue(
-            'br_datacad',
-            FormataData(dados.capa.br_datacad)
+            'bp_datacad',
+            FormataData(dados.capa.bp_datacad)
           );
           frmCadastro.current.setFieldValue(
-            'br_databaixa',
-            FormataData(dados.capa.br_databaixa)
+            'bp_databaixa',
+            FormataData(dados.capa.bp_databaixa)
           );
-          frmCadastro.current.setFieldValue('br_valor', dados.capa.br_valor);
-          frmCadastro.current.setFieldValue('br_situacao', dados.capa.situacao);
+          frmCadastro.current.setFieldValue('bp_valor', dados.capa.bp_valor);
+          frmCadastro.current.setFieldValue('bp_situacao', dados.capa.situacao);
           frmCadastro.current.setFieldValue(
-            'br_valor_recebido',
-            dados.capa.br_valor_recebido
+            'bp_valor_recebido',
+            dados.capa.bp_valor_recebido
           );
 
           setValueTab(1);
@@ -333,9 +320,9 @@ export default function FINA12() {
     try {
       if (valueTab.toString() === '0') {
         if (dataGridPesqSelected.length > 0) {
-          if (dataGridPesqSelected[0].br_situacao === '1') {
+          if (dataGridPesqSelected[0].bp_situacao === '1') {
             setLoading(true);
-            const url = `v1/fina/ctarec/baixar_bordero?br_id=${dataGridPesqSelected[0].br_id}`;
+            const url = `v1/fina/ctapag/baixar_bordero?bp_id=${dataGridPesqSelected[0].bp_id}`;
             const response = await api.put(url);
             if (response.data.success) {
               toast.success(response.data.retorno, toastOptions);
@@ -387,15 +374,15 @@ export default function FINA12() {
 
     titulos.forEach((t) => {
       const item = {
-        cli_razao_social: t.cli_razao_social,
-        bri_ctarec_id: t.rec_id,
-        bri_ctarec_parc_id: t.reci_id,
-        parcela: t.reci_parcela,
+        forn_razao_social: t.forn_razao_social,
+        bpi_ctapag_id: t.cta_id,
+        bpi_ctapag_parc_id: t.ctap_id,
+        parcela: t.ctap_parcela,
         vencimento: t.vencimento,
-        bri_valor_titulo: t.reci_valor,
-        bri_vlr_juro: 0,
-        bri_vlr_desconto: 0,
-        bri_valor_pago: t.reci_valor,
+        bpi_valor_titulo: t.ctap_valor,
+        bpi_vlr_juro: 0,
+        bpi_vlr_desconto: 0,
+        bpi_valor_pago: t.ctap_valor,
         forma_pgto: t.forma_pgto,
       };
       aux.push(item);
@@ -407,7 +394,7 @@ export default function FINA12() {
 
   async function handleDeleteItem(prm) {
     const formData = frmCadastro.current.getData();
-    if (formData.br_situacao === 'BORDERÔ BAIXADO') {
+    if (formData.bp_situacao === 'BORDERÔ BAIXADO') {
       toast.error('BORDERÔ BAIXADO!! NÃO PODE MAIS SER ALTERADO', toastOptions);
       return;
     }
@@ -422,7 +409,7 @@ export default function FINA12() {
   const handleEditarValor = async (prm) => {
     try {
       const formData = frmCadastro.current.getData();
-      if (formData.br_situacao === 'BORDERÔ BAIXADO') {
+      if (formData.bp_situacao === 'BORDERÔ BAIXADO') {
         toast.error(
           'BORDERÔ BAIXADO!! NÃO PODE MAIS SER ALTERADO',
           toastOptions
@@ -430,18 +417,18 @@ export default function FINA12() {
         return;
       }
       if (Number.isNaN(Number(prm.newValue))) {
-        prm.data.bri_valor_pago = prm.oldValue;
+        prm.data.bpi_valor_pago = prm.oldValue;
       } else if (
-        toDecimal(prm.data.bri_valor_pago) >
-        toDecimal(prm.data.bri_valor_titulo)
+        toDecimal(prm.data.bpi_valor_pago) >
+        toDecimal(prm.data.bpi_valor_titulo)
       ) {
-        prm.data.bri_vlr_juro =
-          toDecimal(prm.data.bri_valor_pago) -
-          toDecimal(prm.data.bri_valor_titulo);
+        prm.data.bpi_vlr_juro =
+          toDecimal(prm.data.bpi_valor_pago) -
+          toDecimal(prm.data.bpi_valor_titulo);
       } else {
-        prm.data.bri_vlr_desconto =
-          toDecimal(prm.data.bri_valor_titulo) -
-          toDecimal(prm.data.bri_valor_pago);
+        prm.data.bpi_vlr_desconto =
+          toDecimal(prm.data.bpi_valor_titulo) -
+          toDecimal(prm.data.bpi_valor_pago);
       }
       let auxGrid = [];
 
@@ -466,7 +453,7 @@ export default function FINA12() {
 
   const gridColumnPesquisa = [
     {
-      field: 'br_id',
+      field: 'bp_id',
       headerName: 'Nº BORDERÔ',
       width: 120,
       sortable: true,
@@ -475,7 +462,7 @@ export default function FINA12() {
       lockVisible: true,
     },
     {
-      field: 'br_descricao',
+      field: 'bp_descricao',
       headerName: 'DESCRIÇÃO',
       width: 400,
       sortable: true,
@@ -502,7 +489,7 @@ export default function FINA12() {
       lockVisible: true,
     },
     {
-      field: 'br_valor',
+      field: 'bp_valor',
       headerName: 'VALOR',
       width: 120,
       sortable: true,
@@ -514,7 +501,7 @@ export default function FINA12() {
       cellStyle: { color: '#000', fontWeight: 'bold' },
     },
     {
-      field: 'br_valor_recebido',
+      field: 'bp_valor_recebido',
       headerName: 'VALOR RECEBIDO',
       width: 140,
       sortable: true,
@@ -542,7 +529,7 @@ export default function FINA12() {
   // #region GRID ITENS  =========================
   const gridColunaItens = [
     {
-      field: 'bri_id',
+      field: 'bpi_id',
       headerName: 'AÇÕES',
       width: 70,
       lockVisible: true,
@@ -564,7 +551,7 @@ export default function FINA12() {
       },
     },
     {
-      field: 'cli_razao_social',
+      field: 'forn_razao_social',
       headerName: 'CLIENTE',
       width: 350,
       sortable: true,
@@ -573,7 +560,7 @@ export default function FINA12() {
       lockVisible: true,
     },
     {
-      field: 'bri_ctarec_id',
+      field: 'bpi_ctapag_id',
       headerName: 'Nº TITULO',
       width: 100,
       sortable: true,
@@ -600,7 +587,7 @@ export default function FINA12() {
       lockVisible: true,
     },
     {
-      field: 'bri_valor_titulo',
+      field: 'bpi_valor_titulo',
       headerName: 'VLR. TITULO',
       width: 125,
       sortable: true,
@@ -612,7 +599,7 @@ export default function FINA12() {
       cellStyle: { color: '#000', fontWeight: 'bold' },
     },
     {
-      field: 'bri_valor_pago',
+      field: 'bpi_valor_pago',
       headerName: 'VLR. RECEBIDO',
       width: 140,
       sortable: true,
@@ -626,7 +613,7 @@ export default function FINA12() {
       cellStyle: { color: '#148A26', fontWeight: 'bold' },
     },
     {
-      field: 'bri_vlr_juro',
+      field: 'bpi_vlr_juro',
       headerName: 'VLR. JURO',
       width: 110,
       sortable: true,
@@ -637,7 +624,7 @@ export default function FINA12() {
       valueFormatter: GridCurrencyFormatter,
     },
     {
-      field: 'bri_vlr_desconto',
+      field: 'bpi_vlr_desconto',
       headerName: 'VLR. DESCONTO',
       width: 120,
       sortable: true,
@@ -682,7 +669,7 @@ export default function FINA12() {
               if (valueTab === 1) setDlgTitulos(true);
             }}
           >
-            <FaSearchDollar size={25} color="#fff" />
+            <FaSearchPlus size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
         <DivLimitador hg="10px" />
@@ -698,29 +685,14 @@ export default function FINA12() {
           </button>
         </BootstrapTooltip>
         <DivLimitador hg="20px" />
-
         <Linha />
-
         <DivLimitador hg="20px" />
-        <BootstrapTooltip title="NEGOCIAÇÃO DE TITULOS" placement="left">
+        <BootstrapTooltip title="CADASTRO DE TITULOS A PAGAR" placement="left">
           <button
             type="button"
-            onClick={() => {
-              setTabNeg(tabNeg + 1);
-              setDlgNegociar(true);
-            }}
+            onClick={() => window.open('/fina14', '_blank')}
           >
-            <FaHandsHelping size={25} color="#fff" />
-          </button>
-        </BootstrapTooltip>
-
-        <DivLimitador hg="10px" />
-        <BootstrapTooltip
-          title="CADASTRO DE TITULOS DO CONTAS A RECEBER"
-          placement="left"
-        >
-          <button type="button" onClick={() => window.open('/fina9', '_blank')}>
-            <FaHandHoldingUsd size={25} color="#fff" />
+            <FaTags size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
         <DivLimitador hg="10px" />
@@ -740,7 +712,7 @@ export default function FINA12() {
       <Container>
         <Scroll>
           <TitleBar bckgnd="#dae2e5">
-            <h1>BORDERÔ CONTAS A RECEBER (BAIXA DE TITULOS)</h1>
+            <h1>BORDERÔ CONTAS A PAGAR (BAIXA DE TITULOS)</h1>
             <BootstrapTooltip title="Voltar para Dashboard" placement="top">
               <button type="button" onClick={handleDashboard}>
                 <MdClose size={30} color="#244448" />
@@ -792,7 +764,7 @@ export default function FINA12() {
                     <label>Nº BORDERÔ</label>
                     <Input
                       type="text"
-                      name="pesq_br_id"
+                      name="pesq_bp_id"
                       placeholder="Nº borderô"
                       className="input_cad"
                     />
@@ -800,7 +772,7 @@ export default function FINA12() {
                   <AreaComp wd="100">
                     <FormSelect
                       label="situação"
-                      name="pesq_br_situacao"
+                      name="pesq_bp_situacao"
                       optionsList={optSituacao}
                       placeholder="NÃO INFORMADO"
                       zindex="153"
@@ -822,14 +794,14 @@ export default function FINA12() {
                   </AreaComp>
                   <AreaComp wd="100">
                     <AsyncSelectForm
-                      name="pesq_cli_id"
-                      label="CLIENTE"
+                      name="pesq_forn_id"
+                      label="FORNECEDOR"
                       placeholder="NÃO INFORMADO"
                       defaultOptions
                       cacheOptions
-                      value={cliente}
-                      onChange={(c) => setCliente(c || [])}
-                      loadOptions={loadOptionsCliente}
+                      value={fornecedor}
+                      onChange={(c) => setFornecedor(c || [])}
+                      loadOptions={loadOptionsFornec}
                       isClearable
                       zindex="153"
                     />
@@ -875,7 +847,7 @@ export default function FINA12() {
                     <label>Código</label>
                     <Input
                       type="number"
-                      name="br_id"
+                      name="bp_id"
                       readOnly
                       className="input_cad"
                     />
@@ -884,7 +856,7 @@ export default function FINA12() {
                     <label>descricão (identificaçào do borerô)</label>
                     <Input
                       type="text"
-                      name="br_descricao"
+                      name="bp_descricao"
                       className="input_cad"
                     />
                   </AreaComp>
@@ -894,7 +866,7 @@ export default function FINA12() {
                     <label>valor borderô</label>
                     <Input
                       type="text"
-                      name="br_valor"
+                      name="bp_valor"
                       readOnly
                       className="input_cad"
                     />
@@ -903,7 +875,7 @@ export default function FINA12() {
                     <label>valor recebido</label>
                     <Input
                       type="text"
-                      name="br_valor_recebido"
+                      name="bp_valor_recebido"
                       readOnly
                       className="input_cad"
                     />
@@ -912,7 +884,7 @@ export default function FINA12() {
                     <label>situação</label>
                     <Input
                       type="text"
-                      name="br_situacao"
+                      name="bp_situacao"
                       readOnly
                       className="input_cad"
                     />
@@ -921,7 +893,7 @@ export default function FINA12() {
                     <label>Data cadastro</label>
                     <Input
                       type="text"
-                      name="br_datacad"
+                      name="bp_datacad"
                       readOnly
                       className="input_cad"
                     />
@@ -930,7 +902,7 @@ export default function FINA12() {
                     <label>Data Baixa</label>
                     <Input
                       type="text"
-                      name="br_databaixa"
+                      name="bp_databaixa"
                       readOnly
                       className="input_cad"
                     />
@@ -953,14 +925,13 @@ export default function FINA12() {
           </TabPanel>
         </Scroll>
       </Container>
-
       {/* popup para aguarde... */}
       <DialogInfo
         isOpen={loading}
         closeDialogFn={() => {
           setLoading(false);
         }}
-        title="BAIXA DE TITULOS"
+        title="CADASTRO DE CHEQUE"
         message="Aguarde Processamento..."
       />
 
@@ -968,32 +939,22 @@ export default function FINA12() {
       <Popup
         isOpen={dlgTitulos}
         closeDialogFn={() => setDlgTitulos(false)}
-        title="CONSULTAR TITULOS DO CONTAS A RECEBER"
+        title="CONSULTAR TITULOS DO CONTAS A PAGAR"
         size="xl"
       >
         <CONULTA_TITULOS getTitulos={getTitulos} />
       </Popup>
 
-      {/* popup RELATÓRIO TITULOS CONTAS A RECEBER... */}
+      {/* popup RELATÓRIO TITULOS CONTAS A PAGAR.. */}
       <Popup
         isOpen={dlgRelCtarec}
         closeDialogFn={() => {
           setDlgRelCtarec(false);
         }}
-        title="RELATÓRIO TITULOS DO CONTAS A RECEBER"
+        title="RELATÓRIO TITULOS DO CONTAS A PAGAR"
         size="sm"
       >
-        <REL_TITULOS tipo="R" />
-      </Popup>
-
-      {/* popup para negociar titulos... */}
-      <Popup
-        isOpen={dlgNegociar}
-        closeDialogFn={() => setDlgNegociar(false)}
-        title="NEGOCIAÇÃO DE TITULOS"
-        size="xl"
-      >
-        <NEGOCIAR_CTAREC tabAtiva={tabNeg} />
+        <REL_TITULOS tipo="P" />
       </Popup>
     </>
   );

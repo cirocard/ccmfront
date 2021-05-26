@@ -3,16 +3,9 @@ import { Form } from '@unform/web';
 import { toast } from 'react-toastify';
 import { AgGridReact } from 'ag-grid-react';
 import { MdClose } from 'react-icons/md';
-import {
-  FaSearch,
-  FaUserTie,
-  FaPrint,
-  FaHandHoldingUsd,
-  FaRegCheckSquare,
-} from 'react-icons/fa';
+import { FaSearch, FaUserTie, FaPrint, FaHandHoldingUsd } from 'react-icons/fa';
 import moment from 'moment';
-import { format } from 'date-fns';
-import Popup from '~/componentes/Popup';
+
 import DatePickerInput from '~/componentes/DatePickerInput';
 import AsyncSelectForm from '~/componentes/Select/selectAsync';
 import FormSelect from '~/componentes/Select';
@@ -21,11 +14,7 @@ import { gridTraducoes } from '~/services/gridTraducoes';
 import Input from '~/componentes/Input';
 import { BootstrapTooltip } from '~/componentes/ToolTip';
 import history from '~/services/history';
-import {
-  GridCurrencyFormatter,
-  maskDecimal,
-  toDecimal,
-} from '~/services/func.uteis';
+import { GridCurrencyFormatter } from '~/services/func.uteis';
 import { ApiService, ApiTypes } from '~/services/api';
 import {
   Container,
@@ -47,17 +36,14 @@ import {
 export default function FINA10() {
   const api = ApiService.getInstance(ApiTypes.API1);
   const frmPesquisa = useRef(null);
-  const frmBaixar = useRef(null);
+
   const [loading, setLoading] = useState(false);
   const [gridPesquisa, setGridPesquisa] = useState([]);
   const [dataGridPesqSelected, setDataGridPesqSelected] = useState([]);
   const [gridItens, setGridItens] = useState([]);
   const [dataIni, setDataIni] = useState(moment().add(-1, 'day'));
   const [dataFin, setDataFin] = useState(moment().add(30, 'day'));
-  const [dataBaixa, setDataBaixa] = useState(moment());
   const [cliente, setCliente] = useState([]);
-  const [openDlgBaixar, setOpenDlgBaixar] = useState(false);
-  const [parcela, setParcela] = useState([]);
 
   const toastOptions = {
     autoClose: 4000,
@@ -184,54 +170,6 @@ export default function FINA10() {
     }
   }
 
-  async function handleBaixar() {
-    try {
-      const formData = frmBaixar.current.getData();
-      if (!formData.reci_valor_pago) {
-        toast.error('INFORME O VALOR RECEBIDO PARA CONTINUAR...', toastOptions);
-        return;
-      }
-      setLoading(true);
-      const item = {
-        reci_rec_emp_id: null,
-        reci_rec_id: parcela.reci_rec_id,
-        reci_id: parcela.reci_id,
-        reci_data_baixa: format(dataBaixa, 'yyyy-MM-dd HH:mm:ss'),
-        reci_situacao: '2',
-        reci_valor_pago: toDecimal(formData.reci_valor_pago),
-        reci_saldo:
-          toDecimal(parcela.reci_valor) - toDecimal(formData.reci_valor_pago),
-      };
-      const retorno = await api.post('v1/fina/ctarec/baixar_parcela', item);
-
-      if (retorno.data.success) {
-        await listarCtaRec();
-        const response = await api.get(
-          `v1/fina/ctarec/listar_parcelas?rec_id=${dataGridPesqSelected[0].rec_id}`
-        );
-        if (response.data.success) {
-          setGridItens(response.data.retorno);
-        } else {
-          toast.error(
-            `Erro ao consultar parcelas\n${response.data.errors}`,
-            toastOptions
-          );
-        }
-        setOpenDlgBaixar(false);
-        toast.info('Promissória Baixada', toastOptions);
-      } else {
-        toast.error(
-          `Houve erro no processamento!! ${retorno.data.errors}`,
-          toastOptions
-        );
-      }
-      setLoading(false);
-    } catch (error) {
-      setLoading(false);
-      toast.error(`Erro ao baixar promissória \n${error}`, toastOptions);
-    }
-  }
-
   useEffect(() => {
     frmPesquisa.current.setFieldValue('pesq_data', '1');
     listarCtaRec();
@@ -330,35 +268,6 @@ export default function FINA10() {
 
   // #region GRID ITENS  =========================
   const gridColunaItens = [
-    {
-      field: 'prode_id',
-      headerName: 'AÇÕES',
-      width: 70,
-      lockVisible: true,
-      cellRendererFramework(prm) {
-        return (
-          <>
-            <BootstrapTooltip
-              title="BAIXAR PARCELA/PROMISSÓRIA"
-              placement="top"
-            >
-              <button
-                type="button"
-                disabled={false}
-                onClick={() => {
-                  frmBaixar.current.setFieldValue('reci_valor_pago', '');
-                  setParcela(prm.data);
-                  setDataBaixa(new Date());
-                  setOpenDlgBaixar(true);
-                }}
-              >
-                <FaRegCheckSquare size={18} color="#253739" />
-              </button>
-            </BootstrapTooltip>
-          </>
-        );
-      },
-    },
     {
       field: 'reci_parcela',
       headerName: 'PARCELA',
@@ -603,54 +512,6 @@ export default function FINA10() {
           </Panel>
         </Scroll>
       </Container>
-
-      {/* popup GERENCIAR CHEQUE... */}
-      <Popup
-        isOpen={openDlgBaixar}
-        closeDialogFn={() => setOpenDlgBaixar(false)}
-        title="BAIXAR PROMISSÓRIA"
-        size="sm"
-      >
-        <Panel
-          lefth1="left"
-          bckgnd="#dae2e5"
-          mtop="1px"
-          pdding="5px 7px 7px 10px"
-        >
-          <Form id="frmBaixar" ref={frmBaixar}>
-            <BoxItemCad fr="1fr 1fr">
-              <AreaComp wd="100">
-                <label>Valor Recebido</label>
-                <Input
-                  type="text"
-                  name="reci_valor_pago"
-                  className="input_cad"
-                  onChange={maskDecimal}
-                />
-              </AreaComp>
-              <AreaComp wd="100">
-                <DatePickerInput
-                  onChangeDate={(date) => setDataBaixa(new Date(date))}
-                  value={dataBaixa}
-                  label="Data Baixa"
-                />
-              </AreaComp>
-            </BoxItemCad>
-
-            <BoxItemCadNoQuery fr="1fr" ptop="15px">
-              <AreaComp wd="100" ptop="10px">
-                <button
-                  type="button"
-                  className="btnGeral"
-                  onClick={handleBaixar}
-                >
-                  {loading ? 'Aguarde Processando...' : 'Confirmar'}
-                </button>
-              </AreaComp>
-            </BoxItemCadNoQuery>
-          </Form>
-        </Panel>
-      </Popup>
 
       {/* popup para aguarde... */}
       <DialogInfo

@@ -45,6 +45,7 @@ import FINA11 from '~/pages/Financeiro/parametros/movfina';
 import FINA12 from '~/pages/Financeiro/conta_receber/bordero';
 import FINA13 from '~/pages/Financeiro/caixaBanco/movcontas';
 import FINA14 from '~/pages/Financeiro/conta_pagar/ctapag';
+import FINA15 from '~/pages/Financeiro/conta_pagar/bordero';
 
 // SUPRIMENTOS
 import SUPR1 from '~/pages/Suprimentos/dashboard';
@@ -108,6 +109,7 @@ export default function Routes() {
       <Route path="/fina12" component={FINA12} isPrivate />
       <Route path="/fina13" component={FINA13} isPrivate />
       <Route path="/fina14" component={FINA14} isPrivate />
+      <Route path="/fina15" component={FINA15} isPrivate />
 
       {/* MÓDULO SUPRIMENTOS */}
       <Route path="/supr1" component={SUPR1} isPrivate />
