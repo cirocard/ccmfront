@@ -21,7 +21,6 @@ import {
   FaSave,
   FaPercent,
   FaCheckCircle,
-  FaSearch,
   FaPlusCircle,
   FaCheck,
   FaTrashAlt,
@@ -36,6 +35,7 @@ import {
   FaCcAmazonPay,
   FaPagelines,
   FaWpforms,
+  FaWeightHanging,
 } from 'react-icons/fa';
 import Dialog from '@material-ui/core/Dialog';
 import { Slide } from '@material-ui/core';
@@ -97,6 +97,7 @@ export default function FAT2() {
   const frmGrade = useRef(null);
   const frmDesc = useRef(null);
   const frmCredito = useRef(null);
+  const frmDespesa = useRef(null);
   const frmFinanceiro = useRef(null);
   const [optOperFat, setOptOperFat] = useState([]);
   const [optCvto, setOptCvto] = useState([]);
@@ -152,7 +153,7 @@ export default function FAT2() {
   const [nParcela, setNParcela] = useState(1);
   const [optClassificFina, setOptClassificFina] = useState(1);
   const [dlgConsProduto, setDlgConsProduto] = useState(false);
-
+  const [dlgDespesa, setDlgDespesa] = useState(false);
   const { emp_financeiro } = useSelector((state) => state.auth);
 
   const toastOptions = {
@@ -367,7 +368,7 @@ export default function FAT2() {
   async function listaPedido() {
     try {
       setLoading(true);
-
+      setValueTab(0);
       const prm = {
         emp_id: null,
         filtraUsr: null, // TRATAR NA APIN
@@ -388,6 +389,7 @@ export default function FAT2() {
       const dados = response.data.retorno;
       if (dados) {
         setResumoPedido(response.data.message);
+        setDataGridPesqSelected([]);
         setGridPesquisa(dados);
       }
       setLoading(false);
@@ -686,7 +688,8 @@ export default function FAT2() {
           abortEarly: false,
         });
         // verificar situacao
-        if (situacaoPedido !== '1' && valueTab.toString() !== '3') {
+
+        if (situacaoPedido !== '1') {
           toast.warning(
             'Atenção!! Este Pedido não pode mais ser alterado. Verifique a situaçao!!!',
             toastOptions
@@ -1265,6 +1268,15 @@ export default function FAT2() {
     try {
       const formCapa = frmCapa.current.getData();
       if (valueTab == '1' && formCapa.cp_id) {
+        // verificar finalizacao
+        if (situacaoPedido !== '10') {
+          toast.warning(
+            'ATENÇÃO!! FINALIZE O PEDIDO PARA APLICAR CRÉDITO... OU CASO NECESSÁRIO FAÇA UMA SIMULAÇÃO DE VALOR',
+            toastOptions
+          );
+          return;
+        }
+
         const response = await api.get(
           `v1/fat/credito_cliente/${pesqCli_id.value}`
         );
@@ -1299,54 +1311,42 @@ export default function FAT2() {
       const formCapa = frmCapa.current.getData();
       const formCredito = frmCredito.current.getData();
       if (valueTab == '1' && formCapa.cp_id) {
-        if (situacaoPedido !== '1') {
-          toast.warning(
-            'ATENÇÃO!! ESTE PEDIDO NÃO PODE MAIS SER ALTERADO. VERIFIQUE A SITUAÇÃO!!!',
+        if (
+          toDecimal(formCredito.credito_aplicar) <=
+          toDecimal(formCredito.credito_disponivel)
+        ) {
+          setLoading(true);
+
+          if (pesqCli_id.value) {
+            const response = await api.get(
+              `v1/fat/credito_cliente/${pesqCli_id.value}/${
+                formCapa.cp_id
+              }/${toDecimal(formCredito.credito_aplicar)}`
+            );
+
+            if (response.data.success) {
+              await listaPedido();
+              setDataGridPesqSelected([]);
+              setValueTab(0);
+              frmCapa.current.setFieldValue(
+                'cp_credito_cli',
+                toDecimal(formCredito.credito_aplicar)
+              );
+            }
+          } else {
+            frmCapa.current.setFieldValue('cp_credito_cli', 0);
+          }
+
+          setOpenDlgCredito(false);
+          setLoading(false);
+        } else {
+          toast.error(
+            'O VALOR INFORMADO É MAIOR QUE O SALDO DISPONÍVEL DO CLIENTE',
             toastOptions
           );
-          return;
-        }
-        if (toDecimal(formCapa.cp_credito_cli) === 0) {
-          if (
-            toDecimal(formCredito.credito_aplicar) <=
-            toDecimal(formCredito.credito_disponivel)
-          ) {
-            setLoading(true);
-            if (pesqCli_id.value) {
-              const response = await api.get(
-                `v1/fat/credito_cliente/${pesqCli_id.value}/${
-                  formCapa.cp_id
-                }/${toDecimal(formCredito.credito_aplicar)}`
-              );
-              const dados = response.data.retorno;
-              if (dados) {
-                frmCapa.current.setFieldValue(
-                  'cp_credito_cli',
-                  dados[0].credito
-                );
-              } else {
-                frmCapa.current.setFieldValue('cp_credito_cli', 0);
-              }
-            } else {
-              frmCapa.current.setFieldValue('cp_credito_cli', 0);
-            }
-            await handleSubmitCapa();
-            setOpenDlgCredito(false);
-            setLoading(false);
-          } else {
-            toast.error(
-              'O VALOR INFORMADO É MAIOR QUE O SALDO DISPONÍVEL DO CLIENTE',
-              toastOptions
-            );
-          }
-        } else {
-          toast.info('Crédito já aplicado!!!', toastOptions);
         }
       } else {
-        toast.info(
-          'Abra o pedido, para que seja aplicado o crédito do cliente...',
-          toastOptions
-        );
+        toast.info('Crédito já aplicado!!!', toastOptions);
       }
     } catch (error) {
       setLoading(false);
@@ -1673,6 +1673,7 @@ export default function FAT2() {
 
           const limiteDesc = (
             toDecimal(frmCapa.current.getData().cp_vlr_nf) -
+            toDecimal(frmCapa.current.getData().cp_credito_cli) -
             toDecimal(valorNaoDescontavel)
           ).toFixed(2);
 
@@ -1756,8 +1757,10 @@ export default function FAT2() {
       setLoading(true);
       let excluiu = false;
       if (prm.persistido === 'S') {
+        const formCapa = frmCapa.current.getData();
+
         const response = await api.delete(
-          `v1/fat/excluir_aba_financeiro?cp_id=${prm.fina_cp_id}&gera_fina=${emp_financeiro}`
+          `v1/fat/excluir_aba_financeiro?cp_id=${prm.fina_cp_id}&gera_fina=${emp_financeiro}&cli_id=${formCapa.cp_cli_id}&cp_perfil=${params.tipo}`
         );
         if (response.data.success) {
           setGridFinanceiro([]);
@@ -1785,11 +1788,19 @@ export default function FAT2() {
         });
         setInfoVlrPedidoNegociado('');
       }
-      toast.info(
-        'ATENÇÃO!! APÓS EXCLUIR UMA NEGOCIAÇÃO É NECESSÁRIO SALVAR TODO O PEDIDO, SEM SAIR DA ABA FINANCEIRO...',
-        toastOptions
+
+      setValueTab(async (prev) => {
+        prev = 0;
+        setValueTab(0);
+        setDataGridPesqSelected([]);
+        await listaPedido();
+        return prev;
+      });
+
+      setValorSaldoPedido(
+        toDecimal(frmCapa.current.getData().cp_vlr_nf) -
+          toDecimal(frmCapa.current.getData().cp_credito_cli)
       );
-      setValorSaldoPedido(toDecimal(frmCapa.current.getData().cp_vlr_nf));
       setInfoVlrPedidoNegociado('');
       setValorPedidoNegociado(0);
       setValorFinaDesc(0); // zerando valor de negociaçao lançado com desconto
@@ -1828,7 +1839,10 @@ export default function FAT2() {
         });
 
         if (
-          vlrAdicionado.toFixed(2) !== toDecimal(formCapa.cp_vlr_nf).toFixed(2)
+          vlrAdicionado.toFixed(2) !==
+          (
+            toDecimal(formCapa.cp_vlr_nf) - toDecimal(formCapa.cp_credito_cli)
+          ).toFixed(2)
         ) {
           setLoading(false);
           toast.error(
@@ -1844,7 +1858,7 @@ export default function FAT2() {
           cad
         );
         if (retorno.data.success) {
-          await handleSubmitCapa();
+          setGridPesquisa([]);
           await getGridFinanceiro();
           await listaPedido();
           setValueTab(0);
@@ -1883,23 +1897,29 @@ export default function FAT2() {
         `v1/fat/nao_descontavel?cp_id=${dataGridPesqSelected[0].cp_id} `
       );
       if (response.data.success) {
-        setValorNaoDescontavel(response.data.retorno);
+        setValorNaoDescontavel(toDecimal(response.data.retorno));
       }
 
       frmFinanceiro.current.setFieldValue('fina_valor', '');
       frmFinanceiro.current.setFieldValue(
         'fina_vpedido',
-        dataGridPesqSelected[0].cp_vlr_nf
+        ArredondaValorDecimal(
+          toDecimal(dataGridPesqSelected[0].cp_vlr_nf) -
+            toDecimal(dataGridPesqSelected[0].cp_credito_cli)
+        )
       );
       const formCapa = frmCapa.current.getData();
       if (dataGridPesqSelected[0].situacao === '10') {
         setInfoVlrPedido(
-          `VALOR ATUAL DO PEDIDO PEDIDO: ${FormataMoeda(
+          `VALOR ATUAL DO PEDIDO: ${FormataMoeda(
             dataGridPesqSelected[0].cp_vlr_nf
           )} `
         );
         if (!formCapa.cp_id) await handleEdit();
-        setValorSaldoPedido(toDecimal(dataGridPesqSelected[0].cp_vlr_nf));
+        setValorSaldoPedido(
+          toDecimal(dataGridPesqSelected[0].cp_vlr_nf) -
+            toDecimal(dataGridPesqSelected[0].cp_credito_cli)
+        );
         setInfoVlrPedidoNegociado('');
         setValorPedidoNegociado(0);
         // set cond vcto do pedido
@@ -1922,6 +1942,58 @@ export default function FAT2() {
     } else {
       toast.info('SELECIONE UM PEDIDO FINALIZADO', toastOptions);
       setLoading(false);
+    }
+  }
+
+  function handleValidaDespesa() {
+    const formCapa = frmCapa.current.getData();
+    if (valueTab == '1' && formCapa.cp_id) {
+      if (situacaoPedido !== '10') {
+        toast.warning(
+          'ATENÇÃO!! FINALIZE O PEDIDO PARA LANÇAR DESPESAS ADICIONAIS',
+          toastOptions
+        );
+        return;
+      }
+      frmDespesa.current.setFieldValue('vlrDespesa', '');
+      setDlgDespesa(true);
+    } else {
+      toast.info('ABRA O PEDIDO PARA LANÇAR DESPESAS ADICIONAIS', toastOptions);
+    }
+  }
+
+  // despesas adicionais
+  async function handleDespesa() {
+    try {
+      const formCapa = frmCapa.current.getData();
+      const formDesp = frmDespesa.current.getData();
+      setLoading(true);
+      const response = await api.put(
+        `v1/fat/lancar_despesas?cli_id=${pesqCli_id.value}&cp_id=${
+          formCapa.cp_id
+        }&valor=${toDecimal(formDesp.vlrDespesa)}&perfil=${params.tipo}`
+      );
+
+      if (response.data.success) {
+        const ret = response.data.retorno;
+        console.warn('asdaasfd ', ret);
+        frmCapa.current.setFieldValue(
+          'cp_vlr_outros',
+          toDecimal(ret.cp_vlr_outros)
+        );
+        frmCapa.current.setFieldValue('cp_vlr_nf', toDecimal(ret.cp_vlr_nf));
+      } else {
+        toast.error(
+          `Erro ao lançar despesas \n${response.data.errors}`,
+          toastOptions
+        );
+      }
+
+      setDlgDespesa(false);
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      toast.error(`Erro ao lançar despesas\n${error}`, toastOptions);
     }
   }
 
@@ -1968,7 +2040,8 @@ export default function FAT2() {
         toast.info('SELECIONE UM PEDIDO PARA CONSULTAR', toastOptions);
       }
     } else if (newValue === 3) {
-      handleAbaFina();
+      setValueTab(newValue);
+      await handleAbaFina();
     }
   };
 
@@ -2515,12 +2588,6 @@ export default function FAT2() {
   return (
     <>
       <ToolBar hg="100%" wd="40px">
-        <BootstrapTooltip title="Consultar Pedidos" placement="right">
-          <button type="button" onClick={listaPedido}>
-            <FaSearch size={28} color="#fff" />
-          </button>
-        </BootstrapTooltip>
-        <DivLimitador hg="10px" />
         <BootstrapTooltip title="Novo Cadastro" placement="left">
           <button type="button" onClick={handleNovoPedido}>
             <FaPlusCircle size={25} color="#fff" />
@@ -2549,6 +2616,14 @@ export default function FAT2() {
         <BootstrapTooltip title="Aplicar Crédito do Cliente" placement="left">
           <button type="button" onClick={getCredito}>
             <FaDollarSign size={25} color="#fff" />
+          </button>
+        </BootstrapTooltip>
+
+        <DivLimitador hg="10px" />
+
+        <BootstrapTooltip title="LANÇAR DESPESAS ADICIONAIS" placement="left">
+          <button type="button" onClick={handleValidaDespesa}>
+            <FaWeightHanging size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
 
@@ -2927,6 +3002,7 @@ export default function FAT2() {
                       type="text"
                       name="cp_vlr_outros"
                       className="input_cad"
+                      readOnly
                       onChange={maskDecimal}
                     />
                   </AreaComp>
@@ -3217,7 +3293,7 @@ export default function FAT2() {
                       onChange={() => {
                         frmFinanceiro.current.setFieldValue(
                           'fina_valor',
-                          valorSaldoPedido
+                          ArredondaValorDecimal(toDecimal(valorSaldoPedido))
                         );
                         frmFinanceiro.current.setFieldValue(
                           'fina_valor_final',
@@ -3259,7 +3335,7 @@ export default function FAT2() {
                 </BoxItemCad>
                 <BoxItemCad fr="1fr 1fr 1fr 1fr 1fr 1fr">
                   <AreaComp wd="100">
-                    <label>Vlr pedido</label>
+                    <label>VLR A RECEBER</label>
                     <Input
                       type="text"
                       name="fina_vpedido"
@@ -3665,6 +3741,47 @@ export default function FAT2() {
                   type="button"
                   className="btnGeral"
                   onClick={handleCreditoCli}
+                >
+                  {loading ? 'Aguarde Processando...' : 'Confirmar'}
+                </button>
+              </AreaComp>
+            </BoxItemCadNoQuery>
+          </Form>
+        </Panel>
+      </Popup>
+
+      {/* popup para despesas adicionais... */}
+      <Popup
+        isOpen={dlgDespesa}
+        closeDialogFn={() => setDlgDespesa(false)}
+        title="DESPESAS ADICIONAIS"
+        size="sm"
+      >
+        <Panel
+          lefth1="left"
+          bckgnd="#dae2e5"
+          mtop="1px"
+          pdding="5px 7px 7px 10px"
+        >
+          <Form id="frmDespesa" ref={frmDespesa}>
+            <BoxItemCadNoQuery fr="1fr">
+              <AreaComp wd="100">
+                <label>valor (outras despesas)</label>
+                <Input
+                  type="text"
+                  name="vlrDespesa"
+                  onChange={maskDecimal}
+                  className="input_cad"
+                />
+              </AreaComp>
+            </BoxItemCadNoQuery>
+
+            <BoxItemCadNoQuery fr="1fr" ptop="35px">
+              <AreaComp wd="100" ptop="10px">
+                <button
+                  type="button"
+                  className="btnGeral"
+                  onClick={handleDespesa}
                 >
                   {loading ? 'Aguarde Processando...' : 'Confirmar'}
                 </button>
