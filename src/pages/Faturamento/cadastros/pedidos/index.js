@@ -997,7 +997,7 @@ export default function FAT2() {
         if (confirmation) {
           setLoading(true);
 
-          const url = `v1/fat/finalizar_pedido?cp_id=${dataGridPesqSelected[0].cp_id}&situacao=10`;
+          const url = `v1/fat/finalizar_pedido?cp_id=${dataGridPesqSelected[0].cp_id}&situacao=10&justificativa=`;
           const response = await api.put(url);
           setLoading(false);
           if (response.data.success) {
@@ -1332,6 +1332,8 @@ export default function FAT2() {
                 'cp_credito_cli',
                 toDecimal(formCredito.credito_aplicar)
               );
+            } else {
+              toast.error(response.data.errors, toastOptions);
             }
           } else {
             frmCapa.current.setFieldValue('cp_credito_cli', 0);
