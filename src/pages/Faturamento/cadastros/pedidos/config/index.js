@@ -14,8 +14,10 @@ import {
 import Dialog from '@material-ui/core/Dialog';
 import { Slide } from '@material-ui/core';
 import DialogInfo from '~/componentes/DialogInfo';
+import Popup from '~/componentes/Popup';
 import { gridTraducoes } from '~/services/gridTraducoes';
 import DatePickerInput from '~/componentes/DatePickerInput';
+import TextArea from '~/componentes/TextArea';
 import FormSelect from '~/componentes/Select';
 import AsyncSelectForm from '~/componentes/Select/selectAsync';
 import { Container, Panel, ToolBar, GridContainerMain } from './styles';
@@ -40,6 +42,7 @@ export default function FAT4() {
   const api = ApiService.getInstance(ApiTypes.API1);
   const frmPesquisa = useRef(null);
   const frmUsuario = useRef(null);
+  const frmJustificativa = useRef(null);
   const [pesqDataIni, setPesqDataIni] = useState(moment());
   const [pesqDataFin, setPesqDataFin] = useState(moment());
   const [pesqSituacao, setPesqSituacao] = useState();
@@ -49,6 +52,7 @@ export default function FAT4() {
   const [pesqCli_id, setPesqCliId] = useState([]);
   const [optUsuario, setOptUsuario] = useState([]);
   const [dataGridPesqSelected, setDataGridPesqSelected] = useState([]);
+  const [dlgJustificariva, setDlgJustificativa] = useState(false);
 
   const toastOptions = {
     autoClose: 4000,
@@ -175,19 +179,32 @@ export default function FAT4() {
   async function handleSituacaoPedido() {
     try {
       if (dataGridPesqSelected.length > 0) {
+        if (frmJustificativa.current.getData().justificativa_fina.length < 20) {
+          toast.error(
+            'INFORME UMA JUSTIFICATIVA COM PELO MENOS 20 CARACTERES...',
+            toastOptions
+          );
+          return;
+        }
         const confirmation = await Confirmation.show(
           'Deseja realmente reverter a situação do pedido??'
         );
 
         if (confirmation) {
           setLoading(true);
-
-          const url = `v1/fat/finalizar_pedido?cp_id=${dataGridPesqSelected[0].cp_id}&situacao=1`;
+          const url = `v1/fat/finalizar_pedido?cp_id=${
+            dataGridPesqSelected[0].cp_id
+          }&situacao=1&justificativa=${
+            frmJustificativa.current.getData().justificativa_fina
+          }`;
           const response = await api.put(url);
           setLoading(false);
           if (response.data.success) {
             await listaPedido();
             toast.info('Pedido alterado com sucesso!!!', toastOptions);
+            setDlgJustificativa(false);
+          } else {
+            toast.error(response.data.errors, toastOptions);
           }
         }
       } else {
@@ -216,6 +233,8 @@ export default function FAT4() {
             if (response.data.success) {
               await listaPedido();
               toast.info('Pedido alterado com sucesso!!!', toastOptions);
+            } else {
+              toast.error(response.data.errors, toastOptions);
             }
           }
         } else {
@@ -334,7 +353,13 @@ export default function FAT4() {
         <DivLimitador hg="10px" />
 
         <BootstrapTooltip title="Reverter Pedido Finalizado" placement="left">
-          <button type="button" onClick={handleSituacaoPedido}>
+          <button
+            type="button"
+            onClick={() => {
+              frmJustificativa.current.setFieldValue('justificativa_fina', '');
+              setDlgJustificativa(true);
+            }}
+          >
             <FaRegCheckSquare size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
@@ -503,6 +528,42 @@ export default function FAT4() {
         title="GERENCIAR PEDIDOS"
         message="Aguarde Processamento..."
       />
+
+      {/* popup para despesas adicionais... */}
+      <Popup
+        isOpen={dlgJustificariva}
+        closeDialogFn={() => setDlgJustificativa(false)}
+        title="JUSTIFIQUE A AÇÃO"
+        size="sm"
+      >
+        <Panel
+          lefth1="left"
+          bckgnd="#dae2e5"
+          mtop="1px"
+          pdding="5px 7px 7px 10px"
+        >
+          <Form id="frmDespesa" ref={frmJustificativa}>
+            <BoxItemCadNoQuery>
+              <AreaComp wd="100">
+                <label>Justifique a necessidade de modificar o pedido</label>
+                <TextArea type="text" name="justificativa_fina" rows="4" />
+              </AreaComp>
+            </BoxItemCadNoQuery>
+
+            <BoxItemCadNoQuery fr="1fr" ptop="35px">
+              <AreaComp wd="100" ptop="10px">
+                <button
+                  type="button"
+                  className="btnGeral"
+                  onClick={handleSituacaoPedido}
+                >
+                  {loading ? 'Aguarde Processando...' : 'Confirmar'}
+                </button>
+              </AreaComp>
+            </BoxItemCadNoQuery>
+          </Form>
+        </Panel>
+      </Popup>
     </>
   );
 }
