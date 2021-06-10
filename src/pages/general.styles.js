@@ -314,9 +314,6 @@ export const BoxItemCadNoQuery = styled.div`
 
   padding-top: ${(props) => props.ptop || 0};
   padding-bottom: ${(props) => props.pbotton || 0};
-  @media (max-width: 600px) {
-    grid-template-columns: 1fr;
-  }
 `;
 
 export const CModal = styled.div`

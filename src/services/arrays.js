@@ -58,3 +58,34 @@ exports.getModeloDanfe = () => {
   ];
   return modelo;
 };
+
+exports.getColors = () => {
+  const colors = [
+    '#0088FE',
+    '#1A3234',
+    '#FFBB28',
+    '#FF8042',
+    '#1A3428',
+    '#858AA0',
+    '#9FB0F7',
+    '#F18503',
+    '#F6FB27',
+    '#696B06',
+    '#2D7252',
+    '#17DE82',
+    '#173BDE',
+    '#F79FBF',
+    '#DA3873',
+    '#FA045E',
+    '#D80E04',
+    '#ADB046',
+    '#80830F',
+    '#99BD9E',
+    '#55C1FF',
+    '#2A546D',
+    '#7C7F80',
+    '#E0A9E7',
+    '#E233F8',
+  ];
+  return colors;
+};

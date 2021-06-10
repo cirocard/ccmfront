@@ -233,6 +233,30 @@ export default createGlobalStyle`
   }
   }
 
+  .btn3 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0;
+  margin-top: 1px;
+  padding: 0 10px 0 10px;
+  height: 48px;
+  background: #1a3234;
+  font-weight: bold;
+  color: #C3D7D9;
+  border: 0;
+  width: 100%;
+  min-width: 70px;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: background 0.2s;
+
+  &:hover {
+    background: #295054;
+
+  }
+  }
+
   /*==== padrao para tab bar =========*/
   .MuiPaper-elevation4, .MuiTabs-root {
     box-shadow: none !important;
