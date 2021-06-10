@@ -39,6 +39,7 @@ export default function Crm1() {
       toast.error(`Erro ao carregar dados card1 \n${error}`, toastOptions);
     }
   }
+
   async function getDataCard2() {
     try {
       const response = await api.get(`v1/crm/consulta/grafico_total_clientes`);
@@ -331,6 +332,7 @@ export default function Crm1() {
                 rootProps={{ 'data-testid': '4' }}
               />
             </AreaComp>
+
             <AreaComp>
               <Chart
                 width="100%"
