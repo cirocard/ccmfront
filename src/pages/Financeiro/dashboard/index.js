@@ -110,7 +110,6 @@ export default function FINA1() {
           <BoxItemCad fr="1fr 1fr">
             <AreaComp lblColor="#fafafa" wd="100%" ptop="3px" pleft="0px">
               <label>SALDO DE CONTAS (CAIXA/BANCOS)</label>
-
               <BoxInfoNumber>
                 <Chart
                   width="100%"
@@ -282,7 +281,7 @@ export default function FINA1() {
                         color: '#fafafa',
                       },
                       title: ``,
-
+                      sliceVisibilityThreshold: 0,
                       chartArea: {
                         left: 0,
                         //    top: 30,
