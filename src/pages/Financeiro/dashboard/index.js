@@ -161,68 +161,71 @@ export default function FINA1() {
           </BoxItemCad>
 
           <BoxItemCad fr="1fr 1fr">
-            <AreaComp lblColor="#fafafa" ptop="30px" pleft="5px">
+            <AreaComp
+              lblColor="#fafafa"
+              ptop="10px"
+              pleft="1px"
+              wd="100%"
+              hg="340px"
+            >
               <label>CONTAS A PAGAR DO DIA</label>
-              <BoxItemCadNoQuery fr="1fr">
-                <BoxInfoNumber fontcor="#FC5902">
-                  <Chart
-                    width="100%"
-                    height="100%"
-                    chartType="BarChart"
-                    loader={<div>Gerando Gráfico</div>}
-                    data={dadosCard4}
-                    options={{
-                      chartArea: {
-                        left: 220,
-                        width: '95%',
-                        height: '70%',
+              <BoxInfoNumber fontcor="#FC5902">
+                <Chart
+                  width="100%"
+                  height="100%"
+                  chartType="BarChart"
+                  loader={<div>Gerando Gráfico</div>}
+                  data={dadosCard4}
+                  options={{
+                    chartArea: {
+                      left: 220,
+                      width: '95%',
+                      height: '70%',
+                    },
+                    titleTextStyle: {
+                      color: '#fafafa',
+                    },
+                    title: ``,
+                    backgroundColor: '#223536',
+                    color: '#e2431e',
+                    vAxis: {
+                      title: '',
+                      textStyle: {
+                        color: '#F8B054',
+                        fontSize: 12,
                       },
                       titleTextStyle: {
+                        // fontName: 'Oswald',
+                        fontSize: 14,
+                        italic: false,
                         color: '#fafafa',
                       },
-                      title: ``,
+                    },
 
-                      backgroundColor: '#223536',
-                      color: '#e2431e',
-                      vAxis: {
-                        title: '',
-                        textStyle: {
-                          color: '#F8B054',
-                          fontSize: 12,
-                        },
-                        titleTextStyle: {
-                          // fontName: 'Oswald',
-                          fontSize: 14,
-                          italic: false,
-                          color: '#fafafa',
-                        },
+                    hAxis: {
+                      title: 'VALOR A PAGAR (R$)',
+                      textStyle: {
+                        color: '#C80520',
                       },
+                      titleTextStyle: {
+                        fontSize: 14,
+                        italic: false,
+                        color: '#fafafa',
+                      },
+                    },
 
-                      hAxis: {
-                        title: 'VALOR A PAGAR (R$)',
-                        textStyle: {
-                          color: '#C80520',
-                        },
-                        titleTextStyle: {
-                          fontSize: 14,
-                          italic: false,
-                          color: '#fafafa',
-                        },
-                      },
-
-                      legend: {
-                        position: 'top',
-                        alignment: 'center',
-                        textStyle: { color: '#fafafa' },
-                      },
-                    }}
-                    rootProps={{ 'data-testid': '2' }}
-                  />
-                </BoxInfoNumber>
-              </BoxItemCadNoQuery>
+                    legend: {
+                      position: 'top',
+                      alignment: 'center',
+                      textStyle: { color: '#fafafa' },
+                    },
+                  }}
+                  rootProps={{ 'data-testid': '2' }}
+                />
+              </BoxInfoNumber>
             </AreaComp>
 
-            <AreaComp lblColor="#fafafa" ptop="30px" pleft="5px">
+            <AreaComp lblColor="#fafafa" ptop="10px" pleft="5px">
               <label>FATURAMENTO VS FORMA DE PAGAMENTO</label>
               <BoxItemCadNoQuery fr="1fr 6fr">
                 <BoxInfoNumber>

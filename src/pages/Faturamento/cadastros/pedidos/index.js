@@ -996,13 +996,14 @@ export default function FAT2() {
 
         if (confirmation) {
           setLoading(true);
-
           const url = `v1/fat/finalizar_pedido?cp_id=${dataGridPesqSelected[0].cp_id}&situacao=10&justificativa=`;
           const response = await api.put(url);
           setLoading(false);
           if (response.data.success) {
             await listaPedido();
             toast.info('Pedido finalizado com sucesso!!!', toastOptions);
+          } else {
+            toast.error(response.data.errors, toastOptions);
           }
         }
       } else {
@@ -1939,6 +1940,7 @@ export default function FAT2() {
         setValueTab(3);
       } else {
         toast.info('SELECIONE UM PEDIDO FINALIZADO', toastOptions);
+        setValueTab(0);
         setLoading(false);
       }
     } else {
