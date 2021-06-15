@@ -116,23 +116,24 @@ export default function FINA1() {
                   height="100%"
                   chartType="PieChart"
                   loader={<div>Gerando Gráfico</div>}
-                  data={dadosCard3}
+                  data={dadosCard3.grafico}
                   options={{
-                    is3D: true,
+                    is3D: false,
                     backgroundColor: '#1a3234',
                     titleTextStyle: {
-                      color: '#fafafa',
+                      color: '#BAFFBC',
+                      fontSize: 14,
                     },
-                    title: ``,
+                    title: `SALDO TOTAL CAIXA/BANCO:  ${dadosCard3.total}`,
                     sliceVisibilityThreshold: 0,
                     chartArea: {
                       left: 10,
                       width: '100%',
-                      height: '90%',
+                      height: '80%',
                     },
                     legend: {
                       textStyle: { color: '#fafafa' },
-                      position: 'left',
+                      position: 'right',
                     },
                   }}
                   rootProps={{ 'data-testid': '1' }}

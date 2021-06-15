@@ -400,7 +400,7 @@ export default function FINA11() {
       cellRendererFramework(prm) {
         return (
           <>
-            <BootstrapTooltip title="Excluir Item do pedido" placement="top">
+            <BootstrapTooltip title="Editar parâmetro" placement="top">
               <button type="button" onClick={() => handleSetParam(prm.data)}>
                 <FaEdit size={18} color="#253739" />
               </button>

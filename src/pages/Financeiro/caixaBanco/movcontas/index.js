@@ -366,14 +366,19 @@ export default function FINA13() {
   async function handleContabilizar() {
     try {
       if (dataGridPesqSelected.length > 0) {
-        if (dataGridPesqSelected[0].mov_contabilizado === 'S') {
-          toast.error(`ESTA MOVIMENTAÇÃO JÁ FOI CONTABILIZADA`, toastOptions);
-          return;
-        }
+        const prm = [];
+        dataGridPesqSelected.forEach((g) => {
+          if (g.mov_contabilizado === 'S') {
+            toast.error(`ESTA MOVIMENTAÇÃO JÁ FOI CONTABILIZADA`, toastOptions);
+          }
+
+          prm.push({
+            mov_id: g.mov_id,
+          });
+        });
+
         setLoading(true);
-        const response = await api.put(
-          `v1/fina/mov/contabilizar?mov_id=${dataGridPesqSelected[0].mov_id}`
-        );
+        const response = await api.put(`v1/fina/mov/contabilizar`, prm);
         if (response.data.success) {
           toast.success(response.data.retorno, toastOptions);
           await listarMovimentacoes();
@@ -630,7 +635,7 @@ export default function FINA13() {
                     <AgGridReact
                       columnDefs={gridColumnPesquisa}
                       rowData={gridPesquisa}
-                      rowSelection="single"
+                      rowSelection="multiple"
                       animateRows
                       gridOptions={{ localeText: gridTraducoes }}
                       onSelectionChanged={handleSelectGridPesquisa}
