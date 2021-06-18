@@ -67,6 +67,7 @@ export default function FINA13() {
   // #region COMBO ========================
 
   const optOperacao = [
+    { value: 'T', label: 'TODAS' },
     { value: 'E', label: 'ENTRADA' },
     { value: 'S', label: 'SAÍDA' },
   ];

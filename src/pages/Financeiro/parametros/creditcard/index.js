@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import React, { useEffect, useState, useRef } from 'react';
 import * as Yup from 'yup';
 import { Form } from '@unform/web';
@@ -12,7 +11,7 @@ import { gridTraducoes } from '~/services/gridTraducoes';
 import Input from '~/componentes/Input';
 import { BootstrapTooltip } from '~/componentes/ToolTip';
 import history from '~/services/history';
-import { maskDecimal, toDecimal, RetirarMascara } from '~/services/func.uteis';
+import { maskDecimal, toDecimal } from '~/services/func.uteis';
 import { ApiService, ApiTypes } from '~/services/api';
 import { Container, Panel, ToolBar, GridContainerMain } from './styles';
 import {
@@ -31,8 +30,8 @@ export default function FINA16() {
   const frmCadastro = useRef(null);
   const [loading, setLoading] = useState(false);
   const [gridPesquisa, setGridPesquisa] = useState([]);
-  const [dataGridPesqSelected, setDataGridPesqSelected] = useState([]);
   const [optCredenciadora, setOptCredenciadora] = useState([]);
+  const [grupoDesp, SetGrupoDesp] = useState([]);
 
   const toastOptions = {
     autoClose: 4000,
@@ -42,16 +41,34 @@ export default function FINA16() {
   // #region COMBO ========================
 
   const optTipoCard = [
-    { value: '1', label: 'DÉBTO' },
-    { value: '2', label: 'CRÉDITO A VISTA' },
-    { value: '3', label: 'CRÉDITO PARCELADO' },
-    { value: '4', label: 'VALE REFEIÇÃO' },
+    { value: '4', label: 'DÉBTO' },
+    { value: '3', label: 'CRÉDITO A VISTA' },
+    { value: '13', label: 'CRÉDITO PARCELADO' },
+    { value: '14', label: 'VALE REFEIÇÃO' },
   ];
 
   const optPlanoRecebimento = [
     { value: '1', label: 'NORMAL/ECONOMICO' },
     { value: '2', label: 'RECEBIMENTO ANTECIPADO' },
   ];
+
+  async function handleGrupoRecDesp() {
+    try {
+      const response = await api.get(
+        `v1/combos/agrupador_recdesp/2/2` // tipo 1 receita; 2 despesa
+      );
+      const dados = response.data.retorno;
+      if (dados) {
+        SetGrupoDesp(dados);
+      }
+    } catch (error) {
+      setLoading(false);
+      toast.error(
+        `Erro ao gerar referencia agrupadora \n${error}`,
+        toastOptions
+      );
+    }
+  }
 
   // combo geral
   async function comboGeral(tab_id) {
@@ -74,9 +91,10 @@ export default function FINA16() {
   const schemaCad = Yup.object().shape({
     par_credenciadora_id: Yup.string().required('(??)'),
     par_plano: Yup.string().required('(??)'),
-    par_tipo_cartao: Yup.string().required('(??)'),
+    par_fpgto_id: Yup.string().required('(??)'),
     par_prazo: Yup.string().required('(??)'),
     par_taxa: Yup.string().required('(??)'),
+    par_grupo_despesa: Yup.string().required('(??)'),
   });
 
   // #endregion
@@ -90,7 +108,6 @@ export default function FINA16() {
   const handleSelectGridPesquisa = (prmGridPesq) => {
     const gridApi = prmGridPesq.api;
     const selectedRows = gridApi.getSelectedRows();
-    setDataGridPesqSelected(selectedRows);
 
     frmCadastro.current.setFieldValue('par_id', selectedRows[0].par_id);
     frmCadastro.current.setFieldValue(
@@ -101,11 +118,24 @@ export default function FINA16() {
           selectedRows[0].par_credenciadora_id.toString()
       )
     );
+    if (selectedRows[0].par_grupo_despesa) {
+      frmCadastro.current.setFieldValue(
+        'par_grupo_despesa',
+        grupoDesp.find(
+          (op) =>
+            op.value.toString() === selectedRows[0].par_grupo_despesa.toString()
+        )
+      );
+    } else frmCadastro.current.setFieldValue('par_grupo_despesa', '');
     frmCadastro.current.setFieldValue('par_plano', selectedRows[0].par_plano);
+
     frmCadastro.current.setFieldValue(
-      'par_tipo_cartao',
-      selectedRows[0].par_tipo_cartao
+      'par_fpgto_id',
+      optTipoCard.find(
+        (op) => op.value.toString() === selectedRows[0].par_fpgto_id.toString()
+      )
     );
+
     frmCadastro.current.setFieldValue('par_prazo', selectedRows[0].par_prazo);
     frmCadastro.current.setFieldValue('par_taxa', selectedRows[0].par_taxa);
     frmCadastro.current.setFieldValue(
@@ -124,6 +154,7 @@ export default function FINA16() {
     frmCadastro.current.setFieldValue('par_prazo', '');
     frmCadastro.current.setFieldValue('par_taxa', '');
     frmCadastro.current.setFieldValue('par_taxa_adicional', '');
+
     document.getElementById('par_recebe_parcelado').checked = false;
     const ref = frmCadastro.current.getFieldRef('par_credenciadora_id');
     ref.focus();
@@ -158,7 +189,7 @@ export default function FINA16() {
         par_id: frm.par_id ? parseInt(frm.par_id, 10) : null,
         par_credenciadora_id: frm.par_credenciadora_id,
         par_plano: frm.par_plano,
-        par_tipo_cartao: frm.par_tipo_cartao,
+        par_fpgto_id: frm.par_fpgto_id,
         par_prazo: toDecimal(frm.par_prazo),
         par_recebe_parcelado: document.getElementById('par_recebe_parcelado')
           .checked
@@ -168,6 +199,7 @@ export default function FINA16() {
         par_taxa_adicional: toDecimal(frm.par_taxa_adicional),
         par_datacad: null,
         par_usr_id: null,
+        par_grupo_despesa: frm.par_grupo_despesa,
       };
       const retorno = await api.post(
         'v1/fina/parametros/param_creditcard',
@@ -204,12 +236,16 @@ export default function FINA16() {
         validationErrors.par_plano
       );
       frmCadastro.current.setFieldError(
-        'par_tipo_cartao',
-        validationErrors.par_tipo_cartao
+        'par_fpgto_id',
+        validationErrors.par_fpgto_id
       );
       frmCadastro.current.setFieldError(
         'par_prazo',
         validationErrors.par_prazo
+      );
+      frmCadastro.current.setFieldError(
+        'par_grupo_despesa',
+        validationErrors.par_grupo_despesa
       );
       frmCadastro.current.setFieldError('par_taxa', validationErrors.par_taxa);
     }
@@ -218,6 +254,7 @@ export default function FINA16() {
   useEffect(() => {
     listarConfig();
     comboGeral(23);
+    handleGrupoRecDesp();
   }, []);
 
   // #region GRID CONSULTA  =========================
@@ -334,7 +371,7 @@ export default function FINA16() {
                     <AreaComp wd="100">
                       <FormSelect
                         label="cartão/pagamento"
-                        name="par_tipo_cartao"
+                        name="par_fpgto_id"
                         optionsList={optTipoCard}
                         placeholder="NÃO INFORMADO"
                         zindex="151"
@@ -369,7 +406,18 @@ export default function FINA16() {
                       />
                     </AreaComp>
                   </BoxItemCadNoQuery>
-                  <BoxItemCadNoQuery>
+                  <BoxItemCadNoQuery fr="1fr">
+                    <AreaComp wd="100">
+                      <FormSelect
+                        label="grupo de despesa"
+                        name="par_grupo_despesa"
+                        optionsList={grupoDesp}
+                        placeholder="NÃO INFORMADO"
+                        zindex="150"
+                      />
+                    </AreaComp>
+                  </BoxItemCadNoQuery>
+                  <BoxItemCadNoQuery fr="1fr">
                     <AreaComp wd="100">
                       <CCheck>
                         <input

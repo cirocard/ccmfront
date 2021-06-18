@@ -70,6 +70,7 @@ export default function FINA9() {
   const [cli_id, setCli_id] = useState([]);
   const [optCvto, setOptCvto] = useState([]);
   const [optFpgto, setOptFpgto] = useState([]);
+  const [nParcela, setNParcela] = useState(1);
 
   const toastOptions = {
     autoClose: 4000,
@@ -225,8 +226,7 @@ export default function FINA9() {
     frmCadastro.current.setFieldValue('rec_forma_pgto_id', '');
     frmCadastro.current.setFieldValue('rec_vlr_liquido', '');
     frmCadastro.current.setFieldValue('rec_vlr_bruto', '');
-    frmCadastro.current.setFieldValue('rec_vlr_desconto', '');
-    frmCadastro.current.setFieldValue('rec_vlr_acrescimo', '');
+    frmCadastro.current.setFieldValue('rec_taxas', '');
     frmCadastro.current.setFieldValue('rec_saldo', '');
     setCli_id([]);
     frmCadastro.current.setFieldValue('rec_data_baixa', '');
@@ -309,12 +309,8 @@ export default function FINA9() {
             dados[0].capa.rec_vlr_bruto
           );
           frmCadastro.current.setFieldValue(
-            'rec_vlr_desconto',
-            dados[0].capa.rec_vlr_desconto
-          );
-          frmCadastro.current.setFieldValue(
-            'rec_vlr_acrescimo',
-            dados[0].capa.rec_vlr_acrescimo
+            'rec_taxas',
+            dados[0].capa.rec_taxas
           );
           frmCadastro.current.setFieldValue(
             'rec_saldo',
@@ -358,12 +354,24 @@ export default function FINA9() {
           abortEarly: false,
         });
 
+        if (
+          (formData.rec_forma_pgto_id.toString() === '3' ||
+            formData.rec_forma_pgto_id.toString() === '4') &&
+          nParcela > 1
+        ) {
+          toast.error(
+            `A CONDIÇÃO DE VENCIMENTO INFORMADA É INCOMPATÍVEL COM A FORMA DE PAGAMENTO ESCOLHIDA...`,
+            toastOptions
+          );
+          return;
+        }
+
         setLoading(true);
 
         const objCad = {
           rec_emp_id: null,
           rec_id: formData.rec_id ? parseInt(formData.rec_id, 10) : null,
-          rec_documento: formData.rec_documento,
+          rec_documento: formData.rec_documento.toUpperCase(),
           rec_cli_id: parseInt(formData.rec_cli_id, 10) || null,
           rec_vlr_bruto: toDecimal(formData.rec_vlr_bruto),
           rec_vlr_liquido: toDecimal(formData.rec_vlr_liquido),
@@ -384,9 +392,23 @@ export default function FINA9() {
 
         if (retorno.data.success) {
           const dados = retorno.data.retorno;
-
           frmCadastro.current.setFieldValue('rec_id', dados[0].capa.rec_id);
-
+          frmCadastro.current.setFieldValue(
+            'rec_vlr_liquido',
+            dados[0].capa.rec_vlr_liquido
+          );
+          frmCadastro.current.setFieldValue(
+            'rec_vlr_bruto',
+            dados[0].capa.rec_vlr_bruto
+          );
+          frmCadastro.current.setFieldValue(
+            'rec_taxas',
+            dados[0].capa.rec_taxas
+          );
+          frmCadastro.current.setFieldValue(
+            'rec_saldo',
+            dados[0].capa.rec_saldo
+          );
           setGridItens(dados[0].itens);
           toast.info('Cadastro atualizado com sucesso!!!', toastOptions);
         } else {
@@ -598,18 +620,7 @@ export default function FINA9() {
       filter: false,
       lockVisible: true,
     },
-    {
-      field: 'reci_valor',
-      headerName: 'VALOR',
-      width: 130,
-      sortable: true,
-      resizable: true,
-      filter: false,
-      lockVisible: true,
-      type: 'rightAligned',
-      valueFormatter: GridCurrencyFormatter,
-      cellStyle: { color: '#000', fontWeight: 'bold' },
-    },
+
     {
       field: 'reci_data_vencimento',
       headerName: 'VENCIMENTO',
@@ -622,7 +633,7 @@ export default function FINA9() {
     {
       field: 'forma_pgto',
       headerName: 'FORMA PAGAMENTO',
-      width: 170,
+      width: 200,
       sortable: true,
       resizable: true,
       filter: false,
@@ -647,22 +658,34 @@ export default function FINA9() {
       lockVisible: true,
     },
     {
-      field: 'reci_juros',
-      headerName: 'JUROS',
+      field: 'reci_valor',
+      headerName: 'VALOR',
       width: 130,
+      sortable: true,
+      resizable: true,
+      filter: false,
+      lockVisible: true,
+      type: 'rightAligned',
+      valueFormatter: GridCurrencyFormatter,
+      cellStyle: { color: '#000', fontWeight: 'bold' },
+    },
+    {
+      field: 'reci_taxa',
+      headerName: 'ABATIMENTO',
+      width: 140,
       sortable: true,
       resizable: true,
       filter: true,
       lockVisible: true,
       type: 'rightAligned',
       valueFormatter: GridCurrencyFormatter,
-      cellStyle: { color: '#000', fontWeight: 'bold' },
+      cellStyle: { color: '#d81e00', fontWeight: 'bold' },
     },
 
     {
-      field: 'reci_desconto',
-      headerName: 'DESCONTO',
-      width: 130,
+      field: 'reci_valor_pago',
+      headerName: 'VLR A RECEBER',
+      width: 140,
       sortable: true,
       resizable: true,
       filter: false,
@@ -671,18 +694,7 @@ export default function FINA9() {
       valueFormatter: GridCurrencyFormatter,
       cellStyle: { color: '#000', fontWeight: 'bold' },
     },
-    {
-      field: 'reci_saldo',
-      headerName: 'SALDO',
-      width: 130,
-      sortable: true,
-      resizable: true,
-      filter: false,
-      lockVisible: true,
-      type: 'rightAligned',
-      valueFormatter: GridCurrencyFormatter,
-      cellStyle: { color: '#d81e00', fontWeight: 'bold' },
-    },
+
     {
       flex: 1,
     },
@@ -934,6 +946,11 @@ export default function FINA9() {
                       optionsList={optCvto}
                       isClearable
                       placeholder="INFORME"
+                      onChange={(cvto) => {
+                        if (cvto) {
+                          setNParcela(cvto.parcelas);
+                        }
+                      }}
                       zindex="152"
                     />
                   </AreaComp>
@@ -947,7 +964,7 @@ export default function FINA9() {
                     />
                   </AreaComp>
                 </BoxItemCad>
-                <BoxItemCad fr="1fr 1fr 1fr 1fr 1fr 1fr">
+                <BoxItemCad fr="1fr 1fr 1fr 1fr 1fr">
                   <AreaComp wd="100">
                     <label>Valor Bruto</label>
                     <Input
@@ -968,20 +985,10 @@ export default function FINA9() {
                     />
                   </AreaComp>
                   <AreaComp wd="100">
-                    <label>Valor Desconto</label>
+                    <label>Juros (Cartão)</label>
                     <Input
                       type="text"
-                      name="rec_vlr_desconto"
-                      className="input_cad"
-                      readOnly
-                      onChange={maskDecimal}
-                    />
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <label>Valor Acrescimo</label>
-                    <Input
-                      type="text"
-                      name="rec_vlr_acrescimo"
+                      name="rec_taxas"
                       className="input_cad"
                       readOnly
                       onChange={maskDecimal}

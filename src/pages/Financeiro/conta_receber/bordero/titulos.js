@@ -157,7 +157,7 @@ export default function CONULTA_TITULOS({ getTitulos }) {
       lockVisible: true,
     },
     {
-      field: 'reci_valor',
+      field: 'reci_valor_pago',
       headerName: 'VALOR',
       width: 125,
       sortable: true,
