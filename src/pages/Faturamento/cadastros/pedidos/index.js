@@ -1611,6 +1611,19 @@ export default function FAT2() {
       }
 
       if (formFina.fina_fpgto_id) {
+        if (
+          // credito vista ou debto
+          (formFina.fina_fpgto_id.toString() === '3' ||
+            formFina.fina_fpgto_id.toString() === '4') &&
+          nParcela > 1
+        ) {
+          toast.error(
+            `A CONDIÇÃO DE VENCIMENTO INFORMADA É INCOMPATÍVEL COM A FORMA DE PAGAMENTO ESCOLHIDA...`,
+            toastOptions
+          );
+          return;
+        }
+
         if (!formFina.fina_perc_desc) {
           // se nao informou percent desconto
           frmFinanceiro.current.setFieldValue('fina_perc_desc', '');

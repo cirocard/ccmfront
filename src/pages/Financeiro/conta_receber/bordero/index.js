@@ -392,10 +392,10 @@ export default function FINA12() {
         bri_ctarec_parc_id: t.reci_id,
         parcela: t.reci_parcela,
         vencimento: t.vencimento,
-        bri_valor_titulo: t.reci_valor,
+        bri_valor_titulo: t.reci_valor_pago,
         bri_vlr_juro: 0,
         bri_vlr_desconto: 0,
-        bri_valor_pago: t.reci_valor,
+        bri_valor_pago: t.reci_valor_pago,
         forma_pgto: t.forma_pgto,
       };
       aux.push(item);
