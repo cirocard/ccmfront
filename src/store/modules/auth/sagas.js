@@ -69,6 +69,8 @@ export function* signIn({ payload }) {
         )
       );
 
+      yield call(api.post, 'v1/fina/ctarec/baixa_cartao');
+
       history.push('/');
       history.go(0);
     }
@@ -139,6 +141,9 @@ export function* setNewEmp({ payload }) {
           optionsEmp
         )
       );
+
+      // baixa automatica de titulos em cartao
+      yield call(api.post, 'v1/fina/ctarec/baixa_cartao');
 
       history.push('/');
       history.go('/');
