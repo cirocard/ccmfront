@@ -32,6 +32,7 @@ export default function FINA16() {
   const [gridPesquisa, setGridPesquisa] = useState([]);
   const [optCredenciadora, setOptCredenciadora] = useState([]);
   const [grupoDesp, SetGrupoDesp] = useState([]);
+  const [optConta, setOptConta] = useState([]);
 
   const toastOptions = {
     autoClose: 4000,
@@ -70,6 +71,19 @@ export default function FINA16() {
     }
   }
 
+  async function handleComboContas() {
+    try {
+      const response = await api.get(`v1/combos/contas`);
+      const dados = response.data.retorno;
+      if (dados) {
+        setOptConta(dados);
+      }
+    } catch (error) {
+      setLoading(false);
+      toast.error(`Erro ao carregar contas \n${error}`, toastOptions);
+    }
+  }
+
   // combo geral
   async function comboGeral(tab_id) {
     try {
@@ -95,6 +109,7 @@ export default function FINA16() {
     par_prazo: Yup.string().required('(??)'),
     par_taxa: Yup.string().required('(??)'),
     par_grupo_despesa: Yup.string().required('(??)'),
+    par_conta_id: Yup.string().required('(??)'),
   });
 
   // #endregion
@@ -135,7 +150,12 @@ export default function FINA16() {
         (op) => op.value.toString() === selectedRows[0].par_fpgto_id.toString()
       )
     );
-
+    frmCadastro.current.setFieldValue(
+      'par_conta_id',
+      optConta.find(
+        (op) => op.value.toString() === selectedRows[0].par_conta_id.toString()
+      )
+    );
     frmCadastro.current.setFieldValue('par_prazo', selectedRows[0].par_prazo);
     frmCadastro.current.setFieldValue('par_taxa', selectedRows[0].par_taxa);
     frmCadastro.current.setFieldValue(
@@ -200,6 +220,7 @@ export default function FINA16() {
         par_datacad: null,
         par_usr_id: null,
         par_grupo_despesa: frm.par_grupo_despesa,
+        par_conta_id: frm.par_conta_id,
       };
       const retorno = await api.post(
         'v1/fina/parametros/param_creditcard',
@@ -247,6 +268,10 @@ export default function FINA16() {
         'par_grupo_despesa',
         validationErrors.par_grupo_despesa
       );
+      frmCadastro.current.setFieldError(
+        'par_conta_id',
+        validationErrors.par_conta_id
+      );
       frmCadastro.current.setFieldError('par_taxa', validationErrors.par_taxa);
     }
   }
@@ -255,6 +280,7 @@ export default function FINA16() {
     listarConfig();
     comboGeral(23);
     handleGrupoRecDesp();
+    handleComboContas();
   }, []);
 
   // #region GRID CONSULTA  =========================
@@ -414,6 +440,17 @@ export default function FINA16() {
                         optionsList={grupoDesp}
                         placeholder="NÃO INFORMADO"
                         zindex="150"
+                      />
+                    </AreaComp>
+                  </BoxItemCadNoQuery>
+                  <BoxItemCadNoQuery fr="1fr">
+                    <AreaComp wd="100">
+                      <FormSelect
+                        label="Conta para débto de taxas"
+                        name="par_conta_id"
+                        optionsList={optConta}
+                        placeholder="NÃO INFORMADO"
+                        zindex="149"
                       />
                     </AreaComp>
                   </BoxItemCadNoQuery>

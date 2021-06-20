@@ -56,7 +56,8 @@ export default function FINA13() {
   const [dataIni, setDataIni] = useState(moment());
   const [dataFin, setDataFin] = useState(moment());
   const [optFpgto, setOptFpgto] = useState([]);
-  const [optGrupoRec, setOptGrupoRec] = useState([]);
+  const [optGrprecDesp, setOptGrprecDesp] = useState([]);
+  const [tipoMov, setTipoMov] = useState('');
   const [optConta, setOptConta] = useState([]);
 
   const toastOptions = {
@@ -79,6 +80,7 @@ export default function FINA13() {
     { value: '4', label: 'CAD. DESPESAS' },
     { value: '5', label: 'MOVIMENTAÇÃO MANUAL' },
     { value: '6', label: 'TRANSFERÊNCIA ENTRE CONTAS' },
+    { value: '7', label: 'TAXAS BANCÁRIAS' },
     { value: '0', label: 'TODAS AS MOVIMENTAÇÕES' },
   ];
 
@@ -97,14 +99,26 @@ export default function FINA13() {
     }
   }
 
-  async function comboGrupoReceita() {
+  async function handleGrupoRecDesp(tipoGrupo) {
     try {
       const response = await api.get(
-        `v1/combos/agrupador_recdesp/1/2` // tipo 1 receita; 2 despesa || agrupador: 1 agrupador; 2 cadastro
+        `v1/combos/agrupador_recdesp/${tipoGrupo}/2` // tipo 1 receita; 2 despesa
       );
       const dados = response.data.retorno;
       if (dados) {
-        setOptGrupoRec(dados);
+        setOptGrprecDesp(dados);
+        if (dataGridPesqSelected.length > 0) {
+          if (dataGridPesqSelected[0].mov_grupo_id) {
+            frmCadastro.current.setFieldValue(
+              'mov_grupo_id',
+              dados.find(
+                (op) =>
+                  op.value.toString() ===
+                  dataGridPesqSelected[0].mov_grupo_id.toString()
+              )
+            );
+          } else frmCadastro.current.setFieldValue('mov_grupo_id', '');
+        }
       }
     } catch (error) {
       setLoading(false);
@@ -165,6 +179,7 @@ export default function FINA13() {
     frmCadastro.current.setFieldValue('mov_usr_id', '');
     frmCadastro.current.setFieldValue('mov_fpgto_id', '');
     frmCadastro.current.setFieldValue('mov_grupo_id', '');
+    setOptGrprecDesp([]);
   };
 
   async function handleNovoCadastro() {
@@ -291,15 +306,17 @@ export default function FINA13() {
         setLoading(true);
 
         frmCadastro.current.setFieldValue(
-          'mov_id',
-          dataGridPesqSelected[0].mov_id
-        );
-        frmCadastro.current.setFieldValue(
           'mov_operacao',
           optOperacao.find(
             (op) => op.value.toString() === dataGridPesqSelected[0].mov_operacao
           )
         );
+
+        frmCadastro.current.setFieldValue(
+          'mov_id',
+          dataGridPesqSelected[0].mov_id
+        );
+
         frmCadastro.current.setFieldValue(
           'mov_origem',
           optOrigem.find(
@@ -332,17 +349,6 @@ export default function FINA13() {
               dataGridPesqSelected[0].mov_fpgto_id.toString()
           )
         );
-
-        if (dataGridPesqSelected[0].mov_grupo_id) {
-          frmCadastro.current.setFieldValue(
-            'mov_grupo_id',
-            optGrupoRec.find(
-              (op) =>
-                op.value.toString() ===
-                dataGridPesqSelected[0].mov_grupo_id.toString()
-            )
-          );
-        } else frmCadastro.current.setFieldValue('mov_grupo_id', '');
 
         frmCadastro.current.setFieldValue(
           'mov_ct_id',
@@ -422,7 +428,6 @@ export default function FINA13() {
       optOperacao.find((op) => op.value.toString() === 'E')
     );
     comboGeral(6);
-    comboGrupoReceita();
     comboContas();
     setValueTab(0);
   }, []);
@@ -668,6 +673,19 @@ export default function FINA13() {
                       name="mov_operacao"
                       optionsList={optOperacao}
                       isClearable
+                      onChange={async (p) => {
+                        if (p) {
+                          setTipoMov(p.value);
+                          if (p.value.toString() === 'E')
+                            await handleGrupoRecDesp('1');
+                          else if (p.value.toString() === 'S')
+                            await handleGrupoRecDesp('2');
+                          else {
+                            handleNovoCadastro();
+                            toast.error('TIPO INVÁLIDO', toastOptions);
+                          }
+                        }
+                      }}
                       placeholder="TIPO MOVIMENTAÇÃO"
                       zindex="153"
                     />
@@ -714,11 +732,15 @@ export default function FINA13() {
                   </AreaComp>
                   <AreaComp wd="100">
                     <FormSelect
-                      label="grupo de receita"
+                      label={
+                        tipoMov === 'E'
+                          ? 'grupo de receita'
+                          : 'grupo de despesa'
+                      }
                       name="mov_grupo_id"
-                      optionsList={optGrupoRec}
+                      optionsList={optGrprecDesp}
                       isClearable
-                      placeholder="GRUPO RECEITA"
+                      placeholder="INFORME O GRUPO"
                       zindex="152"
                     />
                   </AreaComp>
