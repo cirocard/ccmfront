@@ -5,6 +5,7 @@ import moment from 'moment';
 import { FaPrint } from 'react-icons/fa';
 import DatePickerInput from '~/componentes/DatePickerInput';
 import FormSelect from '~/componentes/Select';
+import AsyncSelectForm from '~/componentes/Select/selectAsync';
 import DialogInfo from '~/componentes/DialogInfo';
 import { ApiService, ApiTypes } from '~/services/api';
 import { ContentConsulta, Panel, ContainerConsulta } from './styles';
@@ -21,9 +22,10 @@ export default function REL_ENTRADA_PRODUTO() {
   const frmRel = useRef(null);
   const [loading, setLoading] = useState(false);
   const [optTabPreco, setOptTabPreco] = useState([]);
-  const [dataIni, setDataIni] = useState(moment());
-  const [dataFin, setDataFin] = useState(moment().add(7, 'day'));
+  const [dataIni, setDataIni] = useState(moment().add(-2, 'day'));
+  const [dataFin, setDataFin] = useState(moment());
   const [optOperEst, setOptOperEst] = useState([]);
+  const [fornecedor, setFornecedor] = useState([]);
 
   const toastOptions = {
     autoClose: 4000,
@@ -37,6 +39,20 @@ export default function REL_ENTRADA_PRODUTO() {
     { value: 'prod_descricao', label: 'DESCRIÇÃO DO PRODUTO' },
     { value: 'quantidade desc', label: 'QUANTIDADE' },
   ];
+
+  const loadOptionsFornec = async (inputText, callback) => {
+    if (inputText) {
+      const valor = inputText.toUpperCase();
+      if (valor.length > 2) {
+        const response = await api.get(
+          `v1/combos/combo_fornecedor?valor=${valor}`
+        );
+        callback(
+          response.data.retorno.map((i) => ({ value: i.value, label: i.label }))
+        );
+      }
+    }
+  };
 
   async function getComboTabPreco() {
     try {
@@ -69,14 +85,13 @@ export default function REL_ENTRADA_PRODUTO() {
     try {
       setLoading(true);
       const param = frmRel.current.getData();
-
       const url = `v1/supr/report/entrada_produto?data_ini=${moment(
         dataIni
       ).format('YYYY-MM-DD')}&data_fin=${moment(dataFin).format(
         'YYYY-MM-DD'
       )}&tab_id=${param.tabPreco}&order=${param.ordenar}&oper_id=${
         param.operest_id
-      }`;
+      }&forn_id=${param.forn_id || ''}`;
 
       const response = await api.get(url);
       const link = response.data;
@@ -157,7 +172,19 @@ export default function REL_ENTRADA_PRODUTO() {
                     optionsList={optOperEst}
                     isClearable
                     placeholder="INFORME"
-                    zindex="153"
+                    zindex="151"
+                  />
+                </AreaComp>
+                <AreaComp wd="100">
+                  <AsyncSelectForm
+                    name="forn_id"
+                    label="Informe CNPJ ou Razão Social do fornecedor para pesquisar"
+                    value={fornecedor}
+                    placeholder="PESQUISAR FORNECEDOR"
+                    onChange={(f) => setFornecedor(f || [])}
+                    loadOptions={loadOptionsFornec}
+                    isClearable
+                    zindex="151"
                   />
                 </AreaComp>
               </BoxItemCad>

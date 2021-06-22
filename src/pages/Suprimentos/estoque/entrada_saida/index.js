@@ -967,20 +967,15 @@ export default function SUPR8() {
                 <h1>PARÂMETROS DE PESQUISA</h1>
                 <BoxItemCad fr="3fr 1fr 1fr 1fr 1fr 1fr">
                   <AreaComp wd="100">
-                    <KeyboardEventHandler
-                      handleKeys={['enter', 'tab']}
-                      onKeyEvent={() => null}
-                    >
-                      <AsyncSelectForm
-                        name="pesq_ent_forn_id"
-                        label="Informe CNPJ ou Razão Social do fornecedor para pesquisar"
-                        value={fornecedor}
-                        placeholder="PESQUISAR FORNECEDOR"
-                        onChange={(f) => setFornecedor(f || [])}
-                        loadOptions={loadOptionsFornec}
-                        isClearable
-                      />
-                    </KeyboardEventHandler>
+                    <AsyncSelectForm
+                      name="pesq_ent_forn_id"
+                      label="Informe CNPJ ou Razão Social do fornecedor para pesquisar"
+                      value={fornecedor}
+                      placeholder="PESQUISAR FORNECEDOR"
+                      onChange={(f) => setFornecedor(f || [])}
+                      loadOptions={loadOptionsFornec}
+                      isClearable
+                    />
                   </AreaComp>
                   <AreaComp wd="100">
                     <FormSelect
