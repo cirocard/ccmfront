@@ -209,7 +209,8 @@ export default function Adm6() {
 
   const onCheck = (itens, nodeClicked) => {
     const todos = [];
-
+    console.warn('itens ', itens);
+    console.warn('nodeclicked ', nodeClicked);
     if (nodeClicked.children) {
       nodeClicked.children.forEach((e) => {
         todos.push(e.value);
@@ -226,7 +227,7 @@ export default function Adm6() {
         todos.push(i);
       });
     }
-
+    console.warn('todos ', todos);
     setChecked(todos);
   };
 
