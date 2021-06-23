@@ -1461,7 +1461,7 @@ export default function SUPR4() {
     {
       field: 'marca',
       headerName: 'MARCA',
-      width: 220,
+      width: 200,
       sortable: true,
       resizable: true,
       filter: true,
@@ -1496,13 +1496,25 @@ export default function SUPR4() {
     },
     {
       field: 'prode_saldo',
-      headerName: 'SALDO EM ESTOQUE',
-      width: 170,
+      headerName: 'SALDO ESTOQUE',
+      width: 140,
       sortable: true,
       resizable: true,
       filter: true,
       lockVisible: true,
       cellClass: 'cell_total',
+    },
+    {
+      field: 'barcode',
+      headerName: 'COD. BARRAS',
+      width: 180,
+      sortable: true,
+      resizable: true,
+      filter: true,
+      lockVisible: true,
+      cellStyle: { color: '#0E9A05', fontWeight: 'bold' },
+    },
+    {
       flex: 1,
     },
   ];

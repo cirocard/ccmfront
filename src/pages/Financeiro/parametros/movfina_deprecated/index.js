@@ -35,7 +35,7 @@ import {
   Linha,
 } from '~/pages/general.styles';
 
-export default function FINA11() {
+export default function DEPRECATED11() {
   const api = ApiService.getInstance(ApiTypes.API1);
   const [valueTab, setValueTab] = useState(0);
   const frmPesquisa = useRef(null);
