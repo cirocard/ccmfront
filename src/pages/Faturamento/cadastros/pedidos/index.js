@@ -644,6 +644,7 @@ export default function FAT2() {
           'vlr_bonificacao',
           dataGridPesqSelected[0].vlr_bonificacao
         );
+
         frmCapa.current.setFieldValue(
           'cp_vlr_desc',
           dataGridPesqSelected[0].cp_vlr_desc

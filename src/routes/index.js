@@ -41,7 +41,7 @@ import FINA7 from '~/pages/Financeiro/relatorios';
 import FINA9 from '~/pages/Financeiro/conta_receber/ctarec';
 import FINA8 from '~/pages/Financeiro/cadastros/bloco';
 import FINA10 from '~/pages/Financeiro/conta_receber/promissoria';
-import FINA11 from '~/pages/Financeiro/parametros/movfina';
+import FINA11 from '~/pages/Financeiro/parametros/fpgto';
 import FINA12 from '~/pages/Financeiro/conta_receber/bordero';
 import FINA13 from '~/pages/Financeiro/caixaBanco/movcontas';
 import FINA14 from '~/pages/Financeiro/conta_pagar/ctapag';
