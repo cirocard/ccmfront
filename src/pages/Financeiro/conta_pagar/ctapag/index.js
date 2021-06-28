@@ -66,7 +66,7 @@ export default function FINA14() {
   const [dataIni, setDataIni] = useState(moment().add(-1, 'day'));
   const [dataFin, setDataFin] = useState(moment().add(30, 'day'));
   const [dataEmissao, setDataEmissao] = useState(moment());
-  const [optClassificFina, setOptClassificFina] = useState([]);
+  const [optGrupoDesp, setOptGrupoDesp] = useState([]);
   const [fornecedor, setFornecedor] = useState([]);
   const [forn_id, setForn_id] = useState([]);
   const [optCvto, setOptCvto] = useState([]);
@@ -105,18 +105,20 @@ export default function FINA14() {
     }
   };
 
-  // parametro financeiro
-  async function handleClassificFina() {
+  // grupo de despesa
+  async function handleGrupoDesp() {
     try {
-      const response = await api.get(`v1/combos/parm_mov_fina?tipo=S`);
+      const response = await api.get(
+        `v1/combos/agrupador_recdesp/2/2` // tipo 1 receita; 2 despesa
+      );
       const dados = response.data.retorno;
       if (dados) {
-        setOptClassificFina(dados);
+        setOptGrupoDesp(dados);
       }
     } catch (error) {
       setLoading(false);
       toast.error(
-        `Erro ao carregar combo parametros financeiro \n${error}`,
+        `Erro ao gerar referencia agrupadora \n${error}`,
         toastOptions
       );
     }
@@ -159,7 +161,7 @@ export default function FINA14() {
     cta_vlr_liquido: Yup.string().required('(??)'),
     cta_forma_pgto_id: Yup.string().required('(??)'),
     cta_cvto_id: Yup.string().required('(??)'),
-    cta_classific_fina: Yup.string().required('(??)'),
+    cta_grpdesp_id: Yup.string().required('(??)'),
   });
 
   // #endregion
@@ -212,7 +214,7 @@ export default function FINA14() {
     frmCadastro.current.setFieldValue('cta_observacao', '');
     frmCadastro.current.setFieldValue('cta_situacao', '');
     frmCadastro.current.setFieldValue('cta_origem', '');
-    frmCadastro.current.setFieldValue('cta_classific_fina', '');
+    frmCadastro.current.setFieldValue('cta_grpdesp_id', '');
     frmCadastro.current.setFieldValue('cta_cvto_id', '');
     frmCadastro.current.setFieldValue('cta_forma_pgto_id', '');
     frmCadastro.current.setFieldValue('cta_vlr_liquido', '');
@@ -269,11 +271,10 @@ export default function FINA14() {
           );
           frmCadastro.current.setFieldValue('cta_origem', dados[0].capa.origem);
           frmCadastro.current.setFieldValue(
-            'cta_classific_fina',
-            optClassificFina.find(
+            'cta_grpdesp_id',
+            optGrupoDesp.find(
               (op) =>
-                op.value.toString() ===
-                dados[0].capa.cta_classific_fina.toString()
+                op.value.toString() === dados[0].capa.cta_grpdesp_id.toString()
             )
           );
           frmCadastro.current.setFieldValue(
@@ -363,7 +364,7 @@ export default function FINA14() {
           cta_situacao: '1',
           cta_forma_pgto_id: formData.cta_forma_pgto_id,
           cta_cvto_id: formData.cta_cvto_id,
-          cta_classific_fina: formData.cta_classific_fina,
+          cta_grpdesp_id: formData.cta_grpdesp_id,
           cta_origem: '1',
           cta_usr_id: null,
           cta_editavel: 'S',
@@ -426,8 +427,8 @@ export default function FINA14() {
         validationErrors.cta_cvto_id
       );
       frmCadastro.current.setFieldError(
-        'cta_classific_fina',
-        validationErrors.cta_classific_fina
+        'cta_grpdesp_id',
+        validationErrors.cta_grpdesp_id
       );
     }
   }
@@ -480,7 +481,7 @@ export default function FINA14() {
 
   useEffect(() => {
     frmPesquisa.current.setFieldValue('pesq_data', '1');
-    handleClassificFina();
+    handleGrupoDesp();
     comboGeral(6);
     getComboCondVcto();
     listarCtaPag();
@@ -909,9 +910,9 @@ export default function FINA14() {
                 <BoxItemCad fr="1fr 1fr 1fr 1fr">
                   <AreaComp wd="100">
                     <FormSelect
-                      label="classificação financeira"
-                      name="cta_classific_fina"
-                      optionsList={optClassificFina}
+                      label="Grupo de Despesa"
+                      name="cta_grpdesp_id"
+                      optionsList={optGrupoDesp}
                       isClearable
                       placeholder="INFORME"
                       zindex="153"

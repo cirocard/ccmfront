@@ -32,6 +32,7 @@ export default function FINA16() {
   const [gridPesquisa, setGridPesquisa] = useState([]);
   const [optCredenciadora, setOptCredenciadora] = useState([]);
   const [grupoDesp, SetGrupoDesp] = useState([]);
+  const [optTipoCard, SetOptTipoCard] = useState([]);
   const [optConta, setOptConta] = useState([]);
 
   const toastOptions = {
@@ -40,13 +41,6 @@ export default function FINA16() {
   };
 
   // #region COMBO ========================
-
-  const optTipoCard = [
-    { value: '4', label: 'DÉBTO' },
-    { value: '3', label: 'CRÉDITO A VISTA' },
-    { value: '13', label: 'CRÉDITO PARCELADO' },
-    { value: '14', label: 'VALE REFEIÇÃO' },
-  ];
 
   const optPlanoRecebimento = [
     { value: '1', label: 'NORMAL/ECONOMICO' },
@@ -61,6 +55,22 @@ export default function FINA16() {
       const dados = response.data.retorno;
       if (dados) {
         SetGrupoDesp(dados);
+      }
+    } catch (error) {
+      setLoading(false);
+      toast.error(
+        `Erro ao gerar referencia agrupadora \n${error}`,
+        toastOptions
+      );
+    }
+  }
+
+  async function handleComboCartoes() {
+    try {
+      const response = await api.get(`v1/combos/combo_cartoes`);
+      const dados = response.data.retorno;
+      if (dados) {
+        SetOptTipoCard(dados);
       }
     } catch (error) {
       setLoading(false);
@@ -281,6 +291,7 @@ export default function FINA16() {
     comboGeral(23);
     handleGrupoRecDesp();
     handleComboContas();
+    handleComboCartoes();
   }, []);
 
   // #region GRID CONSULTA  =========================
