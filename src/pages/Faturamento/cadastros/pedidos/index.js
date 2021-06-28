@@ -151,7 +151,7 @@ export default function FAT2() {
   const [inputDesable, setInputDesable] = useState(true);
   const [representante, setRepresentante] = useState([]);
   const [nParcela, setNParcela] = useState(1);
-  const [optClassificFina, setOptClassificFina] = useState(1);
+  const [optGrupoRec, setOptGrupoRec] = useState(1);
   const [dlgConsProduto, setDlgConsProduto] = useState(false);
   const [dlgDespesa, setDlgDespesa] = useState(false);
   const { emp_financeiro } = useSelector((state) => state.auth);
@@ -261,17 +261,19 @@ export default function FAT2() {
   };
 
   // grupo de receita
-  async function handleClassificFina() {
+  async function handleGrupoRec() {
     try {
-      const response = await api.get(`v1/combos/parm_mov_fina?tipo=E`);
+      const response = await api.get(
+        `v1/combos/agrupador_recdesp/1/2` // tipo 1 receita; 2 despesa
+      );
       const dados = response.data.retorno;
       if (dados) {
-        setOptClassificFina(dados);
+        setOptGrupoRec(dados);
       }
     } catch (error) {
       setLoading(false);
       toast.error(
-        `Erro ao carregar combo parametros financeiro \n${error}`,
+        `Erro ao gerar referencia agrupadora \n${error}`,
         toastOptions
       );
     }
@@ -296,7 +298,9 @@ export default function FAT2() {
       const response = await api.get(`v1/combos/condvcto`);
       const dados = response.data.retorno;
       if (dados) {
-        setOptCvto(dados);
+        const cvto = dados.filter((f) => f.value.toString() !== '100');
+
+        setOptCvto(cvto);
       }
     } catch (error) {
       toast.error(`Erro ao carregar combo Condição de vencimento \n${error}`);
@@ -1602,9 +1606,9 @@ export default function FAT2() {
       }
 
       if (emp_financeiro === 'S') {
-        if (!formFina.fina_classificacao) {
+        if (!formFina.fina_grprec_id) {
           toast.error(
-            `VOCÊ ESTÁ USANDO UMA OPERAÇÃO QUE MOVIMENTA FINANCEIRO... INFORME A CLASSIFICAÇÃO FINANCEIRA!!`,
+            `VOCÊ ESTÁ USANDO UMA OPERAÇÃO QUE MOVIMENTA FINANCEIRO... INFORME O GRUPO DE RECEITA!!`,
             toastOptions
           );
           return;
@@ -1730,7 +1734,7 @@ export default function FAT2() {
               fina_perc_desc: formFina.fina_perc_desc,
               fina_perc_juro: formFina.fina_perc_juro,
               fina_valor_final: formFina.fina_valor_final,
-              fina_classificacao: formFina.fina_classificacao,
+              fina_grprec_id: formFina.fina_grprec_id,
               persistido: 'N',
             };
 
@@ -1850,7 +1854,7 @@ export default function FAT2() {
             fina_perc_desc: toDecimal(g.fina_perc_desc),
             fina_perc_juro: toDecimal(g.fina_perc_juro),
             fina_valor_final: toDecimal(g.fina_valor_final),
-            fina_classificacao: g.fina_classificacao || null,
+            fina_grprec_id: g.fina_grprec_id || null,
           };
           cad.push(obj);
         });
@@ -2590,7 +2594,7 @@ export default function FAT2() {
     getComboCondVcto();
     getComboTabPreco();
     getParamSistema();
-    handleClassificFina();
+    handleGrupoRec();
     setDesableSave(true);
 
     const hoje = new Date();
@@ -3294,9 +3298,9 @@ export default function FAT2() {
                 <BoxItemCad fr="1fr 1fr 1fr">
                   <AreaComp wd="100">
                     <FormSelect
-                      label="classificação financeira"
-                      name="fina_classificacao"
-                      optionsList={optClassificFina}
+                      label="grupo de receita"
+                      name="fina_grprec_id"
+                      optionsList={optGrupoRec}
                       isClearable
                       placeholder="INFORME"
                       zindex="153"

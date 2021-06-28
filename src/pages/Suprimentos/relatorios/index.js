@@ -47,7 +47,7 @@ export default function SUPR9() {
           history.push('/supr1', '_blank');
           history.go(0);
         }}
-        title="RELATÓRIO DE ENTRADA POR PRODUTO"
+        title="RELATÓRIO DE ENTRADA/SAÍDA POR PRODUTO"
         size="md"
       >
         <REL_ENTRADA_PRODUTO />

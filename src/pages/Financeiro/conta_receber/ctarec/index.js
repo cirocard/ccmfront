@@ -65,7 +65,7 @@ export default function FINA9() {
   const [dataIni, setDataIni] = useState(moment().add(-1, 'day'));
   const [dataFin, setDataFin] = useState(moment().add(30, 'day'));
   const [dataEmissao, setDataEmissao] = useState(moment());
-  const [optClassificFina, setOptClassificFina] = useState([]);
+  const [optGrupoRec, setOptGrupoRec] = useState([]);
   const [cliente, setCliente] = useState([]);
   const [cli_id, setCli_id] = useState([]);
   const [optCvto, setOptCvto] = useState([]);
@@ -114,18 +114,20 @@ export default function FINA9() {
     }
   };
 
-  // parametro financeiro
-  async function handleClassificFina() {
+  // grupo receita
+  async function handleGrupoRec() {
     try {
-      const response = await api.get(`v1/combos/parm_mov_fina?tipo=E`);
+      const response = await api.get(
+        `v1/combos/agrupador_recdesp/1/2` // tipo 1 receita; 2 despesa
+      );
       const dados = response.data.retorno;
       if (dados) {
-        setOptClassificFina(dados);
+        setOptGrupoRec(dados);
       }
     } catch (error) {
       setLoading(false);
       toast.error(
-        `Erro ao carregar combo parametros financeiro \n${error}`,
+        `Erro ao gerar referencia agrupadora \n${error}`,
         toastOptions
       );
     }
@@ -168,7 +170,7 @@ export default function FINA9() {
     rec_vlr_liquido: Yup.string().required('(??)'),
     rec_forma_pgto_id: Yup.string().required('(??)'),
     rec_cvto_id: Yup.string().required('(??)'),
-    rec_classific_fina: Yup.string().required('(??)'),
+    rec_grupo_rec: Yup.string().required('(??)'),
   });
 
   // #endregion
@@ -221,7 +223,7 @@ export default function FINA9() {
     frmCadastro.current.setFieldValue('rec_observacao', '');
     frmCadastro.current.setFieldValue('rec_situacao', '');
     frmCadastro.current.setFieldValue('rec_origem', '');
-    frmCadastro.current.setFieldValue('rec_classific_fina', '');
+    frmCadastro.current.setFieldValue('rec_grupo_rec', '');
     frmCadastro.current.setFieldValue('rec_cvto_id', '');
     frmCadastro.current.setFieldValue('rec_forma_pgto_id', '');
     frmCadastro.current.setFieldValue('rec_vlr_liquido', '');
@@ -277,11 +279,10 @@ export default function FINA9() {
           );
           frmCadastro.current.setFieldValue('rec_origem', dados[0].capa.origem);
           frmCadastro.current.setFieldValue(
-            'rec_classific_fina',
-            optClassificFina.find(
+            'rec_grupo_rec',
+            optGrupoRec.find(
               (op) =>
-                op.value.toString() ===
-                dados[0].capa.rec_classific_fina.toString()
+                op.value.toString() === dados[0].capa.rec_grupo_rec.toString()
             )
           );
           frmCadastro.current.setFieldValue(
@@ -377,10 +378,10 @@ export default function FINA9() {
           rec_vlr_liquido: toDecimal(formData.rec_vlr_liquido),
           rec_observacao: formData.rec_observacao,
           rec_situacao: '1',
-          rec_forma_pgto_tab: 6,
+          rec_forma_pgto_tab: 35,
           rec_forma_pgto_id: formData.rec_forma_pgto_id,
           rec_cvto_id: formData.rec_cvto_id,
-          rec_classific_fina: formData.rec_classific_fina,
+          rec_grupo_rec: formData.rec_grupo_rec,
           rec_origem: '1',
           rec_usr_id: null,
           rec_editavel: 'S',
@@ -457,8 +458,8 @@ export default function FINA9() {
         validationErrors.rec_cvto_id
       );
       frmCadastro.current.setFieldError(
-        'rec_classific_fina',
-        validationErrors.rec_classific_fina
+        'rec_grupo_rec',
+        validationErrors.rec_grupo_rec
       );
     }
   }
@@ -511,7 +512,7 @@ export default function FINA9() {
 
   useEffect(() => {
     frmPesquisa.current.setFieldValue('pesq_data', '1');
-    handleClassificFina();
+    handleGrupoRec();
     comboGeral(6);
     getComboCondVcto();
     listarCtaRec();
@@ -921,9 +922,9 @@ export default function FINA9() {
                 <BoxItemCad fr="1fr 1fr 1fr 1fr">
                   <AreaComp wd="100">
                     <FormSelect
-                      label="classificação financeira"
-                      name="rec_classific_fina"
-                      optionsList={optClassificFina}
+                      label="grupo de receita"
+                      name="rec_grupo_rec"
+                      optionsList={optGrupoRec}
                       isClearable
                       placeholder="INFORME"
                       zindex="153"

@@ -34,6 +34,11 @@ export default function REL_ENTRADA_PRODUTO() {
 
   // #region COMBO ========================
 
+  const optTipo = [
+    { value: 'E', label: 'ENTRADAS' },
+    { value: 'S', label: 'SAÍDAS' },
+  ];
+
   const optOrdenar = [
     { value: 'prod_referencia', label: 'REFERÊNCIA' },
     { value: 'prod_descricao', label: 'DESCRIÇÃO DO PRODUTO' },
@@ -91,7 +96,7 @@ export default function REL_ENTRADA_PRODUTO() {
         'YYYY-MM-DD'
       )}&tab_id=${param.tabPreco}&order=${param.ordenar}&oper_id=${
         param.operest_id
-      }&forn_id=${param.forn_id || ''}`;
+      }&forn_id=${param.forn_id || ''}&tipo=${param.tipo}`;
 
       const response = await api.get(url);
       const link = response.data;
@@ -111,7 +116,7 @@ export default function REL_ENTRADA_PRODUTO() {
 
   useEffect(() => {
     getComboTabPreco();
-    getComboOperEst('E');
+    frmRel.current.setFieldValue('tipo', 'E');
     frmRel.current.setFieldValue('ordenar', 'prod_referencia');
   }, []);
 
@@ -126,6 +131,24 @@ export default function REL_ENTRADA_PRODUTO() {
             pdding="1px 2px 1px 7px"
           >
             <Form id="frmRel" ref={frmRel}>
+              <BoxItemCad fr="1fr 1fr">
+                <AreaComp wd="100">
+                  <FormSelect
+                    label="Tipo"
+                    name="tipo"
+                    optionsList={optTipo}
+                    onChange={async (t) => {
+                      setLoading(true);
+                      await getComboOperEst(t.value);
+                      frmRel.current.setFieldValue('operest_id', '');
+                      setLoading(false);
+                    }}
+                    placeholder="NÃO INFORMADO"
+                    clearable={false}
+                    zindex="152"
+                  />
+                </AreaComp>
+              </BoxItemCad>
               <BoxItemCad fr="1fr 1fr">
                 <AreaComp wd="100">
                   <DatePickerInput
