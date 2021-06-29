@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import * as Yup from 'yup';
 import { Form } from '@unform/web';
 import { toast } from 'react-toastify';
@@ -82,9 +83,10 @@ export default function SERV3() {
   const [remumoItens, setResumoItens] = useState('');
   const [totalServ, setTotalServ] = useState(0);
   const [totalDesc, setTotalDesc] = useState(0);
-  const [optClassificFina, setOptClassificFina] = useState([]);
+  const [optGrupoRec, setOptGrupoRec] = useState([]);
   const [optCvto, setOptCvto] = useState([]);
   const [optFpgto, setOptFpgto] = useState([]);
+  const { emp_financeiro } = useSelector((state) => state.auth);
 
   const toastOptions = {
     autoClose: 4000,
@@ -126,18 +128,20 @@ export default function SERV3() {
     }
   };
 
-  // parametro financeiro
-  async function handleClassificFina() {
+  // grupo receita
+  async function handleGrupoRec() {
     try {
-      const response = await api.get(`v1/combos/parm_mov_fina?tipo=E`);
+      const response = await api.get(
+        `v1/combos/agrupador_recdesp/1/2` // tipo 1 receita; 2 despesa
+      );
       const dados = response.data.retorno;
       if (dados) {
-        setOptClassificFina(dados);
+        setOptGrupoRec(dados);
       }
     } catch (error) {
       setLoading(false);
       toast.error(
-        `Erro ao carregar combo parametros financeiro \n${error}`,
+        `Erro ao gerar referencia agrupadora \n${error}`,
         toastOptions
       );
     }
@@ -221,7 +225,7 @@ export default function SERV3() {
   const schemaClose = Yup.object().shape({
     os_fpgto_id: Yup.string().required('(??)'),
     os_condvcto_id: Yup.string().required('(??)'),
-    os_classificacao_fina: Yup.string().required('(??)'),
+    os_grprec_id: Yup.string().required('(??)'),
   });
   // #endregion
 
@@ -315,12 +319,11 @@ export default function SERV3() {
             )
           );
 
-          if (capa.os_classificacao_fina) {
+          if (capa.os_grprec_id) {
             frmCadastro.current.setFieldValue(
-              'os_classificacao_fina',
-              optClassificFina.find(
-                (op) =>
-                  op.value.toString() === capa.os_classificacao_fina.toString()
+              'os_grprec_id',
+              optGrupoRec.find(
+                (op) => op.value.toString() === capa.os_grprec_id.toString()
               )
             );
           }
@@ -409,7 +412,7 @@ export default function SERV3() {
           os_atividade: servRealizado,
           os_fpgto_id: formData.os_fpgto_id || null,
           os_condvcto_id: formData.os_condvcto_id || null,
-          os_classificacao_fina: formData.os_classificacao_fina || null,
+          os_grprec_id: formData.os_grprec_id || null,
           os_valor: toDecimal(totalServ.toFixed(2)),
           os_vlr_desc: toDecimal(totalDesc),
           os_vinculada_id: null,
@@ -496,14 +499,17 @@ export default function SERV3() {
         os_atividade: servRealizado,
         os_fpgto_id: formData.os_fpgto_id || null,
         os_condvcto_id: formData.os_condvcto_id || null,
-        os_classificacao_fina: formData.os_classificacao_fina || null,
+        os_grprec_id: formData.os_grprec_id || null,
         os_valor: toDecimal(totalServ.toFixed(2)),
         os_vlr_desc: toDecimal(totalDesc),
         os_tipo: formData.os_tipo,
         os_situacao: '3',
       };
 
-      const retorno = await api.put('v1/serv/os', objCad);
+      const retorno = await api.put(
+        `v1/serv/os?gera_fina=${emp_financeiro}`,
+        objCad
+      );
       if (retorno.data.success) {
         await listarOS();
         toast.success('O.S concluída com Sucesso!!!', toastOptions);
@@ -533,8 +539,8 @@ export default function SERV3() {
         validationErrors.os_condvcto_id
       );
       frmCadastro.current.setFieldError(
-        'os_classificacao_fina',
-        validationErrors.os_classificacao_fina
+        'os_grprec_id',
+        validationErrors.os_grprec_id
       );
     }
   }
@@ -741,7 +747,7 @@ export default function SERV3() {
     comboGeral(34);
     getComboServicos();
     getComboCondVcto();
-    handleClassificFina();
+    handleGrupoRec();
     getComboFpgto();
     listarOS();
     setValueTab(0);
@@ -1265,9 +1271,9 @@ export default function SERV3() {
                   </AreaComp>
                   <AreaComp wd="100" lblWeight="700">
                     <FormSelect
-                      label="classificação financeira"
-                      name="os_classificacao_fina"
-                      optionsList={optClassificFina}
+                      label="Grupo de Receita"
+                      name="os_grprec_id"
+                      optionsList={optGrupoRec}
                       isClearable
                       placeholder="INFORME"
                       zindex="153"
