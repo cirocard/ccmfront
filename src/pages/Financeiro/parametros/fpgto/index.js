@@ -3,7 +3,7 @@ import * as Yup from 'yup';
 import { Form } from '@unform/web';
 import { toast } from 'react-toastify';
 import { MdClose } from 'react-icons/md';
-import { FaSave } from 'react-icons/fa';
+import { FaSave, FaPlusCircle } from 'react-icons/fa';
 import { AgGridReact } from 'ag-grid-react';
 import FormSelect from '~/componentes/Select';
 import DialogInfo from '~/componentes/DialogInfo';
@@ -92,8 +92,9 @@ export default function FINA11() {
     frmCadastro.current.setFieldValue('ger_descricao', '');
     frmCadastro.current.setFieldValue('ger_numerico1', '');
     frmCadastro.current.setFieldValue('ger_numerico2', '');
+    frmCadastro.current.setFieldValue('ger_numerico3', '');
+    frmCadastro.current.setFieldValue('ger_numerico4', '');
     frmCadastro.current.setFieldValue('ger_id', '');
-    setGridPesquisa([]);
   };
 
   async function handleSubmit() {
@@ -113,7 +114,8 @@ export default function FINA11() {
         ger_descricao: formData.ger_descricao.toUpperCase(),
         ger_numerico1: formData.ger_numerico1,
         ger_numerico2: formData.ger_numerico2,
-        ger_numerico3: 0,
+        ger_numerico3: formData.ger_numerico3,
+        ger_numerico4: formData.ger_numerico4,
       };
 
       let retorno = null;
@@ -179,6 +181,14 @@ export default function FINA11() {
         (op) => op.value.toString() === selectedRows[0].ger_numerico2.toString()
       )
     );
+    frmCadastro.current.setFieldValue(
+      'ger_numerico3',
+      selectedRows[0].ger_numerico3
+    );
+    frmCadastro.current.setFieldValue(
+      'ger_numerico4',
+      selectedRows[0].ger_numerico4
+    );
   };
 
   useEffect(() => {
@@ -212,6 +222,12 @@ export default function FINA11() {
     <>
       <ToolBar hg="100%" wd="40px">
         <DivLimitador hg="50px" />
+        <BootstrapTooltip title="NOVO CADASTRO" placement="left">
+          <button type="button" onClick={limpaForm}>
+            <FaPlusCircle size={25} color="#fff" />
+          </button>
+        </BootstrapTooltip>
+        <DivLimitador hg="20px" />
         <BootstrapTooltip title="SALVAR CADASTRO" placement="left">
           <button type="button" onClick={handleSubmit}>
             <FaSave size={25} color="#fff" />
@@ -267,6 +283,34 @@ export default function FINA11() {
                     placeholder="NÃO INFORMADO"
                     zindex="152"
                   />
+                </AreaComp>
+              </BoxItemCad>
+              <BoxItemCad fr="1fr 1fr 2fr 2fr">
+                <AreaComp wd="100">
+                  <label>Dia vencimento</label>
+                  <BootstrapTooltip
+                    title="INFORME A DIA DE VENCIMENTO DA FATURA. VALIDO PARA CARTAO PRÓPRIO DA EMPRESA COM EFEITO NO CONTAS A PAGAR"
+                    placement="left"
+                  >
+                    <Input
+                      type="number"
+                      name="ger_numerico3"
+                      className="input_cad"
+                    />
+                  </BootstrapTooltip>
+                </AreaComp>
+                <AreaComp wd="100">
+                  <label>dia limite</label>
+                  <BootstrapTooltip
+                    title="INFORME O DIA LIMITE PARA VENCIMENTO DA FATURA NO MES CORRENTE"
+                    placement="left"
+                  >
+                    <Input
+                      type="number"
+                      name="ger_numerico4"
+                      className="input_cad"
+                    />
+                  </BootstrapTooltip>
                 </AreaComp>
               </BoxItemCad>
             </Form>

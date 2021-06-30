@@ -82,6 +82,7 @@ export default function ADM7() {
     frmCadastro.current.setFieldValue('numerico1', '');
     frmCadastro.current.setFieldValue('numerico2', '');
     frmCadastro.current.setFieldValue('numerico3', '');
+    frmCadastro.current.setFieldValue('numerico4', '');
     frmCadastro.current.setFieldValue('decimal1', '');
     frmCadastro.current.setFieldValue('decimal2', '');
     frmCadastro.current.setFieldValue('decimal3', '');
@@ -119,6 +120,10 @@ export default function ADM7() {
         frmCadastro.current.setFieldValue(
           'numerico3',
           dataGridPesqSelected[0].numerico3
+        );
+        frmCadastro.current.setFieldValue(
+          'numerico4',
+          dataGridPesqSelected[0].numerico4
         );
         frmCadastro.current.setFieldValue(
           'decimal1',

@@ -150,7 +150,7 @@ export default function SERV3() {
   // forma pagamento
   async function getComboFpgto() {
     try {
-      const response = await api.get(`v1/combos/geral/6`);
+      const response = await api.get(`v1/combos/geral/35`);
       const dados = response.data.retorno;
       if (dados) {
         setOptFpgto(dados);
