@@ -282,7 +282,7 @@ export default function FAT2() {
   // forma pagamento
   async function getComboFpgto() {
     try {
-      const response = await api.get(`v1/combos/geral/6`);
+      const response = await api.get(`v1/combos/geral/35`);
       const dados = response.data.retorno;
       if (dados) {
         setOptFpgto(dados);
@@ -910,7 +910,7 @@ export default function FAT2() {
         if (confirmation) {
           setLoading(true);
 
-          const url = `v1/fat/cancelar_pedido?cp_id=${dataGridPesqSelected[0].cp_id}&cli_id=${dataGridPesqSelected[0].cli_id}`;
+          const url = `v1/fat/cancelar_pedido?cp_id=${dataGridPesqSelected[0].cp_id}&cli_id=${dataGridPesqSelected[0].cli_id}&gera_fina=${emp_financeiro}`;
           const response = await api.put(url);
           setLoading(false);
           if (response.data.success) {
@@ -1786,6 +1786,11 @@ export default function FAT2() {
         if (response.data.success) {
           setGridFinanceiro([]);
           excluiu = true;
+        } else {
+          toast.error(response.data.errors, toastOptions);
+          excluiu = false;
+          setLoading(false);
+          return;
         }
       } else {
         setGridFinanceiro([]);

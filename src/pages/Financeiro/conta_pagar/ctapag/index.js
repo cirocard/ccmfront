@@ -142,7 +142,7 @@ export default function FINA14() {
       const response = await api.get(`v1/combos/geral/${tab_id}`);
       const dados = response.data.retorno;
       if (dados) {
-        if (tab_id === 6) {
+        if (tab_id === 35) {
           setOptFpgto(dados);
         }
       }
@@ -482,7 +482,7 @@ export default function FINA14() {
   useEffect(() => {
     frmPesquisa.current.setFieldValue('pesq_data', '1');
     handleGrupoDesp();
-    comboGeral(6);
+    comboGeral(35); // fpgto
     getComboCondVcto();
     listarCtaPag();
     setValueTab(0);

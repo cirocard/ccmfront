@@ -90,7 +90,7 @@ export default function FINA13() {
       const response = await api.get(`v1/combos/geral/${tab_id}`);
       const dados = response.data.retorno;
       if (dados) {
-        if (tab_id === 6) {
+        if (tab_id === 35) {
           setOptFpgto(dados);
         }
       }
@@ -427,7 +427,7 @@ export default function FINA13() {
       'pesq_mov_operacao',
       optOperacao.find((op) => op.value.toString() === 'E')
     );
-    comboGeral(6);
+    comboGeral(35);
     comboContas();
     setValueTab(0);
   }, []);

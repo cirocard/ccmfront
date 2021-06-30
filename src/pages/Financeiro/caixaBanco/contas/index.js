@@ -88,7 +88,7 @@ export default function FINA4() {
       const response = await api.get(`v1/combos/geral/${tab_id}`);
       const dados = response.data.retorno;
       if (dados) {
-        if (tab_id === 6) {
+        if (tab_id === 35) {
           setOptFpgto(dados);
         } else if (tab_id === 24) {
           setOptBanco(dados);
@@ -489,7 +489,7 @@ export default function FINA4() {
   useEffect(() => {
     listarContas();
     comboGeral(24);
-    comboGeral(6);
+    comboGeral(35);
     comboContas();
     setValueTab(0);
     document.getElementById('pesq_todas').checked = true;
