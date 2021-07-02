@@ -39,12 +39,18 @@ export default function FINA11() {
     ger_descricao: Yup.string().required('campo obrigatório'),
     ger_numerico1: Yup.string().required('??'),
     ger_numerico2: Yup.string().required('??'),
+    ger_texto1: Yup.string().required('??'),
   });
 
   function handleDashboard() {
     history.push('/fina1', '_blank');
     history.go(0);
   }
+
+  const optTipoForma = [
+    { value: '1', label: 'DA EMPRESA (CONTAS A PAGAR)' },
+    { value: '2', label: 'GERAL (CONTAS A RECEBER)' },
+  ];
 
   async function handleComboContas() {
     try {
@@ -95,6 +101,7 @@ export default function FINA11() {
     frmCadastro.current.setFieldValue('ger_numerico3', '');
     frmCadastro.current.setFieldValue('ger_numerico4', '');
     frmCadastro.current.setFieldValue('ger_id', '');
+    frmCadastro.current.setFieldValue('ger_texto1', '');
   };
 
   async function handleSubmit() {
@@ -114,8 +121,9 @@ export default function FINA11() {
         ger_descricao: formData.ger_descricao.toUpperCase(),
         ger_numerico1: formData.ger_numerico1,
         ger_numerico2: formData.ger_numerico2,
-        ger_numerico3: formData.ger_numerico3,
-        ger_numerico4: formData.ger_numerico4,
+        ger_numerico3: formData.ger_numerico3 || 0,
+        ger_numerico4: formData.ger_numerico4 || 0,
+        ger_texto1: formData.ger_texto1,
       };
 
       let retorno = null;
@@ -157,6 +165,10 @@ export default function FINA11() {
         'ger_numerico2',
         validationErrors.ger_numerico2
       );
+      frmCadastro.current.setFieldError(
+        'ger_texto1',
+        validationErrors.ger_texto1
+      );
     }
   }
 
@@ -189,6 +201,7 @@ export default function FINA11() {
       'ger_numerico4',
       selectedRows[0].ger_numerico4
     );
+    frmCadastro.current.setFieldValue('ger_texto1', selectedRows[0].ger_texto1);
   };
 
   useEffect(() => {
@@ -285,7 +298,16 @@ export default function FINA11() {
                   />
                 </AreaComp>
               </BoxItemCad>
-              <BoxItemCad fr="1fr 1fr 2fr 2fr">
+              <BoxItemCad fr="2fr 1fr 1fr 2fr">
+                <AreaComp wd="100">
+                  <FormSelect
+                    label="tipo de forma de pagamento"
+                    name="ger_texto1"
+                    optionsList={optTipoForma}
+                    placeholder="NÃO INFORMADO"
+                    zindex="152"
+                  />
+                </AreaComp>
                 <AreaComp wd="100">
                   <label>Dia vencimento</label>
                   <BootstrapTooltip

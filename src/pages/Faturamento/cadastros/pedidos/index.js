@@ -285,7 +285,17 @@ export default function FAT2() {
       const response = await api.get(`v1/combos/geral/35`);
       const dados = response.data.retorno;
       if (dados) {
-        setOptFpgto(dados);
+        const filtroCard = [4, 3, 13, 14];
+        const filtrado = dados.filter((d) => {
+          if (
+            // se for cartão
+            filtroCard.indexOf(parseInt(d.ger_numerico1.toString(), 10)) !== -1
+          ) {
+            return d.ger_texto1.toString() !== '1'; // retorna somente cartao que nao seja da empresa
+          }
+          return d; // senao retorna tudo
+        });
+        setOptFpgto(filtrado);
       }
     } catch (error) {
       toast.error(`Erro ao carregar combo forma de pagamento \n${error}`);

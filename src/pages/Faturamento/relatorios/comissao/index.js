@@ -49,12 +49,6 @@ export default function BC_COMISSAO() {
     try {
       setLoading(true);
       const param = frmRel.current.getData();
-      if (!param.vendedor) {
-        toast.error('INFORME O VENDEDOR(A) PARA CONTINUAR', toastOptions);
-        setLoading(false);
-        return;
-      }
-
       const url = `v1/fat/report/comissao?data_ini=${moment(dataIni).format(
         'YYYY-MM-DD'
       )}&data_fin=${moment(dataFin).format('YYYY-MM-DD')}&usr_id=${
@@ -116,7 +110,7 @@ export default function BC_COMISSAO() {
                     name="vendedor"
                     optionsList={optUsers}
                     placeholder="NÃO INFORMADO"
-                    clearable={false}
+                    clearable
                     zindex="152"
                   />
                 </AreaComp>
