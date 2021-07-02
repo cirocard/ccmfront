@@ -89,7 +89,18 @@ export default function FINA4() {
       const dados = response.data.retorno;
       if (dados) {
         if (tab_id === 35) {
-          setOptFpgto(dados);
+          const filtroCard = [4, 3, 13, 14];
+          const filtrado = dados.filter((d) => {
+            if (
+              // se for cartão
+              filtroCard.indexOf(parseInt(d.ger_numerico1.toString(), 10)) !==
+              -1
+            ) {
+              return toDecimal(d.ger_numerico3) === 0; // retorna somente cartao que nao seja da empresa
+            }
+            return d; // senao retorna tudo
+          });
+          setOptFpgto(filtrado);
         } else if (tab_id === 24) {
           setOptBanco(dados);
         }

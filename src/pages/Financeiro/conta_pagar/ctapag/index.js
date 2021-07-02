@@ -143,7 +143,18 @@ export default function FINA14() {
       const dados = response.data.retorno;
       if (dados) {
         if (tab_id === 35) {
-          setOptFpgto(dados);
+          const filtroCard = [4, 3, 13, 14];
+          const filtrado = dados.filter((d) => {
+            if (
+              // se for cartão
+              filtroCard.indexOf(parseInt(d.ger_numerico1.toString(), 10)) !==
+              -1
+            ) {
+              return d.ger_texto1.toString() === '1'; // retorna somente cartao da empresa para pagamento
+            }
+            return d; // senao retorna tudo
+          });
+          setOptFpgto(filtrado);
         }
       }
     } catch (error) {
