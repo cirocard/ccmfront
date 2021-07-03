@@ -15,8 +15,15 @@ import { TitleBar, CModal, Message } from './styles';
  * @param {closeDialogFn} closeDialogFn Função responsável por fechar o dialog
  * @param {title} title Título do dialog
  * @param {message} message Mensagem que deve ser exibida no corpo do dialog
+ * @param {children} children elemento opcional
  */
-export default function DialogInfo({ isOpen, closeDialogFn, title, message }) {
+export default function DialogInfo({
+  isOpen,
+  closeDialogFn,
+  title,
+  message,
+  children,
+}) {
   return (
     <Slide direction="down" in={isOpen}>
       <Dialog
@@ -39,6 +46,7 @@ export default function DialogInfo({ isOpen, closeDialogFn, title, message }) {
           <DialogContent>
             <Message>{message}</Message>
           </DialogContent>
+          <DialogContent>{children}</DialogContent>
         </CModal>
       </Dialog>
     </Slide>
@@ -50,4 +58,9 @@ DialogInfo.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   title: PropTypes.string.isRequired,
   message: PropTypes.string.isRequired,
+  children: PropTypes.element,
+};
+
+DialogInfo.defaultProps = {
+  children: '',
 };
