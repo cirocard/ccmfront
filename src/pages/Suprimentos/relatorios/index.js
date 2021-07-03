@@ -7,10 +7,12 @@ import { TitleBar } from '~/pages/general.styles';
 import { BootstrapTooltip } from '~/componentes/ToolTip';
 import history from '~/services/history';
 import REL_ENTRADA_PRODUTO from '~/pages/Suprimentos/relatorios/entradaproduto';
+import REL_INVENTARIO from '~/pages/Suprimentos/relatorios/inventario';
 
 export default function SUPR9() {
   const { params } = useRouteMatch();
   const [dlgEntProduto, setDlgEntProduto] = useState(false);
+  const [dlgInventario, setDlgInventario] = useState(false);
 
   function handleDashboard() {
     history.push('/supr1', '_blank');
@@ -22,6 +24,8 @@ export default function SUPR9() {
   useEffect(() => {
     if (params.tipo === 'rel1') {
       setDlgEntProduto(true);
+    } else if (params.tipo === 'rel2') {
+      setDlgInventario(true);
     }
   }, []);
 
@@ -51,6 +55,19 @@ export default function SUPR9() {
         size="md"
       >
         <REL_ENTRADA_PRODUTO />
+      </Popup>
+
+      {/* POPU INVENTÁRIO... */}
+      <Popup
+        isOpen={dlgInventario}
+        closeDialogFn={() => {
+          history.push('/supr1', '_blank');
+          history.go(0);
+        }}
+        title="RELATÓRIO INVENTÁRIO DE ESTOQUE"
+        size="md"
+      >
+        <REL_INVENTARIO />
       </Popup>
     </>
   );

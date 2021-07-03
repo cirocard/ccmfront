@@ -253,6 +253,7 @@ export const AreaCad = styled.div`
 export const DivLimitadorRow = styled.div`
   display: flex;
   flex-direction: row;
+  gap: 4px;
 `;
 
 export const DivLimitador = styled.div`
