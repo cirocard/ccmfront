@@ -44,9 +44,11 @@ export default function DialogInfo({
 
         <CModal wd="100%">
           <DialogContent>
-            <Message>{message}</Message>
+            <>
+              {children}
+              <Message>{message}</Message>
+            </>
           </DialogContent>
-          <DialogContent>{children}</DialogContent>
         </CModal>
       </Dialog>
     </Slide>
