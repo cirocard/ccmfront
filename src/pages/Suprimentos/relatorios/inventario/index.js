@@ -38,7 +38,7 @@ export default function REL_INVENTARIO() {
   const optOrdenar = [
     { value: 'prod_referencia', label: 'REFERÊNCIA' },
     { value: 'prod_descricao', label: 'DESCRIÇÃO DO PRODUTO' },
-    { value: 'quantidade desc', label: 'QUANTIDADE' },
+    { value: 'inv_saldo desc', label: 'QUANTIDADE' },
   ];
 
   const loadOptionsFornec = async (inputText, callback) => {
@@ -88,13 +88,16 @@ export default function REL_INVENTARIO() {
 
   async function handleRelatorio() {
     try {
-      setLoading(true);
       const param = frmRel.current.getData();
-      const url = `v1/supr/report/entrada_produto?tab_id=${
-        param.tabPreco
-      }&order=${param.ordenar}&oper_id=${param.operest_id}&forn_id=${
-        param.forn_id || ''
-      }&tipo=${param.tipo}`;
+      if (!param.inventario_selecionado) {
+        toast.error('INFORME UM INVENTÁRIO GERADO', toastOptions);
+        return;
+      }
+      setLoading(true);
+
+      const url = `v1/supr/report/inventario?data_base=${
+        param.inventario_selecionado
+      }&order=${param.ordenar}&forn_id=${param.forn_id || ''}`;
 
       const response = await api.get(url);
       const link = response.data;
@@ -116,6 +119,33 @@ export default function REL_INVENTARIO() {
     if (ano.length === 4) {
       await getComboInventario();
     } else setOptInventario([]);
+  }
+
+  async function gerarInventario() {
+    try {
+      if (frmInventario.current.getData().tabPrecoInventario) {
+        setLoading(true);
+        const tab_id = frmInventario.current.getData().tabPrecoInventario;
+        const ajustaPreco = document.getElementById('desc_fornec').checked
+          ? 'S'
+          : 'N';
+        const url = `v1/supr/estoque/inventario?tab_id=${tab_id}&ajustaPreco=${ajustaPreco}`;
+        const response = await api.post(url);
+        if (response.data.success) {
+          toast.success(`Inventário gerado com sucesso!!!`, toastOptions);
+          await getComboInventario();
+          setInventario(false);
+        } else {
+          toast.error(response.data.errors, toastOptions);
+        }
+        setLoading(false);
+      } else {
+        toast.error('INFORME UMA TABELA DE PREÇO', toastOptions);
+      }
+    } catch (err) {
+      setLoading(false);
+      toast.error(`Erro ao gerar inventario: ${err}`, toastOptions);
+    }
   }
 
   useEffect(() => {
@@ -143,7 +173,10 @@ export default function REL_INVENTARIO() {
                     type="number"
                     name="ano"
                     className="input_cad"
-                    maxlength="4"
+                    onInput={(e) => {
+                      if (e.target.value.length > 4)
+                        e.target.value = e.target.value.slice(0, 4);
+                    }}
                     onChange={(a) => {
                       handleYear(a.target.value);
                     }}
@@ -163,28 +196,6 @@ export default function REL_INVENTARIO() {
 
               <BoxItemCad fr="1fr 1fr">
                 <AreaComp wd="100">
-                  <FormSelect
-                    label="Tabela de preço"
-                    name="tabPreco"
-                    optionsList={optTabPreco}
-                    placeholder="NÃO INFORMADO"
-                    clearable={false}
-                    zindex="152"
-                  />
-                </AreaComp>
-                <AreaComp wd="100">
-                  <FormSelect
-                    label="ordenar por:"
-                    name="ordenar"
-                    optionsList={optOrdenar}
-                    placeholder="NÃO INFORMADO"
-                    clearable={false}
-                    zindex="152"
-                  />
-                </AreaComp>
-              </BoxItemCad>
-              <BoxItemCad fr="1fr 1fr">
-                <AreaComp wd="100">
                   <AsyncSelectForm
                     name="forn_id"
                     label="Informe CNPJ ou Razão Social do fornecedor para pesquisar"
@@ -196,7 +207,19 @@ export default function REL_INVENTARIO() {
                     zindex="151"
                   />
                 </AreaComp>
+
+                <AreaComp wd="100">
+                  <FormSelect
+                    label="ordenar por:"
+                    name="ordenar"
+                    optionsList={optOrdenar}
+                    placeholder="NÃO INFORMADO"
+                    clearable={false}
+                    zindex="152"
+                  />
+                </AreaComp>
               </BoxItemCad>
+
               <BoxItemCadNoQuery
                 fr="1fr"
                 ptop="80px"
@@ -257,7 +280,19 @@ export default function REL_INVENTARIO() {
           pdding="1px 2px 1px 7px"
         >
           <Form id="frmInventario" ref={frmInventario}>
-            <BoxItemCad fr="1fr">
+            <BoxItemCadNoQuery fr="1fr">
+              <AreaComp wd="100">
+                <FormSelect
+                  label="Tabela de preço"
+                  name="tabPrecoInventario"
+                  optionsList={optTabPreco}
+                  placeholder="NÃO INFORMADO"
+                  clearable={false}
+                  zindex="152"
+                />
+              </AreaComp>
+            </BoxItemCadNoQuery>
+            <BoxItemCadNoQuery fr="1fr">
               <AreaComp wd="100">
                 <CCheck>
                   <input
@@ -271,7 +306,7 @@ export default function REL_INVENTARIO() {
                   </label>
                 </CCheck>
               </AreaComp>
-            </BoxItemCad>
+            </BoxItemCadNoQuery>
             <BoxItemCadNoQuery
               fr="1fr"
               ptop="10px"
@@ -280,7 +315,11 @@ export default function REL_INVENTARIO() {
             >
               <DivLimitadorRow>
                 <DivLimitador wd="200px">
-                  <button type="button" className="btn2" onClick={() => null}>
+                  <button
+                    type="button"
+                    className="btn2"
+                    onClick={gerarInventario}
+                  >
                     {loading
                       ? 'Aguarde Processando...'
                       : 'Confirmar Inventário'}
