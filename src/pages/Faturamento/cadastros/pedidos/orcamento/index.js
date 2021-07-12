@@ -932,6 +932,7 @@ export default function FAT6() {
     }
   }
 
+  // limpar
   async function handleDeleteItem(param) {
     try {
       if (param.prode_id) {
