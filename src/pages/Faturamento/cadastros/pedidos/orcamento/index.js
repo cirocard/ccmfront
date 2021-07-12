@@ -1,15 +1,12 @@
 /* eslint-disable no-nested-ternary */
 /* eslint-disable eqeqeq */
 import React, { useEffect, useState, useRef } from 'react';
-import { useSelector } from 'react-redux';
-import { useRouteMatch } from 'react-router-dom';
 import * as Yup from 'yup';
 import { Form } from '@unform/web';
 import { toast } from 'react-toastify';
 import { AgGridReact } from 'ag-grid-react';
 import { format, parse } from 'date-fns';
 import moment from 'moment';
-import Select from 'react-select';
 import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
@@ -20,22 +17,14 @@ import {
   FaClipboardList,
   FaSave,
   FaPercent,
-  FaCheckCircle,
   FaPlusCircle,
   FaCheck,
   FaTrashAlt,
   FaBan,
-  FaBarcode,
   FaPrint,
-  FaRegCheckSquare,
-  FaCartPlus,
   FaCubes,
-  FaDollarSign,
   FaUserTie,
-  FaCcAmazonPay,
   FaPagelines,
-  FaWpforms,
-  FaWeightHanging,
 } from 'react-icons/fa';
 import Dialog from '@material-ui/core/Dialog';
 import { Slide } from '@material-ui/core';
@@ -55,10 +44,8 @@ import {
   Container,
   Panel,
   GridContainerItens,
-  GridContainerFina,
   ToolBar,
   GridContainerMain,
-  DivGeral,
 } from './styles';
 import {
   TitleBar,
@@ -80,15 +67,12 @@ import {
   ArredondaValorDecimal,
   toDecimal,
   GridCurrencyFormatter,
-  FormataMoeda,
-  JurosTotal,
   addMes,
 } from '~/services/func.uteis';
 import { ApiService, ApiTypes } from '~/services/api';
 
-export default function FAT2() {
+export default function FAT6() {
   const api = ApiService.getInstance(ApiTypes.API1);
-  const { params } = useRouteMatch();
   const [titlePg, setTitlePg] = useState('');
   const [valueTab, setValueTab] = useState(0);
   const frmPesquisa = useRef(null);
@@ -96,10 +80,6 @@ export default function FAT2() {
   const frmItens = useRef(null);
   const frmGrade = useRef(null);
   const frmDesc = useRef(null);
-  const frmCredito = useRef(null);
-  const frmDespesa = useRef(null);
-  const frmFinanceiro = useRef(null);
-  const [optOperFat, setOptOperFat] = useState([]);
   const [optCvto, setOptCvto] = useState([]);
   const [optFpgto, setOptFpgto] = useState([]);
   const [optTabPreco, setOptTabPreco] = useState([]);
@@ -110,37 +90,18 @@ export default function FAT2() {
   const [maxDataEmiss, setMaxDataEmiss] = useState(moment());
   const [dataSaida, setDataSaida] = useState(moment());
   const [pesqCli_id, setPesqCliId] = useState([]);
-  const [pesqSituacao, setPesqSituacao] = useState();
   const [loading, setLoading] = useState(false);
   const [openDlgGrade, setOpenDlgGrade] = useState(false);
   const [openDlgDesconto, setOpenDlgDesconto] = useState(false);
   const [openDlgImpressao, setOpenDlgImpressao] = useState(false);
-  const [openDlgNota, setOpenDlgNota] = useState(false);
-  const [openDlgCredito, setOpenDlgCredito] = useState(false);
   const [gridPesquisa, setGridPesquisa] = useState([]);
   const [dataGridPesqSelected, setDataGridPesqSelected] = useState([]);
   const [gridItens, setGridItens] = useState([]);
   const [gridGrade, setGridGrade] = useState([]);
   const [gridGradeSelected, setGridGradeSelected] = useState([]);
-  const [gridFinanceiro, setGridFinanceiro] = useState([]);
   const [paramSistema, setParamSistema] = useState([]);
   const [remumoItens, setResumoItens] = useState('');
   const [resumoPedido, setResumoPedido] = useState('');
-  // valor saldo restante do pedido a medida que se faz negociaçao financeira
-  const [valorSaldoPedido, setValorSaldoPedido] = useState(0);
-  // em caso de negociaçao (aba fina), nao podemos permitir que o total lançado com desconto seja maior que o valor do pedido menos o nao descontável
-  // nao descontavel, é o total de itens que nao se pode aplicar desconto
-  // valorFinaDesc é a variável para ajudar no controle do exposto acima. é o total lançado com desconto
-  const [valorFinaDesc, setValorFinaDesc] = useState(0);
-  const [valorNaoDescontavel, setValorNaoDescontavel] = useState(0);
-  // valor do pedido que é lançado na negociaçao financeira (totalizador)
-  const [valorPedidoLancado, setValorPedidoLancado] = useState(0);
-  // valor do pedido apos negociacao
-  const [valorPedidoNegociado, setValorPedidoNegociado] = useState(0);
-  // valor bonificado do pedido
-  const [vlrBonificado, setVlrBonificado] = useState(0);
-  const [infoVlrPedido, setInfoVlrPedido] = useState('');
-  const [infoVlrPedidoNegociado, setInfoVlrPedidoNegociado] = useState('');
   const [titleDlgGrade, setTitleDlgGrade] = useState('');
   const [labelSaldo, setLabelSaldo] = useState('');
   const [selectedProduto, setSelectedProduto] = useState([]);
@@ -150,11 +111,7 @@ export default function FAT2() {
   const [desableSave, setDesableSave] = useState(true);
   const [inputDesable, setInputDesable] = useState(true);
   const [representante, setRepresentante] = useState([]);
-  const [nParcela, setNParcela] = useState(1);
-  const [optGrupoRec, setOptGrupoRec] = useState(1);
   const [dlgConsProduto, setDlgConsProduto] = useState(false);
-  const [dlgDespesa, setDlgDespesa] = useState(false);
-  const { emp_financeiro } = useSelector((state) => state.auth);
 
   const toastOptions = {
     autoClose: 5000,
@@ -164,7 +121,6 @@ export default function FAT2() {
   // #region VALIDAÇÕES DO YUP =============================================
   const schemaCapa = Yup.object().shape({
     cp_cli_id: Yup.string().required('(??)'),
-    cp_oper_id: Yup.string().required('(??)'),
     cp_cvto_id: Yup.string().required('(??)'),
     cp_fpgto_id: Yup.string().required('(??)'),
   });
@@ -175,25 +131,16 @@ export default function FAT2() {
   });
   // #endregion
 
-  const optSitPedido = [
-    { value: '0', label: 'TODOS' },
-    { value: '1', label: 'NORMAL' },
-    { value: '2', label: 'DEVOLVIDO' },
-    { value: '3', label: 'CANCELADO' },
-    { value: '4', label: 'DEVOLUÇÕES' },
-    { value: '10', label: 'FINALIZADO' },
-  ];
-
   // #region COMBOS ===========================================================
 
   // cliente
   const loadOptionsCliente = async (inputText, callback) => {
     if (inputText) {
       const descricao = inputText.toUpperCase();
-      const tipo = params.tipo === '2' ? '1' : '2';
+
       if (descricao.length > 2) {
         const response = await api.get(
-          `v1/combos/combo_cliente?perfil=${tipo}&nome=${descricao}`
+          `v1/combos/combo_cliente?perfil=1&nome=${descricao}`
         );
         callback(
           response.data.retorno.map((i) => ({ value: i.value, label: i.label }))
@@ -201,7 +148,7 @@ export default function FAT2() {
       } else if (!Number.isNaN(descricao)) {
         // consultar com menos de 3 digitos só se for numerico como codigo do cliente
         const response = await api.get(
-          `v1/combos/combo_cliente?perfil=${tipo}&nome=${descricao}`
+          `v1/combos/combo_cliente?perfil=1&nome=${descricao}`
         );
         callback(
           response.data.retorno.map((i) => ({ value: i.value, label: i.label }))
@@ -260,25 +207,6 @@ export default function FAT2() {
     }
   };
 
-  // grupo de receita
-  async function handleGrupoRec() {
-    try {
-      const response = await api.get(
-        `v1/combos/agrupador_recdesp/1/2` // tipo 1 receita; 2 despesa
-      );
-      const dados = response.data.retorno;
-      if (dados) {
-        setOptGrupoRec(dados);
-      }
-    } catch (error) {
-      setLoading(false);
-      toast.error(
-        `Erro ao gerar referencia agrupadora \n${error}`,
-        toastOptions
-      );
-    }
-  }
-
   // forma pagamento
   async function getComboFpgto() {
     try {
@@ -314,19 +242,6 @@ export default function FAT2() {
       }
     } catch (error) {
       toast.error(`Erro ao carregar combo Condição de vencimento \n${error}`);
-    }
-  }
-
-  // operacao de faturamento
-  async function getComboOperFat() {
-    try {
-      const response = await api.get(`v1/combos/operfat/1`);
-      const dados = response.data.retorno;
-      if (dados) {
-        setOptOperFat(dados);
-      }
-    } catch (error) {
-      toast.error(`Erro ao carregar combo Operaçao de faturamento \n${error}`);
     }
   }
 
@@ -370,14 +285,6 @@ export default function FAT2() {
     document.getElementById('chbBonificar').checked = false;
   }
 
-  function limpaFormFina() {
-    frmFinanceiro.current.setFieldValue('fina_valor_final', '');
-    frmFinanceiro.current.setFieldValue('fina_valor', '');
-    frmFinanceiro.current.setFieldValue('fina_perc_desc', '');
-    frmFinanceiro.current.setFieldValue('fina_perc_juro', '');
-    frmFinanceiro.current.setFieldValue('fina_fpgto_id', '');
-  }
-
   // fazer consulta dos pedidos
   async function listaPedido() {
     try {
@@ -391,15 +298,14 @@ export default function FAT2() {
         cli_id: pesqCli_id.value,
         data_ini: moment(pesqDataIni).format('YYYY-MM-DD'),
         data_fin: moment(pesqDataFin).format('YYYY-MM-DD'),
-        situacao: pesqSituacao, // situacao pedido
+        situacao: '1', // situacao pedido
         status: null,
         nfce: 'N', // S/N
         cpf_consumidor: null,
-        naovalidado: document.getElementById('chbNaoValidado').checked,
-        perfil: params.tipo,
+        perfil: '6', // orçamento
       };
 
-      const response = await api.post('v1/fat/lista_pedido', prm);
+      const response = await api.post('v1/fat/orc/lista_pedido', prm);
       const dados = response.data.retorno;
       if (dados) {
         setResumoPedido(response.data.message);
@@ -422,9 +328,9 @@ export default function FAT2() {
 
       const formData = frmCapa.current.getData();
 
-      const url = `v1/fat/itens_pedido?cp_id=${formData.cp_id}&item_id=&limit=${
-        limit || ''
-      }&prod_id=&detalhar=${detalhar || ''}`;
+      const url = `v1/fat/orc/itens_pedido?cp_id=${
+        formData.cp_id
+      }&item_id=&limit=${limit || ''}&prod_id=&detalhar=${detalhar || ''}`;
 
       let response = await api.get(url);
       const dados = response.data.retorno;
@@ -440,26 +346,18 @@ export default function FAT2() {
           );
           frmItens.current.setFieldValue('item_tab_preco_id', x);
         } else {
-          if (params.tipo === '2') {
-            x = optTabPreco.find(
-              (op) =>
-                op.value.toString() ===
-                paramSistema[0].par_tab_padrao_prevenda.toString()
-            );
-          } else {
-            x = optTabPreco.find(
-              (op) =>
-                op.value.toString() ===
-                paramSistema[0].par_tab_padrao_consignado.toString()
-            );
-          }
+          x = optTabPreco.find(
+            (op) =>
+              op.value.toString() ===
+              paramSistema[0].par_tab_padrao_prevenda.toString()
+          );
           frmItens.current.setFieldValue('item_tab_preco_id', x);
         }
       }
 
       // resumo itens
       response = await api.get(
-        `v1/fat/resumo_itens_pedido?cp_id=${formData.cp_id}`
+        `v1/fat/orc/resumo_itens_pedido?cp_id=${formData.cp_id}`
       );
       if (response.data.success) {
         setResumoItens(response.data.retorno);
@@ -489,7 +387,6 @@ export default function FAT2() {
   async function handleNovoPedido() {
     try {
       setSituacaoPedido('1');
-      setExisteBordero('N');
       setGridItens([]);
       setDataGridPesqSelected([]);
 
@@ -499,30 +396,18 @@ export default function FAT2() {
       frmCapa.current.setFieldValue('cp_cli_id', '');
       frmCapa.current.setFieldValue('cp_cvto_id', '');
       frmCapa.current.setFieldValue('cp_fpgto_id', '');
-      frmCapa.current.setFieldValue('cp_oper_id', '');
       frmCapa.current.setFieldValue('cp_vlr_total', 0);
       frmCapa.current.setFieldValue('cp_vlr_outros', 0);
-      frmCapa.current.setFieldValue('cp_credito_cli', 0);
       frmCapa.current.setFieldValue('cp_vlr_desc', 0);
       frmCapa.current.setFieldValue('cp_vlr_nf', 0);
       frmCapa.current.setFieldValue('cp_observacao', '');
-      frmCapa.current.setFieldValue('valor_cota', '');
       frmCapa.current.setFieldValue('cp_representante', '');
-      let x;
 
-      if (params.tipo === '2') {
-        x = optTabPreco.find(
-          (op) =>
-            op.value.toString() ===
-            paramSistema[0].par_tab_padrao_prevenda.toString()
-        );
-      } else {
-        x = optTabPreco.find(
-          (op) =>
-            op.value.toString() ===
-            paramSistema[0].par_tab_padrao_consignado.toString()
-        );
-      }
+      const x = optTabPreco.find(
+        (op) =>
+          op.value.toString() ===
+          paramSistema[0].par_tab_padrao_prevenda.toString()
+      );
       frmItens.current.setFieldValue('item_tab_preco_id', x);
 
       setDesableSave(false);
@@ -559,37 +444,12 @@ export default function FAT2() {
           ? 'T'
           : 'N';
         const url = `v1/fat/report/espelho_pedido?cp_id=${dataGridPesqSelected[0].cp_id}
-                     &ordenar=${ordem}&conferencia=${conferencia}&tipo=${params.tipo}`;
+                     &ordenar=${ordem}&conferencia=${conferencia}`;
 
         const response = await api.get(url);
         const link = response.data;
         setLoading(false);
         window.open(link, '_blank');
-      } else {
-        toast.info('Selecione um pedido para imprimir', toastOptions);
-      }
-    } catch (error) {
-      setLoading(false);
-      toast.error(`Erro ao imprimir pedido \n${error}`, toastOptions);
-    }
-  }
-
-  // impressao de nota promissória
-  async function handlePrintPromissoria() {
-    try {
-      if (dataGridPesqSelected.length > 0) {
-        setLoading(true);
-        const response = await api.get(
-          `v1/fina/report/promissoria/pedido?cp_id=${dataGridPesqSelected[0].cp_id}`
-        );
-        if (response.data.success) {
-          const link = response.data.retorno;
-          setLoading(false);
-          window.open(link, '_blank');
-        } else {
-          setLoading(false);
-          toast.error(response.data.errors, toastOptions);
-        }
       } else {
         toast.info('Selecione um pedido para imprimir', toastOptions);
       }
@@ -605,9 +465,6 @@ export default function FAT2() {
         setLoading(true);
         setSituacaoPedido(dataGridPesqSelected[0].situacao);
         setExisteBordero(dataGridPesqSelected[0].cp_status_bordero);
-        setVlrBonificado(
-          toDecimal(dataGridPesqSelected[0].vlr_bonificacao).toFixed(2)
-        );
         frmCapa.current.setFieldValue('cp_id', dataGridPesqSelected[0].cp_id);
         setDataEmiss(
           parse(dataGridPesqSelected[0].cp_data_emis, 'dd/MM/yyyy', new Date())
@@ -636,12 +493,6 @@ export default function FAT2() {
         );
         frmCapa.current.setFieldValue('cp_fpgto_id', x);
 
-        x = optOperFat.find(
-          (op) =>
-            op.value.toString() ===
-            dataGridPesqSelected[0].cp_oper_id.toString()
-        );
-        frmCapa.current.setFieldValue('cp_oper_id', x);
         frmCapa.current.setFieldValue(
           'cp_vlr_total',
           dataGridPesqSelected[0].cp_vlr_total
@@ -649,14 +500,6 @@ export default function FAT2() {
         frmCapa.current.setFieldValue(
           'cp_vlr_outros',
           dataGridPesqSelected[0].cp_vlr_outros
-        );
-        frmCapa.current.setFieldValue(
-          'cp_credito_cli',
-          dataGridPesqSelected[0].cp_credito_cli
-        );
-        frmCapa.current.setFieldValue(
-          'vlr_bonificacao',
-          dataGridPesqSelected[0].vlr_bonificacao
         );
 
         frmCapa.current.setFieldValue(
@@ -752,7 +595,7 @@ export default function FAT2() {
           cp_serie_nf_dev: null,
           cp_situacao: situacaoPedido,
           cp_status_sefaz: '1', // aguardando transmissão
-          cp_perfil: params.tipo,
+          cp_perfil: '6',
           cp_tpamb: null,
           cp_tpemis: null,
           cp_tpnf: null,
@@ -771,7 +614,7 @@ export default function FAT2() {
           cp_vlr_total: toDecimal(formCapa.cp_valor_total),
           cp_qvol: null,
           cp_tipo_doc: '3',
-          cp_representante: formCapa.cp_representante || null,
+          cp_representante: null,
         };
 
         // if (toDecimal(formCapa.cp_vlr_outros) === 0) delete capa.cp_vlr_outros;
@@ -782,7 +625,7 @@ export default function FAT2() {
           itens: [],
         };
 
-        const retorno = await api.post('v1/fat/pedido', obj);
+        const retorno = await api.post('v1/fat/orc/orcamento', obj);
 
         if (retorno.data.success) {
           if (retorno.data.retorno.cp_id) {
@@ -833,10 +676,7 @@ export default function FAT2() {
         }
 
         frmCapa.current.setFieldError('cp_cli_id', validationErrors.cp_cli_id);
-        frmCapa.current.setFieldError(
-          'cp_oper_id',
-          validationErrors.cp_oper_id
-        );
+
         frmCapa.current.setFieldError(
           'cp_cvto_id',
           validationErrors.cp_cvto_id
@@ -896,138 +736,6 @@ export default function FAT2() {
         toDecimal(formData.item_quantidade) * toDecimal(formData.item_vlr_unit)
       )
     );
-  }
-
-  // cancelar pedido
-  async function handleCancelar() {
-    try {
-      if (dataGridPesqSelected.length > 0) {
-        if (
-          dataGridPesqSelected[0].situacao === '3' ||
-          dataGridPesqSelected[0].situacao === '10'
-        ) {
-          toast.warning(
-            'ATENÇÃO!! ESTE PEDIDO NÃO PODE MAIS SER ALTERADO.  VERIFIQUE A SITUACÃO!!!',
-            toastOptions
-          );
-          return;
-        }
-
-        const confirmation = await Confirmation.show(
-          'VOCÊ TEM CERTEZA QUE QUER CANCEALR O PEDIDO???'
-        );
-
-        if (confirmation) {
-          setLoading(true);
-
-          const url = `v1/fat/cancelar_pedido?cp_id=${dataGridPesqSelected[0].cp_id}&cli_id=${dataGridPesqSelected[0].cli_id}&gera_fina=${emp_financeiro}`;
-          const response = await api.put(url);
-          setLoading(false);
-          if (response.data.success) {
-            await listaPedido();
-            toast.info('Pedido Cancelado com sucesso!!!', toastOptions);
-          }
-        }
-      } else {
-        toast.info('Selecione um pedido para cancelar', toastOptions);
-      }
-    } catch (error) {
-      setLoading(false);
-      toast.error(`Erro ao cancelar pedido \n${error}`, toastOptions);
-    }
-  }
-
-  // gerar nota fiscal
-  async function handleGerarNota() {
-    if (dataGridPesqSelected.length > 0) {
-      if (dataGridPesqSelected[0].situacao === '3') {
-        toast.warning(
-          'ATENÇÃO!! Este Pedido está cancelado. A nota não poderá ser gerada',
-          toastOptions
-        );
-      } else {
-        setLoading(true);
-        const tp_doc = document.getElementById('rbNota').checked ? '1' : '2';
-        const response = await api.post(
-          `v1/fat/gerar_nota?cp_id=${dataGridPesqSelected[0].cp_id}&tp_doc=${tp_doc}`
-        );
-
-        setLoading(false);
-        setOpenDlgNota(false);
-        if (response.data.success) {
-          await listaPedido();
-          toast.info(response.data.retorno, toastOptions);
-        }
-      }
-    } else {
-      toast.info('Selecione um pedido para gerar a nota', toastOptions);
-    }
-  }
-
-  // validar pedido
-  async function handleValidarPedido() {
-    if (dataGridPesqSelected.length > 0) {
-      if (
-        dataGridPesqSelected[0].situacao === '3' ||
-        dataGridPesqSelected[0].situacao === '10'
-      ) {
-        toast.warning(
-          'ATENÇÃO!! ESTE PEDIDO NÃO PODE MAIS SER ALTERADO.  VERIFIQUE A SITUACÃO!!!',
-          toastOptions
-        );
-      } else {
-        setLoading(true);
-        const response = await api.put(
-          `v1/fat/validar_pedido?cp_id=${dataGridPesqSelected[0].cp_id}`
-        );
-
-        if (response.data.success) {
-          const url = `v1/fat/report/espelho_pedido?cp_id=${dataGridPesqSelected[0].cp_id}
-          &ordenar=2&conferencia=S&tipo=${params.tipo}`;
-
-          const rel = await api.get(url);
-          setLoading(false);
-
-          if (rel.data.toString() === '0') {
-            toast.info('PEDIDO VALIDADO COM SUCESSO!!!', toastOptions);
-          } else {
-            const link = rel.data;
-            window.open(link, '_blank');
-          }
-        }
-      }
-    } else {
-      toast.info('Selecione um pedido para validar', toastOptions);
-    }
-  }
-
-  // finalizar pedido
-  async function handleFinalizarPedido() {
-    try {
-      if (dataGridPesqSelected.length > 0) {
-        const confirmation = await Confirmation.show(
-          'Deseja realmente FINALIZAR o pedido???'
-        );
-
-        if (confirmation) {
-          setLoading(true);
-          const url = `v1/fat/finalizar_pedido?cp_id=${dataGridPesqSelected[0].cp_id}&situacao=10&justificativa=`;
-          const response = await api.put(url);
-          setLoading(false);
-          if (response.data.success) {
-            await listaPedido();
-            toast.info('Pedido finalizado com sucesso!!!', toastOptions);
-          } else {
-            toast.error(response.data.errors, toastOptions);
-          }
-        }
-      } else {
-        toast.info('Selecione um pedido para finalizar', toastOptions);
-      }
-    } catch (error) {
-      setLoading(false);
-      toast.error(`Erro ao finalizar pedido \n${error}`, toastOptions);
-    }
   }
 
   // adiconar itens
@@ -1134,7 +842,7 @@ export default function FAT2() {
         itens: itensPedido,
       };
 
-      const retorno = await api.post('v1/fat/pedido', obj);
+      const retorno = await api.post('v1/fat/orc/orcamento', obj);
       if (retorno.data.success) {
         // await listaItens(formCapa.cp_id, 30);
         setGridItens(retorno.data.retorno);
@@ -1201,7 +909,7 @@ export default function FAT2() {
         const formCapa = frmCapa.current.getData();
 
         const response = await api.put(
-          `v1/fat/aplicar_desconto?cp_id=${formCapa.cp_id}&perc=${formData.perc_desconto}
+          `v1/fat/orc/aplicar_desconto?cp_id=${formCapa.cp_id}&perc=${formData.perc_desconto}
            &valor=${formData.vlr_desconto}`
         );
 
@@ -1244,8 +952,7 @@ export default function FAT2() {
             setLoading(true);
             const formCapa = frmCapa.current.getData();
             const response = await api.delete(
-              `v1/fat/excluir_item_pedido?cp_id=${formCapa.cp_id}&prode_id=${param.prode_id}
-              &cli_id=${formCapa.cp_cli_id}&cp_perfil=${params.tipo}`
+              `v1/fat/orc/excluir_item_pedido?cp_id=${formCapa.cp_id}&prode_id=${param.prode_id}`
             );
             if (response.data.success) {
               await listaItens(1000, 'N');
@@ -1279,99 +986,6 @@ export default function FAT2() {
     }
   }
 
-  // abrir popup de credito
-  async function getCredito() {
-    try {
-      const formCapa = frmCapa.current.getData();
-      if (valueTab == '1' && formCapa.cp_id) {
-        // verificar finalizacao
-        if (situacaoPedido !== '10') {
-          toast.warning(
-            'ATENÇÃO!! FINALIZE O PEDIDO PARA APLICAR CRÉDITO... OU CASO NECESSÁRIO FAÇA UMA SIMULAÇÃO DE VALOR',
-            toastOptions
-          );
-          return;
-        }
-
-        const response = await api.get(
-          `v1/fat/credito_cliente/${pesqCli_id.value}`
-        );
-        if (response.data.success) {
-          frmCredito.current.setFieldValue(
-            'credito_disponivel',
-            response.data.retorno[0].credito
-          );
-          frmCredito.current.setFieldValue('credito_aplicar', '');
-          setOpenDlgCredito(true);
-        } else {
-          toast.error(
-            `Erro ao consultar credito cliente\n${response.data.error}`,
-            toastOptions
-          );
-        }
-      } else {
-        toast.info(
-          'Abra o pedido, para que seja aplicado o crédito do cliente...',
-          toastOptions
-        );
-      }
-    } catch (error) {
-      setLoading(false);
-      toast.error(`Erro ao consultar credito cliente\n${error}`, toastOptions);
-    }
-  }
-
-  // credito do cliente
-  async function handleCreditoCli() {
-    try {
-      const formCapa = frmCapa.current.getData();
-      const formCredito = frmCredito.current.getData();
-      if (valueTab == '1' && formCapa.cp_id) {
-        if (
-          toDecimal(formCredito.credito_aplicar) <=
-          toDecimal(formCredito.credito_disponivel)
-        ) {
-          setLoading(true);
-
-          if (pesqCli_id.value) {
-            const response = await api.get(
-              `v1/fat/credito_cliente/${pesqCli_id.value}/${
-                formCapa.cp_id
-              }/${toDecimal(formCredito.credito_aplicar)}`
-            );
-
-            if (response.data.success) {
-              await listaPedido();
-              setDataGridPesqSelected([]);
-              setValueTab(0);
-              frmCapa.current.setFieldValue(
-                'cp_credito_cli',
-                toDecimal(formCredito.credito_aplicar)
-              );
-            } else {
-              toast.error(response.data.errors, toastOptions);
-            }
-          } else {
-            frmCapa.current.setFieldValue('cp_credito_cli', 0);
-          }
-
-          setOpenDlgCredito(false);
-          setLoading(false);
-        } else {
-          toast.error(
-            'O VALOR INFORMADO É MAIOR QUE O SALDO DISPONÍVEL DO CLIENTE',
-            toastOptions
-          );
-        }
-      } else {
-        toast.info('Crédito já aplicado!!!', toastOptions);
-      }
-    } catch (error) {
-      setLoading(false);
-      toast.error(`Erro ao aplicar credito cliente\n${error}`, toastOptions);
-    }
-  }
-
   // change select  produto - abrir popup grade
   async function handleChangeSelectProduto(p) {
     try {
@@ -1380,7 +994,7 @@ export default function FAT2() {
       if (p.value) {
         if (!frmItens.current.getData().barcode) {
           const tab_id = frmItens.current.getData().item_tab_preco_id;
-          const url = `v1/fat/grade_produto?prod_id=${p.value}&marca_id=&classific1=&classific2=&classific3=&tab_id=${tab_id}`;
+          const url = `v1/fat/orc/grade_produto?prod_id=${p.value}&marca_id=&classific1=&classific2=&classific3=&tab_id=${tab_id}`;
           const response = await api.get(url);
           const dados = response.data.retorno;
           if (dados) {
@@ -1436,7 +1050,7 @@ export default function FAT2() {
           prode = parseInt(prode, 10);
           if (item_tab_preco_id) {
             setLoading(true);
-            const url = `v1/fat/grade_produto?prod_id=&marca_id=&classific1=&classific2=&classific3=&tab_id=${item_tab_preco_id}&prode_id=${prode}`;
+            const url = `v1/fat/orc/grade_produto?prod_id=&marca_id=&classific1=&classific2=&classific3=&tab_id=${item_tab_preco_id}&prode_id=${prode}`;
             const response = await api.get(url);
             const dados = response.data.retorno;
             if (dados.length > 0) {
@@ -1515,8 +1129,7 @@ export default function FAT2() {
             setLoading(true);
             const formCapa = frmCapa.current.getData();
             const response = await api.delete(
-              `v1/fat/excluir_item_pedido?cp_id=${formCapa.cp_id}&prode_id=${prm.data.prode_id}
-              &cli_id=${formCapa.cp_cli_id}&cp_perfil=${params.tipo}`
+              `v1/fat/orc/excluir_item_pedido?cp_id=${formCapa.cp_id}&prode_id=${prm.data.prode_id}`
             );
             if (response.data.success) {
               await listaItens(1000, '');
@@ -1583,457 +1196,6 @@ export default function FAT2() {
     window.open('/crm9', '_blank');
   }
 
-  // alimenta grid financeiro
-  async function getGridFinanceiro() {
-    try {
-      const response = await api.get(
-        `v1/fat/grid_financeiro?cp_id=${dataGridPesqSelected[0].cp_id}`
-      );
-      const dados = response.data.retorno;
-      if (dados) {
-        setGridFinanceiro(dados);
-        if (dados.length > 0) setValorSaldoPedido(0);
-      }
-    } catch (error) {
-      toast.error(`Erro ao listar negociação do cliente \n${error}`);
-    }
-  }
-
-  // adicionar lançamento na aba financeiro
-  function handleAddFina() {
-    try {
-      const formFina = frmFinanceiro.current.getData();
-
-      if (
-        toDecimal(frmCapa.current.getData().cp_vlr_desc) - vlrBonificado > 0 &&
-        toDecimal(formFina.fina_perc_desc) > 0
-      ) {
-        toast.error(
-          `JÁ EXISTE DESCONTO APLICADO A ESTE PEDIDO...REMOVA O DESCONTO PARA INICIAR UMA NEGOCIAÇÃO FINANCEIRA`,
-          toastOptions
-        );
-        return;
-      }
-
-      if (emp_financeiro === 'S') {
-        if (!formFina.fina_grprec_id) {
-          toast.error(
-            `VOCÊ ESTÁ USANDO UMA OPERAÇÃO QUE MOVIMENTA FINANCEIRO... INFORME O GRUPO DE RECEITA!!`,
-            toastOptions
-          );
-          return;
-        }
-      }
-
-      if (formFina.fina_fpgto_id) {
-        if (
-          // credito vista ou debto
-          (formFina.fina_fpgto_id.toString() === '3' ||
-            formFina.fina_fpgto_id.toString() === '4') &&
-          nParcela > 1
-        ) {
-          toast.error(
-            `A CONDIÇÃO DE VENCIMENTO INFORMADA É INCOMPATÍVEL COM A FORMA DE PAGAMENTO ESCOLHIDA...`,
-            toastOptions
-          );
-          return;
-        }
-
-        if (!formFina.fina_perc_desc) {
-          // se nao informou percent desconto
-          frmFinanceiro.current.setFieldValue('fina_perc_desc', '');
-          document.getElementsByName('fina_perc_desc')[0].focus();
-        } else if (!formFina.fina_perc_juro) {
-          frmFinanceiro.current.setFieldValue('fina_perc_juro', '');
-          document.getElementsByName('fina_perc_juro')[0].focus();
-        } else if (
-          toDecimal(formFina.fina_valor) > 0 &&
-          toDecimal(formFina.fina_valor_final) === 0
-        ) {
-          let valor_final = 0;
-
-          if (toDecimal(formFina.fina_perc_desc) > 0) {
-            valor_final = (
-              toDecimal(formFina.fina_valor) *
-              (1 - toDecimal(formFina.fina_perc_desc) / 100)
-            ).toFixed(2);
-          } else if (toDecimal(formFina.fina_perc_juro) > 0) {
-            valor_final = JurosTotal(
-              toDecimal(formFina.fina_valor),
-              nParcela,
-              toDecimal(formFina.fina_perc_juro)
-            );
-            // lançar o valor do acréscimo como despesa
-            frmCapa.current.setFieldValue(
-              'cp_vlr_outros',
-              valor_final - toDecimal(formFina.fina_valor)
-            );
-          } else {
-            valor_final = toDecimal(formFina.fina_valor).toFixed(2);
-          }
-
-          // controlar o valor lançado com desconto
-          if (toDecimal(formFina.fina_perc_desc) > 0)
-            setValorFinaDesc(toDecimal(formFina.fina_valor) + valorFinaDesc);
-
-          frmFinanceiro.current.setFieldValue('fina_valor_final', valor_final);
-        } else {
-          // adicionar o item na grid
-          const itemGrid = [];
-          const objForma = optFpgto.filter(
-            (f) => f.value === formFina.fina_fpgto_id
-          );
-
-          const objCondVcto = optCvto.filter(
-            (c) => c.value === formFina.fina_cvto_id
-          );
-
-          // abortar caso o valor com desconto informado seja maior que o valor do pedido menos o valor nao descontável
-          /*
-          console.warn(
-            `valorLançado: ${valorPedidoLancado} SaldoPedido: ${valorSaldoPedido} valorFinaDesc: ${valorFinaDesc.toFixed(
-              2
-            )}  valorPedidoNegociado: ${valorPedidoNegociado}  cp_vlrnf: ${toDecimal(
-              frmCapa.current.getData().cp_vlr_nf
-            )} nao descon: ${valorNaoDescontavel} DIFERENÇA: ${(
-              toDecimal(frmCapa.current.getData().cp_vlr_nf) -
-              valorNaoDescontavel
-            ).toFixed(2)}`
-          );
-          */
-
-          const limiteDesc = (
-            toDecimal(frmCapa.current.getData().cp_vlr_nf) -
-            toDecimal(frmCapa.current.getData().cp_credito_cli) -
-            toDecimal(valorNaoDescontavel)
-          ).toFixed(2);
-
-          if (
-            toDecimal(valorFinaDesc.toFixed(2)) > toDecimal(limiteDesc) &&
-            toDecimal(formFina.fina_perc_desc) > 0
-          ) {
-            toast.error(
-              `O VALOR A PAGAR COM DESCONTO, É MAIOR QUE O MÁXIMO PERMITIDO. PARA ESTE PEDIDO, O VALOR MÁXIMO PARA DESCONTO NESTA CONDIÇÃO É DE: ${(
-                valorSaldoPedido - valorNaoDescontavel
-              ).toFixed(2)} total lançado: ${toDecimal(
-                formFina.fina_valor
-              ).toFixed(2)}`,
-              toastOptions
-            );
-            frmFinanceiro.current.setFieldValue('fina_valor_final', '');
-            // removendo da variável o valor lançado excedente
-            setValorFinaDesc(valorFinaDesc - toDecimal(formFina.fina_valor));
-            return;
-          }
-
-          // totalizando os valores lancado
-          setValorPedidoLancado(
-            valorPedidoLancado + toDecimal(formFina.fina_valor)
-          );
-
-          const vlr_atualizado =
-            valorSaldoPedido - toDecimal(formFina.fina_valor);
-          if (vlr_atualizado > -1) {
-            setValorSaldoPedido(vlr_atualizado.toFixed(2));
-            const objFina = {
-              fina_fpgto_id: formFina.fina_fpgto_id,
-              forma_pgto: objForma[0].label,
-              cond_vcto: objCondVcto[0].label,
-              fina_cvto_id: formFina.fina_cvto_id,
-              fina_valor: formFina.fina_valor,
-              fina_perc_desc: formFina.fina_perc_desc,
-              fina_perc_juro: formFina.fina_perc_juro,
-              fina_valor_final: formFina.fina_valor_final,
-              fina_grprec_id: formFina.fina_grprec_id,
-              persistido: 'N',
-            };
-
-            itemGrid.push(...gridFinanceiro, objFina);
-            setGridFinanceiro(itemGrid);
-
-            const vlrNeg =
-              valorPedidoNegociado + toDecimal(formFina.fina_valor_final);
-            setValorPedidoNegociado(vlrNeg);
-
-            if (vlr_atualizado === 0) {
-              setInfoVlrPedidoNegociado(
-                `VALOR A RECEBER DO CLIENTE: ${FormataMoeda(vlrNeg.toString())}`
-              );
-            } else {
-              setInfoVlrPedidoNegociado('');
-            }
-
-            // limpar controles
-            limpaFormFina();
-
-            const ref = frmFinanceiro.current.getFieldRef('fina_fpgto_id');
-            ref.focus();
-          } else {
-            toast.error(
-              `O VALOR INFORMADO É MAIOR QUE O SALDO DO PEDIDO. OPERAÇÃO CANCELADA!!`,
-              toastOptions
-            );
-          }
-        }
-      } else {
-        toast.warn(`INFORME A FORMA DE PAGAMENTO`, toastOptions);
-      }
-    } catch (err) {
-      toast.error(`Erro ao informar forma de pagamento: ${err}`, toastOptions);
-    }
-  }
-
-  const handleExcluirFina = async (prm) => {
-    try {
-      setLoading(true);
-      let excluiu = false;
-      if (prm.persistido === 'S') {
-        const formCapa = frmCapa.current.getData();
-
-        const response = await api.delete(
-          `v1/fat/excluir_aba_financeiro?cp_id=${prm.fina_cp_id}&gera_fina=${emp_financeiro}&cli_id=${formCapa.cp_cli_id}&cp_perfil=${params.tipo}`
-        );
-        if (response.data.success) {
-          setGridFinanceiro([]);
-          excluiu = true;
-        } else {
-          toast.error(response.data.errors, toastOptions);
-          excluiu = false;
-          setLoading(false);
-          return;
-        }
-      } else {
-        setGridFinanceiro([]);
-        excluiu = true;
-      }
-
-      if (excluiu) {
-        // tratar valores
-        let vlped = 0;
-
-        setValorSaldoPedido((prev) => {
-          vlped = toDecimal(prev) + toDecimal(prm.fina_valor);
-          frmFinanceiro.current.setFieldValue('fina_valor', vlped);
-          return vlped;
-        });
-
-        let vlneg = 0;
-        setValorPedidoNegociado((prev) => {
-          vlneg = prev - toDecimal(prm.fina_valor_final);
-          setValorPedidoNegociado(vlneg);
-        });
-        setInfoVlrPedidoNegociado('');
-      }
-
-      setValueTab(async (prev) => {
-        prev = 0;
-        setValueTab(0);
-        setDataGridPesqSelected([]);
-        await listaPedido();
-        return prev;
-      });
-
-      setValorSaldoPedido(
-        toDecimal(frmCapa.current.getData().cp_vlr_nf) -
-          toDecimal(frmCapa.current.getData().cp_credito_cli)
-      );
-      setInfoVlrPedidoNegociado('');
-      setValorPedidoNegociado(0);
-      setValorFinaDesc(0); // zerando valor de negociaçao lançado com desconto
-      setValorPedidoLancado(0); // total pedido lançado zerado
-      frmFinanceiro.current.setFieldValue('fina_grprec_id', '');
-      setLoading(false);
-    } catch (err) {
-      setLoading(false);
-      toast.error(`Erro ao excluir item: ${err}`, toastOptions);
-    }
-  };
-
-  // salvar negociação financeira
-  async function handleConfirmarNeg() {
-    try {
-      if (gridFinanceiro.length > 0) {
-        setLoading(true);
-        const formCapa = frmCapa.current.getData();
-        const cad = [];
-        let obj = {};
-        let vlrAdicionado = 0;
-        gridFinanceiro.forEach((g) => {
-          vlrAdicionado += toDecimal(g.fina_valor);
-          obj = {
-            fina_cp_emp_id: null,
-            fina_cp_id: formCapa.cp_id,
-            fina_fpgto_id: g.fina_fpgto_id,
-            fina_cvto_id: g.fina_cvto_id,
-            fina_valor: toDecimal(g.fina_valor),
-            fina_perc_desc: toDecimal(g.fina_perc_desc),
-            fina_perc_juro: toDecimal(g.fina_perc_juro),
-            fina_valor_final: toDecimal(g.fina_valor_final),
-            fina_grprec_id: g.fina_grprec_id || null,
-          };
-          cad.push(obj);
-        });
-
-        if (
-          vlrAdicionado.toFixed(2) !==
-          (
-            toDecimal(formCapa.cp_vlr_nf) - toDecimal(formCapa.cp_credito_cli)
-          ).toFixed(2)
-        ) {
-          setLoading(false);
-          toast.error(
-            `O TOTAL NEGOCIADO, DIFERE DO VALOR DO PEDIDO.REVISE A NEGOCIAÇÃO PARA CONTINUAR...DIFERENÇA ENCONTRADA: ${(
-              vlrAdicionado.toFixed(2) - toDecimal(formCapa.cp_vlr_nf)
-            ).toFixed(2)} valor pedido: ${formCapa.cp_vlr_nf} `,
-            toastOptions
-          );
-          return;
-        }
-        const retorno = await api.post(
-          `v1/fat/pedido_financeiro?gera_fina=${emp_financeiro}`,
-          cad
-        );
-        if (retorno.data.success) {
-          setGridPesquisa([]);
-          await getGridFinanceiro();
-          await listaPedido();
-          setValueTab(0);
-          toast.success(
-            'Negociação confirmada com sucesso!!! Abra o pedido novamente para conferir'
-          );
-        } else {
-          toast.error(
-            `Erro ao confirmar negociação: ${retorno.data.errors.message} `,
-            toastOptions
-          );
-          setGridFinanceiro([]);
-          limpaFormFina();
-          setValorFinaDesc(0);
-        }
-        setLoading(false);
-      } else {
-        toast.error('NÃO HÁ NEGOCIAÇÃO DEFINIDA.', toastOptions);
-      }
-    } catch (err) {
-      setLoading(false);
-      toast.error(`Erro ao confirmar negociação: ${err} `, toastOptions);
-    }
-  }
-
-  // acesso aba financeiro
-  async function handleAbaFina() {
-    if (dataGridPesqSelected.length > 0) {
-      limpaFormFina();
-      frmFinanceiro.current.setFieldValue('fina_grprec_id', '');
-      setValorFinaDesc(0); // zerando valor de negociaçao lançado com desconto
-      setValorPedidoLancado(0); // total pedido lançado zerado
-      setLoading(true);
-      // buscar valor nao desocontavel do pedido
-      const response = await api.get(
-        `v1/fat/nao_descontavel?cp_id=${dataGridPesqSelected[0].cp_id} `
-      );
-      if (response.data.success) {
-        setValorNaoDescontavel(toDecimal(response.data.retorno));
-      }
-
-      frmFinanceiro.current.setFieldValue('fina_valor', '');
-      frmFinanceiro.current.setFieldValue(
-        'fina_vpedido',
-        ArredondaValorDecimal(
-          toDecimal(dataGridPesqSelected[0].cp_vlr_nf) -
-            toDecimal(dataGridPesqSelected[0].cp_credito_cli)
-        )
-      );
-      const formCapa = frmCapa.current.getData();
-      if (dataGridPesqSelected[0].situacao === '10') {
-        setInfoVlrPedido(
-          `VALOR ATUAL DO PEDIDO: ${FormataMoeda(
-            dataGridPesqSelected[0].cp_vlr_nf
-          )} `
-        );
-        if (!formCapa.cp_id) await handleEdit();
-        setValorSaldoPedido(
-          toDecimal(dataGridPesqSelected[0].cp_vlr_nf) -
-            toDecimal(dataGridPesqSelected[0].cp_credito_cli)
-        );
-        setInfoVlrPedidoNegociado('');
-        setValorPedidoNegociado(0);
-        // set cond vcto do pedido
-        const x = optCvto.find(
-          (op) =>
-            op.value.toString() ===
-            frmCapa.current.getData().cp_cvto_id.toString()
-        );
-        frmFinanceiro.current.setFieldValue('fina_cvto_id', x);
-        setNParcela(x.parcelas);
-
-        await getGridFinanceiro();
-        setLoading(false);
-
-        setValueTab(3);
-      } else {
-        toast.info('SELECIONE UM PEDIDO FINALIZADO', toastOptions);
-        setValueTab(0);
-        setLoading(false);
-      }
-    } else {
-      toast.info('SELECIONE UM PEDIDO FINALIZADO', toastOptions);
-      setLoading(false);
-    }
-  }
-
-  function handleValidaDespesa() {
-    const formCapa = frmCapa.current.getData();
-    if (valueTab == '1' && formCapa.cp_id) {
-      if (situacaoPedido !== '10') {
-        toast.warning(
-          'ATENÇÃO!! FINALIZE O PEDIDO PARA LANÇAR DESPESAS ADICIONAIS',
-          toastOptions
-        );
-        return;
-      }
-      frmDespesa.current.setFieldValue('vlrDespesa', '');
-      setDlgDespesa(true);
-    } else {
-      toast.info('ABRA O PEDIDO PARA LANÇAR DESPESAS ADICIONAIS', toastOptions);
-    }
-  }
-
-  // despesas adicionais
-  async function handleDespesa() {
-    try {
-      const formCapa = frmCapa.current.getData();
-      const formDesp = frmDespesa.current.getData();
-      setLoading(true);
-      const response = await api.put(
-        `v1/fat/lancar_despesas?cli_id=${pesqCli_id.value}&cp_id=${
-          formCapa.cp_id
-        }&valor=${toDecimal(formDesp.vlrDespesa)}&perfil=${params.tipo}`
-      );
-
-      if (response.data.success) {
-        const ret = response.data.retorno;
-
-        frmCapa.current.setFieldValue(
-          'cp_vlr_outros',
-          toDecimal(ret.cp_vlr_outros)
-        );
-        frmCapa.current.setFieldValue('cp_vlr_nf', toDecimal(ret.cp_vlr_nf));
-      } else {
-        toast.error(
-          `Erro ao lançar despesas \n${response.data.errors}`,
-          toastOptions
-        );
-      }
-
-      setDlgDespesa(false);
-      setLoading(false);
-    } catch (error) {
-      setLoading(false);
-      toast.error(`Erro ao lançar despesas\n${error}`, toastOptions);
-    }
-  }
-
   // change TAB
   const handleChangeTab = async (event, newValue) => {
     if (newValue === 0) {
@@ -2076,9 +1238,6 @@ export default function FAT2() {
       } else {
         toast.info('SELECIONE UM PEDIDO PARA CONSULTAR', toastOptions);
       }
-    } else if (newValue === 3) {
-      setValueTab(newValue);
-      await handleAbaFina();
     }
   };
 
@@ -2142,30 +1301,6 @@ export default function FAT2() {
       cellClass: 'cell_valor',
     },
   ];
-
-  if (params.tipo === '3') {
-    gridColumnConsulta.push({
-      field: 'valor_cota',
-      headerName: 'VLR. COTA',
-      width: 110,
-      sortable: true,
-      resizable: true,
-      filter: true,
-      lockVisible: true,
-      type: 'rightAligned',
-      valueFormatter: GridCurrencyFormatter,
-    });
-
-    gridColumnConsulta.push({
-      field: 'acerto',
-      headerName: 'SITUAÇÃO DE ACERTO',
-      width: 280,
-      sortable: true,
-      resizable: true,
-      filter: true,
-      lockVisible: true,
-    });
-  }
 
   gridColumnConsulta.push({
     field: 'cp_situacao',
@@ -2414,106 +1549,6 @@ export default function FAT2() {
 
   // #endregion
 
-  // #region GRID FINANCEIRO ======================================================
-
-  const gridColumnFinanceiro = [
-    {
-      field: 'fina_fpgto_id',
-      headerName: 'AÇÕES',
-      width: 70,
-      lockVisible: true,
-      cellRendererFramework(prm) {
-        return (
-          <>
-            <BootstrapTooltip
-              title="Excluir Forma de Pagamento"
-              placement="top"
-            >
-              <button
-                type="button"
-                disabled={false}
-                onClick={async () => {
-                  await handleExcluirFina(prm.data);
-                  // acrescimos sao lancçados como despesa, ao remover, é preciso remover do pedido também a despesa lançada
-                  frmCapa.current.setFieldValue(
-                    'cp_vlr_outros',
-                    (
-                      toDecimal(frmCapa.current.getData().cp_vlr_outros) -
-                      toDecimal(prm.data.total_juro)
-                    ).toFixed(2)
-                  );
-                }}
-              >
-                <FaTrashAlt size={18} color="#253739" />
-              </button>
-            </BootstrapTooltip>
-          </>
-        );
-      },
-    },
-    {
-      field: 'forma_pgto',
-      headerName: 'FORMA DE PAGAMENTO',
-      width: 270,
-      sortable: true,
-      resizable: true,
-      filter: true,
-      lockVisible: true,
-    },
-    {
-      field: 'cond_vcto',
-      headerName: 'CONDIÇÃO DE VENCIMENTO',
-      width: 270,
-      sortable: true,
-      resizable: true,
-      filter: true,
-      lockVisible: true,
-    },
-    {
-      field: 'fina_valor',
-      headerName: 'VLR INFORMADO',
-      width: 160,
-      sortable: true,
-      resizable: true,
-      filter: true,
-      lockVisible: true,
-      cellStyle: { color: '#036302', fontWeight: 'bold' },
-    },
-    {
-      field: 'fina_perc_desc',
-      headerName: '% DESCONTO',
-      width: 140,
-      sortable: true,
-      resizable: true,
-      filter: true,
-      lockVisible: true,
-      cellStyle: { fontWeight: 'bold' },
-    },
-    {
-      field: 'fina_perc_juro',
-      headerName: '% JURO',
-      width: 140,
-      sortable: true,
-      resizable: true,
-      filter: true,
-      lockVisible: true,
-      cellStyle: { fontWeight: 'bold' },
-    },
-    {
-      field: 'fina_valor_final',
-      headerName: 'VALOR A RECEBER',
-      width: 160,
-      sortable: true,
-      resizable: true,
-      filter: true,
-      lockVisible: true,
-      cellStyle: { color: '#000', fontWeight: 'bold' },
-      flex: 1,
-    },
-  ];
-
-  // #endregion
-
   async function handleDetalhar() {
     if (document.getElementById('chbDetalhar').checked) {
       gridColumnItens.push({
@@ -2597,18 +1632,12 @@ export default function FAT2() {
 
   useEffect(() => {
     setColunaItens(gridColumnItens);
-    if (params.tipo === '2') {
-      setTitlePg('CADASTRO PEDIDOS - PRÉ-VENDA');
-    } else {
-      setTitlePg('CADASTRO PEDIDOS - CONSIGNADO');
-    }
+    setTitlePg('ORÇAMENTO DE VENDA');
     getComboFpgto();
-    getComboOperFat();
     listaPedido();
     getComboCondVcto();
     getComboTabPreco();
     getParamSistema();
-    handleGrupoRec();
     setDesableSave(true);
 
     const hoje = new Date();
@@ -2649,34 +1678,12 @@ export default function FAT2() {
 
         <DivLimitador hg="10px" />
 
-        <BootstrapTooltip title="Aplicar Crédito do Cliente" placement="left">
-          <button type="button" onClick={getCredito}>
-            <FaDollarSign size={25} color="#fff" />
-          </button>
-        </BootstrapTooltip>
-
-        <DivLimitador hg="10px" />
-
-        <BootstrapTooltip title="LANÇAR DESPESAS ADICIONAIS" placement="left">
-          <button type="button" onClick={handleValidaDespesa}>
-            <FaWeightHanging size={25} color="#fff" />
-          </button>
-        </BootstrapTooltip>
-
-        <DivLimitador hg="10px" />
-
         <BootstrapTooltip title="Cancelar Pedido" placement="left">
-          <button type="button" onClick={handleCancelar}>
+          <button type="button" onClick={() => null}>
             <FaBan size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
-        <DivLimitador hg="10px" />
 
-        <BootstrapTooltip title="Gerar Nota Fiscal" placement="left">
-          <button type="button" onClick={() => setOpenDlgNota(true)}>
-            <FaBarcode size={25} color="#fff" />
-          </button>
-        </BootstrapTooltip>
         <DivLimitador hg="10px" />
 
         <BootstrapTooltip title="Impressão do Pedido" placement="left">
@@ -2686,28 +1693,6 @@ export default function FAT2() {
         </BootstrapTooltip>
         <DivLimitador hg="10px" />
 
-        <BootstrapTooltip title="Validar Estoque" placement="left">
-          <button type="button" onClick={handleValidarPedido}>
-            <FaCartPlus size={25} color="#fff" />
-          </button>
-        </BootstrapTooltip>
-        <DivLimitador hg="10px" />
-
-        <BootstrapTooltip title="Finalizar Pedido" placement="left">
-          <button type="button" onClick={handleFinalizarPedido}>
-            <FaRegCheckSquare size={25} color="#fff" />
-          </button>
-        </BootstrapTooltip>
-        <DivLimitador hg="20px" />
-        <Linha />
-
-        <DivLimitador hg="10px" />
-        <BootstrapTooltip title="IMPRESSÃO DE PROMISSÓRIAS" placement="left">
-          <button type="button" onClick={handlePrintPromissoria}>
-            <FaWpforms size={25} color="#fff" />
-          </button>
-        </BootstrapTooltip>
-        <DivLimitador hg="10px" />
         <BootstrapTooltip title="ACESSAR CADASTRO DE PRODUTOS" placement="left">
           <button type="button" onClick={handleProduto}>
             <FaCubes size={25} color="#fff" />
@@ -2776,21 +1761,6 @@ export default function FAT2() {
                   icon={<FaClipboardList size={29} color="#244448" />}
                 />
               </BootstrapTooltip>
-              {params.tipo === '2' ? (
-                <BootstrapTooltip
-                  title="Registro de negociação financeira do cliente"
-                  placement="top-end"
-                >
-                  <Tab
-                    disabled={false}
-                    label="FINANCEIRO"
-                    {...a11yProps(3)}
-                    icon={<FaCcAmazonPay size={29} color="#244448" />}
-                  />
-                </BootstrapTooltip>
-              ) : (
-                <div />
-              )}
             </Tabs>
           </AppBar>
 
@@ -2845,16 +1815,7 @@ export default function FAT2() {
                       </span>
                     </div>
                   </AreaComp>
-                  <AreaComp wd="100">
-                    <label>Situação do Pedido</label>
-                    <Select
-                      id="pesq_cp_situacao"
-                      options={optSitPedido}
-                      onChange={(e) => setPesqSituacao(e ? e.value : null)}
-                      isClearable
-                      placeholder="SITUAÇAO PEDIDO"
-                    />
-                  </AreaComp>
+
                   <AreaComp wd="100" ptop="25px">
                     <CCheck>
                       <input
@@ -2933,21 +1894,7 @@ export default function FAT2() {
                       </span>
                     </div>
                   </AreaComp>
-                  <AreaComp wd="100">
-                    <div>
-                      <span>
-                        <DatePickerInput
-                          onChangeDate={(date) => setDataSaida(new Date(date))}
-                          value={dataSaida}
-                          label={
-                            params.tipo === '2'
-                              ? 'Data Saída'
-                              : 'Data Prestação de contas'
-                          }
-                        />
-                      </span>
-                    </div>
-                  </AreaComp>
+
                   <AreaComp wd="100">
                     <AsyncSelectForm
                       name="cp_cli_id"
@@ -2964,16 +1911,6 @@ export default function FAT2() {
                   </AreaComp>
                 </BoxItemCad>
                 <BoxItemCad fr="1fr 1fr">
-                  <AreaComp wd="100">
-                    <FormSelect
-                      label="Operação de Faturamento"
-                      name="cp_oper_id"
-                      optionsList={optOperFat}
-                      isClearable
-                      placeholder="INFORME"
-                      zindex="153"
-                    />
-                  </AreaComp>
                   <AreaComp wd="100">
                     <FormSelect
                       name="cp_cvto_id"
@@ -3016,13 +1953,7 @@ export default function FAT2() {
                   </AreaComp>
                 </BoxItemCadNoQuery>
                 <h1>TOTAIS DO PEDIDO</h1>
-                <BoxItemCad
-                  fr={
-                    params.tipo === '2'
-                      ? '1fr 1fr 1fr 1fr 1fr 1fr'
-                      : '1fr 1fr 1fr 1fr 1fr 1fr 1fr'
-                  }
-                >
+                <BoxItemCad fr="1fr 1fr 1fr 1fr 1fr 1fr">
                   <AreaComp wd="100">
                     <label>Valor do Produtos</label>
                     <Input
@@ -3078,19 +2009,6 @@ export default function FAT2() {
                       className="input_cad"
                     />
                   </AreaComp>
-                  {params.tipo === '3' ? (
-                    <AreaComp wd="100">
-                      <label>Cota mínima de venda</label>
-                      <Input
-                        type="number"
-                        name="valor_cota"
-                        readOnly
-                        className="input_cad"
-                      />
-                    </AreaComp>
-                  ) : (
-                    ''
-                  )}
                 </BoxItemCad>
               </Form>
             </Panel>
@@ -3303,221 +2221,6 @@ export default function FAT2() {
               </Form>
             </Panel>
           </TabPanel>
-
-          {/* ABA FINANCEIRO */}
-          <TabPanel value={valueTab} index={3}>
-            <Panel lefth1="left" bckgnd="#dae2e5">
-              <h1>NEGOCIAÇÃO FINANCEIRA DO CLIENTE</h1>
-              <Form id="frmFinanceiro" ref={frmFinanceiro}>
-                <BoxItemCad fr="1fr 1fr 1fr">
-                  <AreaComp wd="100">
-                    <FormSelect
-                      label="grupo de receita"
-                      name="fina_grprec_id"
-                      optionsList={optGrupoRec}
-                      isClearable
-                      placeholder="INFORME"
-                      zindex="153"
-                    />
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <FormSelect
-                      name="fina_fpgto_id"
-                      label="Forma de Pagamento"
-                      optionsList={optFpgto}
-                      isClearable
-                      onChange={() => {
-                        frmFinanceiro.current.setFieldValue(
-                          'fina_valor',
-                          ArredondaValorDecimal(toDecimal(valorSaldoPedido))
-                        );
-                        frmFinanceiro.current.setFieldValue(
-                          'fina_valor_final',
-                          ''
-                        );
-                        frmFinanceiro.current.setFieldValue(
-                          'fina_perc_desc',
-                          ''
-                        );
-                        document.getElementsByName('fina_valor')[0].focus();
-                      }}
-                      placeholder="INFORME"
-                    />
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <FormSelect
-                      name="fina_cvto_id"
-                      label="Condição de Vencimento"
-                      optionsList={optCvto}
-                      isClearable
-                      placeholder="INFORME"
-                      onChange={(cvto) => {
-                        if (cvto) {
-                          setNParcela(cvto.parcelas);
-                          frmFinanceiro.current.setFieldValue(
-                            'fina_valor_final',
-                            ''
-                          );
-                          frmFinanceiro.current.setFieldValue(
-                            'fina_perc_desc',
-                            ''
-                          );
-                          document.getElementsByName('fina_valor')[0].focus();
-                        }
-                      }}
-                      zindex="153"
-                    />
-                  </AreaComp>
-                </BoxItemCad>
-                <BoxItemCad fr="1fr 1fr 1fr 1fr 1fr 1fr">
-                  <AreaComp wd="100">
-                    <label>VLR A RECEBER</label>
-                    <Input
-                      type="text"
-                      name="fina_vpedido"
-                      readOnly
-                      onChange={maskDecimal}
-                      className="input_cad"
-                    />
-                  </AreaComp>
-
-                  <BootstrapTooltip
-                    title="Informe o valor que o cliente quer pagar de acordo com a forma de pagamento escolhida"
-                    placement="top"
-                  >
-                    <AreaComp wd="100">
-                      <label>Não Descontável</label>
-                      <Input
-                        type="text"
-                        name="fina_descontavel"
-                        placeholder="0,00"
-                        value={valorNaoDescontavel}
-                        readOnly
-                        onChange={maskDecimal}
-                        className="input_cad"
-                      />
-                    </AreaComp>
-                  </BootstrapTooltip>
-
-                  <AreaComp wd="100">
-                    <BootstrapTooltip
-                      title="Informe o valor que o cliente quer pagar de acordo com a forma de pagamento escolhida"
-                      placement="top"
-                    >
-                      <KeyboardEventHandler
-                        handleKeys={['enter', 'tab']}
-                        onKeyEvent={() => handleAddFina()}
-                      >
-                        <label>vlr negociado</label>
-                        <Input
-                          type="text"
-                          name="fina_valor"
-                          placeholder="0,00"
-                          onChange={maskDecimal}
-                          className="input_cad"
-                        />
-                      </KeyboardEventHandler>
-                    </BootstrapTooltip>
-                  </AreaComp>
-
-                  <AreaComp wd="100">
-                    <BootstrapTooltip
-                      title="Informe o percentual de desconto concedido de acordo com a forma de pagamento"
-                      placement="top"
-                    >
-                      <KeyboardEventHandler
-                        handleKeys={['enter', 'tab']}
-                        onKeyEvent={() => handleAddFina()}
-                      >
-                        <label>Desconto (%)</label>
-                        <Input
-                          type="text"
-                          name="fina_perc_desc"
-                          placeholder="0,00"
-                          onChange={maskDecimal}
-                          className="input_cad"
-                        />
-                      </KeyboardEventHandler>
-                    </BootstrapTooltip>
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <BootstrapTooltip
-                      title="perncentual de juros (se houver) de acordo com a forma e condiçao de vencimento de pagamento escolhida"
-                      placement="top"
-                    >
-                      <KeyboardEventHandler
-                        handleKeys={['enter', 'tab']}
-                        onKeyEvent={() => handleAddFina()}
-                      >
-                        <label>Juro (%)</label>
-                        <Input
-                          type="text"
-                          name="fina_perc_juro"
-                          placeholder="0,00"
-                          onChange={maskDecimal}
-                          className="input_cad"
-                        />
-                      </KeyboardEventHandler>
-                    </BootstrapTooltip>
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <KeyboardEventHandler
-                      handleKeys={['enter', 'tab']}
-                      onKeyEvent={() => handleAddFina()}
-                    >
-                      <label>Valor a Pagar</label>
-                      <Input
-                        type="text"
-                        name="fina_valor_final"
-                        placeholder="0,00"
-                        onChange={maskDecimal}
-                        className="input_cad"
-                        readOnly
-                      />
-                    </KeyboardEventHandler>
-                  </AreaComp>
-                </BoxItemCad>
-
-                <BoxItemCadNoQuery fr="1fr">
-                  <GridContainerFina className="ag-theme-balham">
-                    <AgGridReact
-                      columnDefs={gridColumnFinanceiro}
-                      rowData={gridFinanceiro}
-                      rowSelection="single"
-                      animateRows
-                      gridOptions={{ localeText: gridTraducoes }}
-                    />
-                  </GridContainerFina>
-                </BoxItemCadNoQuery>
-
-                <BoxItemCadNoQuery fr="1fr 1fr">
-                  <AreaComp wd="100" h3talign="left" bckgndh3="#fff" ptop="7px">
-                    <h3>{infoVlrPedido}</h3>
-                  </AreaComp>
-                  <AreaComp wd="100" h3talign="left" bckgndh3="#fff" ptop="7px">
-                    <h3>{infoVlrPedidoNegociado}</h3>
-                  </AreaComp>
-                </BoxItemCadNoQuery>
-
-                <BoxItemCadNoQuery fr="1fr" ptop="5px" just="center">
-                  <DivGeral wd="230px">
-                    <button
-                      type="button"
-                      className="btn2"
-                      onClick={handleConfirmarNeg}
-                    >
-                      {loading
-                        ? 'Aguarde Processando...'
-                        : emp_financeiro === 'S'
-                        ? 'Confirmar Recebimento'
-                        : 'Confirmar Negociação'}
-                      <FaCheckCircle size={22} color="#fff" />
-                    </button>
-                  </DivGeral>
-                </BoxItemCadNoQuery>
-              </Form>
-            </Panel>
-          </TabPanel>
         </Scroll>
       </Container>
 
@@ -3686,146 +2389,6 @@ export default function FAT2() {
           </Scroll>
         </Dialog>
       </Slide>
-
-      {/* popup para getar nota fiscal */}
-      <Slide direction="down" in={openDlgNota}>
-        <Dialog
-          open={openDlgNota}
-          keepMounted
-          fullWidth
-          maxWidth="sm"
-          onClose={() => setOpenDlgNota(false)}
-        >
-          <TitleBar wd="100%" bckgnd="#244448" fontcolor="#fff" lefth1="left">
-            <h1>CONFIRMAR EMISSÃO DE NOTA FISCAL</h1>
-            <BootstrapTooltip title="Fechar Modal" placement="top">
-              <button type="button" onClick={() => setOpenDlgNota(false)}>
-                <MdClose size={30} color="#fff" />
-              </button>
-            </BootstrapTooltip>
-          </TitleBar>
-
-          <Scroll>
-            <CModal wd="100%" hd="90%">
-              <BoxItemCadNoQuery fr="1fr 1fr">
-                <AreaComp wd="100">
-                  <CCheck>
-                    <input type="radio" id="rbNota" name="radioNf" value="S" />
-                    <label htmlFor="rbNota">Nota Fiscal (NF-e)</label>
-
-                    <input type="radio" id="rbCupom" name="radioNf" value="S" />
-                    <label htmlFor="rbCupom">Cupom Fiscal (NFC-e)</label>
-                  </CCheck>
-                </AreaComp>
-              </BoxItemCadNoQuery>
-              <Linha />
-              <BoxItemCadNoQuery>
-                <AreaComp wd="100" ptop="30px">
-                  <button
-                    type="button"
-                    className="btnGeralForm"
-                    onClick={handleGerarNota}
-                  >
-                    CONFIRMAR
-                  </button>
-                </AreaComp>
-              </BoxItemCadNoQuery>
-            </CModal>
-          </Scroll>
-        </Dialog>
-      </Slide>
-
-      {/* popup para credito do cliente... */}
-      <Popup
-        isOpen={openDlgCredito}
-        closeDialogFn={() => setOpenDlgCredito(false)}
-        title="CRÉDITO DISPONÍVEL"
-        size="sm"
-      >
-        <Panel
-          lefth1="left"
-          bckgnd="#dae2e5"
-          mtop="1px"
-          pdding="5px 7px 7px 10px"
-        >
-          <Form id="frmCredito" ref={frmCredito}>
-            <BoxItemCad fr="1fr 1fr">
-              <AreaComp wd="100">
-                <label>Total disponível</label>
-                <Input
-                  type="text"
-                  name="credito_disponivel"
-                  readOnly
-                  className="input_cad"
-                />
-              </AreaComp>
-              <AreaComp wd="100">
-                <label>Valor a ser aplicado</label>
-                <Input
-                  type="text"
-                  name="credito_aplicar"
-                  placeholder="INFORME O VALOR"
-                  className="input_cad"
-                  onChange={maskDecimal}
-                />
-              </AreaComp>
-            </BoxItemCad>
-
-            <BoxItemCadNoQuery fr="1fr" ptop="15px">
-              <AreaComp wd="100" ptop="10px">
-                <button
-                  type="button"
-                  className="btnGeral"
-                  onClick={handleCreditoCli}
-                >
-                  {loading ? 'Aguarde Processando...' : 'Confirmar'}
-                </button>
-              </AreaComp>
-            </BoxItemCadNoQuery>
-          </Form>
-        </Panel>
-      </Popup>
-
-      {/* popup para despesas adicionais... */}
-      <Popup
-        isOpen={dlgDespesa}
-        closeDialogFn={() => setDlgDespesa(false)}
-        title="DESPESAS ADICIONAIS"
-        size="sm"
-      >
-        <Panel
-          lefth1="left"
-          bckgnd="#dae2e5"
-          mtop="1px"
-          pdding="5px 7px 7px 10px"
-        >
-          <Form id="frmDespesa" ref={frmDespesa}>
-            <BoxItemCadNoQuery fr="1fr">
-              <AreaComp wd="100">
-                <label>valor (outras despesas)</label>
-                <Input
-                  type="text"
-                  name="vlrDespesa"
-                  onChange={maskDecimal}
-                  className="input_cad"
-                />
-              </AreaComp>
-            </BoxItemCadNoQuery>
-
-            <BoxItemCadNoQuery fr="1fr" ptop="35px">
-              <AreaComp wd="100" ptop="10px">
-                <button
-                  type="button"
-                  className="btnGeral"
-                  onClick={handleDespesa}
-                >
-                  {loading ? 'Aguarde Processando...' : 'Confirmar'}
-                </button>
-              </AreaComp>
-            </BoxItemCadNoQuery>
-          </Form>
-        </Panel>
-      </Popup>
 
       {/* popup para consulta de produtos... */}
       <Popup
