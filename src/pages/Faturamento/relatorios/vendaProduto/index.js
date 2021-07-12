@@ -5,6 +5,7 @@ import moment from 'moment';
 import { FaPrint } from 'react-icons/fa';
 import DatePickerInput from '~/componentes/DatePickerInput';
 import FormSelect from '~/componentes/Select';
+import AsyncSelectForm from '~/componentes/Select/selectAsync';
 import DialogInfo from '~/componentes/DialogInfo';
 import { ApiService, ApiTypes } from '~/services/api';
 import { ContentConsulta, Panel, ContainerConsulta } from './styles';
@@ -19,6 +20,7 @@ import {
 export default function VENDA_PRODUTO() {
   const api = ApiService.getInstance(ApiTypes.API1);
   const frmRel = useRef(null);
+  const [fornecedor, setFornecedor] = useState([]);
   const [loading, setLoading] = useState(false);
   const [dataIni, setDataIni] = useState(moment().add(-7, 'day'));
   const [dataFin, setDataFin] = useState(moment());
@@ -34,6 +36,20 @@ export default function VENDA_PRODUTO() {
     { value: 'total', label: 'VALOR VENDIDO' },
   ];
 
+  const loadOptionsFornec = async (inputText, callback) => {
+    if (inputText) {
+      const valor = inputText.toUpperCase();
+      if (valor.length > 2) {
+        const response = await api.get(
+          `v1/combos/combo_fornecedor?valor=${valor}`
+        );
+        callback(
+          response.data.retorno.map((i) => ({ value: i.value, label: i.label }))
+        );
+      }
+    }
+  };
+
   // #endregion
 
   async function handleRelatorio() {
@@ -45,7 +61,7 @@ export default function VENDA_PRODUTO() {
         dataIni
       ).format('YYYY-MM-DD')}&data_fin=${moment(dataFin).format(
         'YYYY-MM-DD'
-      )}&order=${param.ordenar}`;
+      )}&forn_id=${param.forn_id || ''}&order=${param.ordenar}`;
 
       const response = await api.get(url);
       const link = response.data;
@@ -94,6 +110,20 @@ export default function VENDA_PRODUTO() {
                   />
                 </AreaComp>
               </BoxItemCad>
+              <BoxItemCadNoQuery fr="1fr">
+                <AreaComp wd="100">
+                  <AsyncSelectForm
+                    name="forn_id"
+                    label="Informe CNPJ ou Razão Social do fornecedor para pesquisar"
+                    value={fornecedor}
+                    placeholder="PESQUISAR FORNECEDOR"
+                    onChange={(f) => setFornecedor(f || [])}
+                    loadOptions={loadOptionsFornec}
+                    isClearable
+                    zindex="153"
+                  />
+                </AreaComp>
+              </BoxItemCadNoQuery>
               <BoxItemCad fr="1fr">
                 <AreaComp wd="100">
                   <FormSelect

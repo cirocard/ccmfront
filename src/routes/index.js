@@ -29,6 +29,7 @@ import FAT2 from '~/pages/Faturamento/cadastros/pedidos';
 import FAT3 from '~/pages/Faturamento/cadastros/ecommerce';
 import FAT4 from '~/pages/Faturamento/cadastros/pedidos/config';
 import FAT5 from '~/pages/Faturamento/relatorios';
+import FAT6 from '~/pages/Faturamento/cadastros/pedidos/orcamento';
 
 // FINANCEIRO
 import FINA1 from '~/pages/Financeiro/dashboard';
@@ -94,6 +95,7 @@ export default function Routes() {
       <Route path="/fat3" component={FAT3} isPrivate />
       <Route path="/fat4" component={FAT4} isPrivate />
       <Route path="/fat5/:tipo" component={FAT5} isPrivate />
+      <Route path="/fat6" component={FAT6} isPrivate />
 
       {/* MÓDULO FINANCEIRO */}
       <Route path="/fina1" component={FINA1} isPrivate />

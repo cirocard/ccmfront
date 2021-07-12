@@ -134,7 +134,7 @@ export default function Crm5() {
         frmCadastro.current.setFieldValue('neg_descricao', dados.neg_descricao);
 
         let x = {
-          value: dados.neg_id,
+          value: dados.neg_entidade,
           label: dados.cli_razao_social,
         };
 
@@ -211,8 +211,9 @@ export default function Crm5() {
     }
   }
 
-  async function handleSubmit(formData) {
+  async function handleSubmit() {
     try {
+      const formData = frmCadastro.current.getData();
       frmCadastro.current.setErrors({});
       await schemaCad.validate(formData, {
         abortEarly: false,
@@ -565,7 +566,7 @@ export default function Crm5() {
           </TitleBar>
 
           <CModal wd="100%" hd="50%">
-            <Form ref={frmCadastro} onSubmit={handleSubmit}>
+            <Form ref={frmCadastro}>
               <BoxItemCad fr="1fr 1fr">
                 <AreaComp wd="100">
                   <label>Código</label>
@@ -670,7 +671,11 @@ export default function Crm5() {
               <BoxItemCadNoQuery fr="1fr" ptop="20px" just="center">
                 <DivLimitadorRow>
                   <DivLimitador wd="160px">
-                    <button type="submit" className="btn2">
+                    <button
+                      type="button"
+                      className="btn2"
+                      onClick={handleSubmit}
+                    >
                       {loading ? 'Aguarde Processando...' : 'Salvar Cadastro'}
                       <MdSave size={20} color="#fff" />
                     </button>
