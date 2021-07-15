@@ -14,17 +14,17 @@ import { MdClose } from 'react-icons/md';
 import {
   FaThList,
   FaSearchDollar,
-  FaClipboardList,
   FaSave,
   FaPercent,
   FaPlusCircle,
   FaCheck,
   FaTrashAlt,
-  FaBan,
   FaPrint,
   FaCubes,
   FaUserTie,
   FaPagelines,
+  FaWeightHanging,
+  FaFileExport,
 } from 'react-icons/fa';
 import Dialog from '@material-ui/core/Dialog';
 import { Slide } from '@material-ui/core';
@@ -77,12 +77,14 @@ export default function FAT6() {
   const [valueTab, setValueTab] = useState(0);
   const frmPesquisa = useRef(null);
   const frmCapa = useRef(null);
-  const frmItens = useRef(null);
   const frmGrade = useRef(null);
   const frmDesc = useRef(null);
+  const frmDespesa = useRef(null);
+  const frmOrcamento = useRef(null);
   const [optCvto, setOptCvto] = useState([]);
   const [optFpgto, setOptFpgto] = useState([]);
   const [optTabPreco, setOptTabPreco] = useState([]);
+  const [optOperFat, setOptOperFat] = useState([]);
   const [pesqDataIni, setPesqDataIni] = useState(moment());
   const [pesqDataFin, setPesqDataFin] = useState(moment());
   const [dataEmiss, setDataEmiss] = useState(moment());
@@ -100,19 +102,18 @@ export default function FAT6() {
   const [gridGrade, setGridGrade] = useState([]);
   const [gridGradeSelected, setGridGradeSelected] = useState([]);
   const [paramSistema, setParamSistema] = useState([]);
-  const [remumoItens, setResumoItens] = useState('');
+  const [remumoItens, setResumoItens] = useState({});
   const [resumoPedido, setResumoPedido] = useState('');
   const [titleDlgGrade, setTitleDlgGrade] = useState('');
-  const [labelSaldo, setLabelSaldo] = useState('');
   const [selectedProduto, setSelectedProduto] = useState([]);
   const [situacaoPedido, setSituacaoPedido] = useState('');
   const [existeBordero, setExisteBordero] = useState('');
   const [colunaItens, setColunaItens] = useState([]);
   const [desableSave, setDesableSave] = useState(true);
   const [inputDesable, setInputDesable] = useState(true);
-  const [representante, setRepresentante] = useState([]);
   const [dlgConsProduto, setDlgConsProduto] = useState(false);
-
+  const [dlgOrcamento, setDlgOrcamento] = useState(false);
+  const [dlgDespesa, setDlgDespesa] = useState(false);
   const toastOptions = {
     autoClose: 5000,
     position: toast.POSITION.TOP_CENTER,
@@ -123,12 +124,18 @@ export default function FAT6() {
     cp_cli_id: Yup.string().required('(??)'),
     cp_cvto_id: Yup.string().required('(??)'),
     cp_fpgto_id: Yup.string().required('(??)'),
+    cp_oper_id: Yup.string().required('(??)'),
   });
 
-  const schemaItens = Yup.object().shape({
+  const schemaItem = Yup.object().shape({
+    cp_cli_id: Yup.string().required('(??)'),
+    cp_cvto_id: Yup.string().required('(??)'),
+    cp_fpgto_id: Yup.string().required('(??)'),
+    cp_oper_id: Yup.string().required('(??)'),
     item_vlr_unit: Yup.string().required('(??)'),
     item_quantidade: Yup.string().required('(??)'),
   });
+
   // #endregion
 
   // #region COMBOS ===========================================================
@@ -157,33 +164,25 @@ export default function FAT6() {
     }
   };
 
-  // representante
-  const loadOptionsRepresentante = async (inputText, callback) => {
-    if (inputText) {
-      const descricao = inputText.toUpperCase();
-      if (descricao.length > 2) {
-        const response = await api.get(
-          `v1/combos/combo_cliente?perfil=23&nome=${descricao}`
-        );
-        callback(
-          response.data.retorno.map((i) => ({ value: i.value, label: i.label }))
-        );
-      } else if (!Number.isNaN(descricao)) {
-        // consultar com menos de 3 digitos só se for numerico como codigo do cliente
-        const response = await api.get(
-          `v1/combos/combo_cliente?perfil=23&nome=${descricao}`
-        );
-        callback(
-          response.data.retorno.map((i) => ({ value: i.value, label: i.label }))
-        );
-      }
-    }
-  };
-
   // produto
   const loadOptions = async (inputText, callback) => {
-    if (frmItens.current) {
-      const formData = frmItens.current.getData();
+    if (frmCapa.current) {
+      const formData = frmCapa.current.getData();
+      if (!formData.cp_cvto_id) {
+        toast.error('INFORME A CONDIÇÃO DE VENCIMENTO!!', toastOptions);
+        return;
+      }
+      if (!formData.cp_cli_id) {
+        toast.error('INFORME O CLIENTE PARA CONTINUAR...', toastOptions);
+        return;
+      }
+      if (!formData.cp_fpgto_id) {
+        toast.error(
+          'INFORME A FORMA DE PAGAMENTO PARA CONTINUAR...',
+          toastOptions
+        );
+        return;
+      }
       if (formData.item_tab_preco_id) {
         const descricao = inputText.toUpperCase();
         if (descricao.length > 2) {
@@ -199,7 +198,7 @@ export default function FAT6() {
           );
         }
       } else {
-        toast.warning(
+        toast.error(
           'ATENÇÃO!! INFORME A TABELA DE PREÇOS PARA CONTINUAR...',
           toastOptions
         );
@@ -227,6 +226,18 @@ export default function FAT6() {
       }
     } catch (error) {
       toast.error(`Erro ao carregar combo forma de pagamento \n${error}`);
+    }
+  }
+
+  async function getComboOperFat() {
+    try {
+      const response = await api.get(`v1/combos/operfat/1`);
+      const dados = response.data.retorno;
+      if (dados) {
+        setOptOperFat(dados);
+      }
+    } catch (error) {
+      toast.error(`Erro ao carregar combo Operaçao de faturamento \n${error}`);
     }
   }
 
@@ -275,13 +286,13 @@ export default function FAT6() {
 
   // limpa tela itens
   function limpaItens() {
-    frmItens.current.setFieldValue('item_quantidade', '');
-    frmItens.current.setFieldValue('item_vlr_unit', '');
-    frmItens.current.setFieldValue('item_vlr_desc', '');
-    frmItens.current.setFieldValue('item_perc_desc', '');
-    frmItens.current.setFieldValue('item_valor_total', '');
-    frmItens.current.setFieldValue('barcode', '');
-    frmItens.current.setFieldValue('item_prod_id', '');
+    frmCapa.current.setFieldValue('item_quantidade', '');
+    frmCapa.current.setFieldValue('item_vlr_unit', '');
+    frmCapa.current.setFieldValue('item_vlr_desc', '');
+    frmCapa.current.setFieldValue('item_perc_desc', '');
+    frmCapa.current.setFieldValue('item_valor_total', '');
+    frmCapa.current.setFieldValue('barcode', '');
+    frmCapa.current.setFieldValue('item_prod_id', '');
     document.getElementById('chbBonificar').checked = false;
   }
 
@@ -320,17 +331,15 @@ export default function FAT6() {
   }
 
   // fazer consulta dos itens
-  async function listaItens(limit, detalhar) {
+  async function listaItens(limit) {
     try {
       setLoading(true);
-      if (detalhar !== 'S')
-        document.getElementById('chbDetalhar').checked = false;
 
       const formData = frmCapa.current.getData();
 
       const url = `v1/fat/orc/itens_pedido?cp_id=${
         formData.cp_id
-      }&item_id=&limit=${limit || ''}&prod_id=&detalhar=${detalhar || ''}`;
+      }&item_id=&limit=${limit || ''}&prod_id=&detalhar=N}`;
 
       let response = await api.get(url);
       const dados = response.data.retorno;
@@ -344,14 +353,14 @@ export default function FAT6() {
             (op) =>
               op.value.toString() === dados[0].item_tab_preco_id.toString()
           );
-          frmItens.current.setFieldValue('item_tab_preco_id', x);
+          frmCapa.current.setFieldValue('item_tab_preco_id', x);
         } else {
           x = optTabPreco.find(
             (op) =>
               op.value.toString() ===
               paramSistema[0].par_tab_padrao_prevenda.toString()
           );
-          frmItens.current.setFieldValue('item_tab_preco_id', x);
+          frmCapa.current.setFieldValue('item_tab_preco_id', x);
         }
       }
 
@@ -389,26 +398,25 @@ export default function FAT6() {
       setSituacaoPedido('1');
       setGridItens([]);
       setDataGridPesqSelected([]);
-
+      setInputDesable(false);
       setDataEmiss(new Date());
       setDataSaida(new Date());
       frmCapa.current.setFieldValue('cp_id', '');
       frmCapa.current.setFieldValue('cp_cli_id', '');
       frmCapa.current.setFieldValue('cp_cvto_id', '');
       frmCapa.current.setFieldValue('cp_fpgto_id', '');
-      frmCapa.current.setFieldValue('cp_vlr_total', 0);
-      frmCapa.current.setFieldValue('cp_vlr_outros', 0);
-      frmCapa.current.setFieldValue('cp_vlr_desc', 0);
-      frmCapa.current.setFieldValue('cp_vlr_nf', 0);
+      frmCapa.current.setFieldValue('cp_oper_id', '');
+
       frmCapa.current.setFieldValue('cp_observacao', '');
-      frmCapa.current.setFieldValue('cp_representante', '');
+
+      limpaItens();
 
       const x = optTabPreco.find(
         (op) =>
           op.value.toString() ===
           paramSistema[0].par_tab_padrao_prevenda.toString()
       );
-      frmItens.current.setFieldValue('item_tab_preco_id', x);
+      frmCapa.current.setFieldValue('item_tab_preco_id', x);
 
       setDesableSave(false);
       setValueTab(1);
@@ -493,9 +501,16 @@ export default function FAT6() {
         );
         frmCapa.current.setFieldValue('cp_fpgto_id', x);
 
+        x = optOperFat.find(
+          (op) =>
+            op.value.toString() ===
+            dataGridPesqSelected[0].cp_oper_id.toString()
+        );
+        frmCapa.current.setFieldValue('cp_oper_id', x);
+
         frmCapa.current.setFieldValue(
-          'cp_vlr_total',
-          dataGridPesqSelected[0].cp_vlr_total
+          'vlr_bonificacao',
+          dataGridPesqSelected[0].vlr_bonificacao
         );
         frmCapa.current.setFieldValue(
           'cp_vlr_outros',
@@ -514,18 +529,11 @@ export default function FAT6() {
           'cp_observacao',
           dataGridPesqSelected[0].cp_observacao
         );
-        frmCapa.current.setFieldValue(
-          'valor_cota',
-          dataGridPesqSelected[0].valor_cota
-        );
-
-        await loadOptionsRepresentante(
-          dataGridPesqSelected[0].cp_representante,
-          setRepresentante
-        );
 
         setValueTab(1);
         setDesableSave(false);
+        limpaItens();
+        await listaItens();
         setLoading(false);
       } else {
         setValueTab(0);
@@ -541,7 +549,6 @@ export default function FAT6() {
       const formCapa = frmCapa.current.getData();
       try {
         frmCapa.current.setErrors({});
-
         await schemaCapa.validate(formCapa, {
           abortEarly: false,
         });
@@ -630,18 +637,17 @@ export default function FAT6() {
         if (retorno.data.success) {
           if (retorno.data.retorno.cp_id) {
             frmCapa.current.setFieldValue('cp_id', retorno.data.retorno.cp_id);
-            frmCapa.current.setFieldValue(
-              'cp_vlr_total',
-              retorno.data.retorno.cp_vlr_total
-            );
+
             frmCapa.current.setFieldValue(
               'cp_vlr_outros',
               retorno.data.retorno.cp_vlr_outros
             );
+
             frmCapa.current.setFieldValue(
-              'cp_credito_cli',
-              retorno.data.retorno.cp_credito_cli
+              'vlr_bonificacao',
+              retorno.data.retorno.vlr_bonificacao
             );
+
             frmCapa.current.setFieldValue(
               'cp_vlr_desc',
               retorno.data.retorno.cp_vlr_desc
@@ -650,6 +656,8 @@ export default function FAT6() {
               'cp_vlr_nf',
               retorno.data.retorno.cp_vlr_nf
             );
+
+            await listaItens();
             if (valueTab.toString() === '3') {
               setValueTab(0);
               await listaPedido();
@@ -685,6 +693,10 @@ export default function FAT6() {
           'cp_fpgto_id',
           validationErrors.cp_fpgto_id
         );
+        frmCapa.current.setFieldError(
+          'cp_oper_id',
+          validationErrors.cp_oper_id
+        );
       }
     } else {
       toast.info(
@@ -695,20 +707,20 @@ export default function FAT6() {
   }
 
   async function totalItem() {
-    const formData = frmItens.current.getData();
+    const formData = frmCapa.current.getData();
     // se bonificaçao
     if (document.getElementById('chbBonificar').checked) {
-      frmItens.current.setFieldValue(
+      frmCapa.current.setFieldValue(
         'item_vlr_desc',
         ArredondaValorDecimal(
           toDecimal(formData.item_quantidade) *
             toDecimal(formData.item_vlr_unit)
         )
       );
-      frmItens.current.setFieldValue('item_perc_desc', 100);
+      frmCapa.current.setFieldValue('item_perc_desc', 100);
     } // se informou percentual de desconto (prioridade)
     else if (toDecimal(SeNull(formData.item_perc_desc, '0')) > 0) {
-      frmItens.current.setFieldValue(
+      frmCapa.current.setFieldValue(
         'item_vlr_desc',
         ArredondaValorDecimal(
           (toDecimal(formData.item_quantidade) *
@@ -719,7 +731,7 @@ export default function FAT6() {
       );
     } // se informou o valor do desconto
     else if (toDecimal(SeNull(formData.item_vlr_desc, '0')) > 0) {
-      frmItens.current.setFieldValue(
+      frmCapa.current.setFieldValue(
         'item_perc_desc',
         ArredondaValorDecimal(
           (toDecimal(formData.item_vlr_desc) /
@@ -730,7 +742,7 @@ export default function FAT6() {
       );
     }
 
-    frmItens.current.setFieldValue(
+    frmCapa.current.setFieldValue(
       'item_valor_total',
       ArredondaValorDecimal(
         toDecimal(formData.item_quantidade) * toDecimal(formData.item_vlr_unit)
@@ -741,17 +753,13 @@ export default function FAT6() {
   // adiconar itens
   async function handleSubmitItens(gridItensSelected) {
     try {
-      document.getElementById('chbDetalhar').checked = false;
-      gridColumnItens.push({
-        flex: 1,
-      });
       setColunaItens(gridColumnItens);
       await totalItem();
-      const formItens = frmItens.current.getData();
+
       const formCapa = frmCapa.current.getData();
 
-      frmItens.current.setErrors({});
-      await schemaItens.validate(formItens, {
+      frmCapa.current.setErrors({});
+      await schemaItem.validate(formCapa, {
         abortEarly: false,
       });
 
@@ -778,28 +786,28 @@ export default function FAT6() {
 
       setLoading(true);
       setInputDesable(true);
-      // if (dataGridGradeSelected.prode_id)
-      //   gridItensSelected = dataGridGradeSelected;
 
       const itensPedido = [
         {
           item_cp_id: formCapa.cp_id,
           item_tab_preco_id:
-            formItens.item_tab_preco_id || gridItensSelected.item_tab_preco_id,
+            formCapa.item_tab_preco_id || gridItensSelected.item_tab_preco_id,
           item_prod_id:
             gridItensSelected.prod_id || gridItensSelected.item_prod_id,
           item_prode_id: gridItensSelected.prode_id,
           item_prod_unidade: gridItensSelected.prod_unidade_venda,
-          item_qtd_bonificada: document.getElementById('chbBonificar').checked
-            ? formItens.item_quantidade
-            : null,
-          item_vlr_unit: toDecimal(formItens.item_vlr_unit),
-          item_quantidade: toDecimal(formItens.item_quantidade),
+          item_qtd_bonificada:
+            document.getElementById('chbBonificar').checked ||
+            toDecimal(formCapa.item_perc_desc) > 99
+              ? formCapa.item_quantidade
+              : null,
+          item_vlr_unit: toDecimal(formCapa.item_vlr_unit),
+          item_quantidade: toDecimal(formCapa.item_quantidade),
           item_perc_desc: document.getElementById('chbBonificar').checked
             ? 100
-            : toDecimal(formItens.item_perc_desc),
-          item_vlr_desc: toDecimal(formItens.item_vlr_desc),
-          item_valor_total: toDecimal(formItens.item_valor_total),
+            : toDecimal(formCapa.item_perc_desc),
+          item_vlr_desc: toDecimal(formCapa.item_vlr_desc),
+          item_valor_total: toDecimal(formCapa.item_valor_total),
           item_tab_preco_vigencia: format(
             new Date(
               gridItensSelected.tab_data_vigencia ||
@@ -870,11 +878,19 @@ export default function FAT6() {
         toast.error(`Erro adicionar item: ${err}`, toastOptions);
       }
 
-      frmItens.current.setFieldError(
+      frmCapa.current.setFieldError('cp_cli_id', validationErrors.cp_cli_id);
+
+      frmCapa.current.setFieldError('cp_cvto_id', validationErrors.cp_cvto_id);
+      frmCapa.current.setFieldError(
+        'cp_fpgto_id',
+        validationErrors.cp_fpgto_id
+      );
+
+      frmCapa.current.setFieldError(
         'item_vlr_unit',
         validationErrors.item_vlr_unit
       );
-      frmItens.current.setFieldError(
+      frmCapa.current.setFieldError(
         'item_quantidade',
         validationErrors.item_quantidade
       );
@@ -932,7 +948,7 @@ export default function FAT6() {
     }
   }
 
-  // limpar
+  // excluir item do orçamento
   async function handleDeleteItem(param) {
     try {
       if (param.prode_id) {
@@ -987,14 +1003,44 @@ export default function FAT6() {
     }
   }
 
+  // excluir orçamento
+  async function handleDeleteOrcamento() {
+    try {
+      if (dataGridPesqSelected.length > 0) {
+        const confirmation = await Confirmation.show(
+          'VOCÊ TEM CERTEZA QUE DESEJA EXCLUIR O ORÇAMENTO??? ESTA AÇÃO É IRREVERSÍVEL'
+        );
+
+        if (confirmation) {
+          setLoading(true);
+          const formCapa = frmCapa.current.getData();
+          const response = await api.delete(
+            `v1/fat/orc/excluir_orcamento?cp_id=${formCapa.cp_id}`
+          );
+          if (response.data.success) {
+            await listaPedido();
+          } else {
+            toast.error(`Erro ao excluir orçamento: ${response.data.message}`);
+          }
+          setLoading(false);
+        }
+      } else {
+        toast.info('SELECIONE UM ORÇAMENTO PARA EXCLUIR', toastOptions);
+      }
+    } catch (error) {
+      setLoading(false);
+      toast.error(`Erro ao excluir cadastro: ${error}`);
+    }
+  }
+
   // change select  produto - abrir popup grade
   async function handleChangeSelectProduto(p) {
     try {
       setLoading(true);
       setSelectedProduto(p);
       if (p.value) {
-        if (!frmItens.current.getData().barcode) {
-          const tab_id = frmItens.current.getData().item_tab_preco_id;
+        if (!frmCapa.current.getData().barcode) {
+          const tab_id = frmCapa.current.getData().item_tab_preco_id;
           const url = `v1/fat/orc/grade_produto?prod_id=${p.value}&marca_id=&classific1=&classific2=&classific3=&tab_id=${tab_id}`;
           const response = await api.get(url);
           const dados = response.data.retorno;
@@ -1005,10 +1051,9 @@ export default function FAT6() {
           }
         }
       } else {
-        setLabelSaldo('');
-        frmItens.current.setFieldValue('item_quantidade', '');
-        frmItens.current.setFieldValue('item_vlr_unit', '');
-        frmItens.current.setFieldValue('barcode', '');
+        frmCapa.current.setFieldValue('item_quantidade', '');
+        frmCapa.current.setFieldValue('item_vlr_unit', '');
+        frmCapa.current.setFieldValue('barcode', '');
       }
       setLoading(false);
     } catch (error) {
@@ -1021,20 +1066,26 @@ export default function FAT6() {
   const handleSelectItemGrade = async (prm, pausada) => {
     setOpenDlgGrade(false);
     if (prm) {
-      setLabelSaldo(`SALDO ATUAL DO ITEM: ${prm.prode_saldo}`);
-      frmItens.current.setFieldValue('item_vlr_unit', prm.tab_preco_final);
-
+      frmCapa.current.setFieldValue('item_vlr_unit', prm.tab_preco_final);
       document.getElementsByName('item_vlr_unit')[0].readOnly =
         toDecimal(prm.tab_preco_final) > 0;
 
       await totalItem();
       if (pausada !== 'S') {
-        frmItens.current.setFieldValue('item_quantidade', 1);
+        frmCapa.current.setFieldValue('item_quantidade', 1);
+        if (!frmCapa.current.getData().cp_id) {
+          toast.info(
+            'SALVE O ORÇAMENTO ANTES DE INCLUIR OS ITENS...',
+            toastOptions
+          );
+          return;
+        }
         await handleSubmitItens(prm);
         document.getElementsByName('barcode')[0].focus();
       } else {
+        setInputDesable(false);
         setGridGradeSelected(prm);
-        frmItens.current.setFieldValue('item_quantidade', '');
+        frmCapa.current.setFieldValue('item_quantidade', '');
         document.getElementsByName('item_quantidade')[0].focus();
       }
     }
@@ -1043,7 +1094,7 @@ export default function FAT6() {
   // evento barcode
   async function exitBarcode() {
     try {
-      const { barcode, item_tab_preco_id } = frmItens.current.getData();
+      const { barcode, item_tab_preco_id } = frmCapa.current.getData();
       if (barcode) {
         if (barcode.length === 12) {
           setInputDesable(true);
@@ -1055,9 +1106,8 @@ export default function FAT6() {
             const response = await api.get(url);
             const dados = response.data.retorno;
             if (dados.length > 0) {
-              setLabelSaldo(`SALDO ATUAL DO ITEM: ${dados[0].prode_saldo}`);
-              frmItens.current.setFieldValue('item_quantidade', 1);
-              frmItens.current.setFieldValue(
+              frmCapa.current.setFieldValue('item_quantidade', 1);
+              frmCapa.current.setFieldValue(
                 'item_vlr_unit',
                 dados[0].tab_preco_final
               );
@@ -1068,12 +1118,12 @@ export default function FAT6() {
                 value: dados[0].prod_id,
                 label: dados[0].prod_descricao,
               };
-              frmItens.current.setFieldValue('item_prod_id', x);
+              frmCapa.current.setFieldValue('item_prod_id', x);
 
               await totalItem();
               await handleSubmitItens(dados[0]); // tratar com parametros
               setInputDesable(false);
-              frmItens.current.setFieldValue('barcode', '');
+              frmCapa.current.setFieldValue('barcode', '');
               document.getElementsByName('barcode')[0].focus();
             } else {
               toast.info('ATENÇÃO!! PRODUTO NÃO ENCONTRADO', toastOptions);
@@ -1083,9 +1133,9 @@ export default function FAT6() {
               'ATENÇÃO!! INFORME A TABELA DE PREÇOS PARA CONTINUAR...',
               toastOptions
             );
-            setLabelSaldo('');
-            frmItens.current.setFieldValue('item_quantidade', '');
-            frmItens.current.setFieldValue('item_vlr_unit', '');
+
+            frmCapa.current.setFieldValue('item_quantidade', '');
+            frmCapa.current.setFieldValue('item_vlr_unit', '');
           }
           setInputDesable(false);
           setLoading(false);
@@ -1143,19 +1193,19 @@ export default function FAT6() {
 
             // adicionar nova quantidade
 
-            frmItens.current.setFieldValue(
+            frmCapa.current.setFieldValue(
               'item_vlr_unit',
               prm.data.item_vlr_unit
             );
-            frmItens.current.setFieldValue(
+            frmCapa.current.setFieldValue(
               'item_quantidade',
               prm.data.item_quantidade
             );
-            frmItens.current.setFieldValue(
+            frmCapa.current.setFieldValue(
               'item_vlr_desc',
               prm.data.item_vlr_desc
             );
-            frmItens.current.setFieldValue(
+            frmCapa.current.setFieldValue(
               'item_perc_desc',
               prm.data.item_perc_desc
             );
@@ -1197,6 +1247,110 @@ export default function FAT6() {
     window.open('/crm9', '_blank');
   }
 
+  // despesas adicionais
+  async function handleDespesa() {
+    try {
+      const formCapa = frmCapa.current.getData();
+      const formDesp = frmDespesa.current.getData();
+      setLoading(true);
+      const response = await api.put(
+        `v1/fat/orc/lancar_despesas?cli_id=${pesqCli_id.value}&cp_id=${
+          formCapa.cp_id
+        }&valor=${toDecimal(formDesp.vlrDespesa)}`
+      );
+
+      if (response.data.success) {
+        const ret = response.data.retorno;
+
+        frmCapa.current.setFieldValue(
+          'cp_vlr_outros',
+          toDecimal(ret.cp_vlr_outros)
+        );
+        frmCapa.current.setFieldValue('cp_vlr_nf', toDecimal(ret.cp_vlr_nf));
+      } else {
+        toast.error(
+          `Erro ao lançar despesas \n${response.data.errors}`,
+          toastOptions
+        );
+      }
+
+      setDlgDespesa(false);
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      toast.error(`Erro ao lançar despesas\n${error}`, toastOptions);
+    }
+  }
+
+  function handleValidaDespesa() {
+    const formCapa = frmCapa.current.getData();
+    if (valueTab == '1' && formCapa.cp_id) {
+      frmDespesa.current.setFieldValue('vlrDespesa', '');
+      setDlgDespesa(true);
+    } else {
+      toast.info(
+        'ABRA O ORÇAMENTO PARA LANÇAR DESPESAS ADICIONAIS',
+        toastOptions
+      );
+    }
+  }
+
+  function exportarOrcamento() {
+    const formCapa = frmCapa.current.getData();
+    if (valueTab == '1' && formCapa.cp_id) {
+      setDlgOrcamento(true);
+    } else {
+      toast.info('ABRA O ORÇAMENTO PARA PARA GERAR O PEDIDO', toastOptions);
+    }
+  }
+
+  async function handleOrcamento() {
+    try {
+      const formCapa = frmCapa.current.getData();
+      let response;
+      if (document.getElementById('rbPrevenda').checked) {
+        setLoading(true);
+        response = await api.post(
+          `v1/fat/orc/gerar_pedido?cp_perfil=2&cp_id=${formCapa.cp_id}`
+        );
+      } else if (document.getElementById('rbConsignado').checked) {
+        response = await api.post(
+          `v1/fat/orc/gerar_pedido?cp_perfil=3&cp_id=${formCapa.cp_id}`
+        );
+      } else {
+        toast.info('INFORME O TIPO DE PEDIDO QUE DESEJA GERAR', toastOptions);
+        return;
+      }
+
+      if (response.data.success) {
+        const confirmation = await Confirmation.show(
+          'O PEDIDO FOI GERADO COM SUCESSO!! DESEJA ACESSAR O CADASTRO???'
+        );
+
+        if (confirmation) {
+          setValueTab(0);
+          if (document.getElementById('rbPrevenda').checked) {
+            window.open('/fat2/2', '_blank');
+          } else {
+            window.open('/fat2/3', '_blank');
+          }
+        } else setValueTab(0);
+
+        await listaPedido();
+        setDlgOrcamento(false);
+      } else {
+        toast.error(
+          `Erro converter orçamento\n${response.data.message}`,
+          toastOptions
+        );
+      }
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      toast.error(`Erro converter orçamento\n${error}`, toastOptions);
+    }
+  }
+
   // change TAB
   const handleChangeTab = async (event, newValue) => {
     if (newValue === 0) {
@@ -1215,30 +1369,6 @@ export default function FAT6() {
       } else {
         await handleEdit();
       }
-    } else if (newValue === 2) {
-      // itens
-      limpaItens();
-      if (dataGridPesqSelected.length > 0) {
-        await handleEdit();
-        await handleDetalhar();
-        setInputDesable(false);
-        setValueTab(newValue);
-      } else if (valueTab === 1) {
-        const formData = frmCapa.current.getData();
-        if (formData.cp_id) {
-          // se ja existe o pedido
-          await handleDetalhar();
-          setInputDesable(false);
-          setValueTab(newValue);
-        } else {
-          toast.info(
-            `SALVE O PEDIDO ANTES DE INFORMAR OU CONSULTAR OS ITENS...`,
-            toastOptions
-          );
-        }
-      } else {
-        toast.info('SELECIONE UM PEDIDO PARA CONSULTAR', toastOptions);
-      }
     }
   };
 
@@ -1247,8 +1377,8 @@ export default function FAT6() {
   const gridColumnConsulta = [
     {
       field: 'cp_id',
-      headerName: 'Nº PEDIDO',
-      width: 100,
+      headerName: 'Nº ORÇAMENTO',
+      width: 140,
       sortable: true,
       resizable: true,
       filter: true,
@@ -1257,7 +1387,7 @@ export default function FAT6() {
     {
       field: 'autor',
       headerName: 'VENDEDOR(A)',
-      width: 200,
+      width: 280,
       sortable: true,
       resizable: true,
       filter: true,
@@ -1266,7 +1396,7 @@ export default function FAT6() {
     {
       field: 'cli_razao_social',
       headerName: 'CLIENTE',
-      width: 350,
+      width: 400,
       sortable: true,
       resizable: true,
       filter: true,
@@ -1275,24 +1405,15 @@ export default function FAT6() {
     {
       field: 'cp_data_emis',
       headerName: 'DTA. EMISSÃO',
-      width: 130,
+      width: 140,
       sortable: true,
       resizable: true,
-      lockVisible: true,
-    },
-    {
-      field: 'cp_data_devol',
-      headerName: 'DTA. DEVOL',
-      width: 130,
-      sortable: true,
-      resizable: true,
-      filter: true,
       lockVisible: true,
     },
     {
       field: 'cp_vlr_nf',
-      headerName: 'VLR. PEDIDO',
-      width: 120,
+      headerName: 'VLR. ORÇAMENTO',
+      width: 170,
       sortable: true,
       resizable: true,
       filter: true,
@@ -1301,18 +1422,11 @@ export default function FAT6() {
       valueFormatter: GridCurrencyFormatter,
       cellClass: 'cell_valor',
     },
+    {
+      flex: 1,
+    },
   ];
 
-  gridColumnConsulta.push({
-    field: 'cp_situacao',
-    headerName: 'SITUAÇAO SISTEMA',
-    width: 280,
-    sortable: true,
-    resizable: true,
-    filter: true,
-    lockVisible: true,
-    flex: 1,
-  });
   // #endregion
 
   // #region GRID ITENS PEDIDO ===========================================
@@ -1353,8 +1467,6 @@ export default function FAT6() {
       resizable: true,
       editable: true,
       filter: 'agTextColumnFilter',
-      floatingFilter: true,
-      floatingFilterComponentParams: { suppressFilterButton: true },
       lockVisible: true,
     },
     {
@@ -1364,10 +1476,8 @@ export default function FAT6() {
       sortable: true,
       resizable: true,
       editable: true,
-      floatingFilter: true,
       filter: true,
       lockVisible: true,
-      floatingFilterComponentParams: { suppressFilterButton: true },
     },
     {
       field: 'classific1',
@@ -1550,66 +1660,46 @@ export default function FAT6() {
 
   // #endregion
 
-  async function handleDetalhar() {
-    if (document.getElementById('chbDetalhar').checked) {
-      gridColumnItens.push({
-        field: 'data_cadastro',
-        headerName: 'DATA/HORA',
-        width: 190,
-        sortable: true,
-        resizable: true,
-        filter: true,
-        lockVisible: true,
-      });
-
-      gridColumnItens.push({
-        flex: 1,
-      });
-      setColunaItens(gridColumnItens);
-      await listaItens(1000, 'S');
-    } else {
-      gridColumnItens.push({
-        flex: 1,
-      });
-      setColunaItens(gridColumnItens);
-      await listaItens(1000, 'N');
-    }
-  }
-
   function handleProduto() {
     window.open('/supr4', '_blank');
   }
 
   const handleChangeTabPreo = async (tab) => {
     try {
-      if (gridItens.length > 0) {
-        if (gridItens[0].item_tab_preco_id.toString() === tab.value.toString())
-          return;
+      if (tab) {
+        if (gridItens.length > 0) {
+          if (!gridItens[0].item_tab_preco_id) return;
+          if (
+            gridItens[0].item_tab_preco_id.toString() === tab.value.toString()
+          )
+            return;
 
-        const confirmation = await Confirmation.show(
-          'Ao trocar a tabela de preços,  todo o pedido será recalculado de acordo com a tabela informada.  Deseja Continuar???'
-        );
-
-        if (confirmation) {
-          setLoading(true);
-          const formCapa = frmCapa.current.getData();
-          const response = await api.put(
-            `v1/fat/trocar_tabela?cp_id=${formCapa.cp_id}&tab_id=${tab.value}`
+          const confirmation = await Confirmation.show(
+            'Ao trocar a tabela de preços,  todo o pedido será recalculado de acordo com a tabela informada.  Deseja Continuar???'
           );
 
-          if (response.data.success) {
-            await listaItens();
-            toast.info('PEDIDO RECALCULADO COM SUCESSO!!!', toastOptions);
+          if (confirmation) {
+            setLoading(true);
+            const formCapa = frmCapa.current.getData();
+            const response = await api.put(
+              `v1/fat/trocar_tabela?cp_id=${formCapa.cp_id}&tab_id=${tab.value}`
+            );
+
+            if (response.data.success) {
+              await listaItens();
+              toast.info('PEDIDO RECALCULADO COM SUCESSO!!!', toastOptions);
+            } else {
+              toast.error(response.data.errors, toastOptions);
+            }
+            setLoading(false);
           } else {
-            toast.error(response.data.errors, toastOptions);
+            const x = optTabPreco.find(
+              (op) =>
+                op.value.toString() ===
+                gridItens[0].item_tab_preco_id.toString()
+            );
+            frmCapa.current.setFieldValue('item_tab_preco_id', x);
           }
-          setLoading(false);
-        } else {
-          const x = optTabPreco.find(
-            (op) =>
-              op.value.toString() === gridItens[0].item_tab_preco_id.toString()
-          );
-          frmItens.current.setFieldValue('item_tab_preco_id', x);
         }
       }
     } catch (error) {
@@ -1636,6 +1726,7 @@ export default function FAT6() {
     setTitlePg('ORÇAMENTO DE VENDA');
     getComboFpgto();
     listaPedido();
+    getComboOperFat();
     getComboCondVcto();
     getComboTabPreco();
     getParamSistema();
@@ -1660,7 +1751,7 @@ export default function FAT6() {
           </button>
         </BootstrapTooltip>
         <DivLimitador hg="10px" />
-        <BootstrapTooltip title="Salvar/Calcular Pedido" placement="left">
+        <BootstrapTooltip title="Salvar/Calcular Orçamento" placement="left">
           <button
             disabled={desableSave}
             type="button"
@@ -1679,9 +1770,15 @@ export default function FAT6() {
 
         <DivLimitador hg="10px" />
 
-        <BootstrapTooltip title="Cancelar Pedido" placement="left">
-          <button type="button" onClick={() => null}>
-            <FaBan size={25} color="#fff" />
+        <BootstrapTooltip title="LANÇAR DESPESAS ADICIONAIS" placement="left">
+          <button type="button" onClick={handleValidaDespesa}>
+            <FaWeightHanging size={25} color="#fff" />
+          </button>
+        </BootstrapTooltip>
+        <DivLimitador hg="10px" />
+        <BootstrapTooltip title="EXCLUIR ORÇAMENTO" placement="left">
+          <button type="button" onClick={handleDeleteOrcamento}>
+            <FaTrashAlt size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
 
@@ -1692,7 +1789,19 @@ export default function FAT6() {
             <FaPrint size={25} color="#fff" />
           </button>
         </BootstrapTooltip>
+
         <DivLimitador hg="10px" />
+
+        <BootstrapTooltip
+          title="CONVERTER ORÇAMENTO EM PEDIDO DE VENDA"
+          placement="left"
+        >
+          <button type="button" onClick={exportarOrcamento}>
+            <FaFileExport size={25} color="#fff" />
+          </button>
+        </BootstrapTooltip>
+
+        <DivLimitador hg="30px" />
 
         <BootstrapTooltip title="ACESSAR CADASTRO DE PRODUTOS" placement="left">
           <button type="button" onClick={handleProduto}>
@@ -1734,32 +1843,24 @@ export default function FAT6() {
               textColor="primary"
             >
               <BootstrapTooltip
-                title="Consultar Pedidos Cadastrado"
+                title="Consultar Orçamento"
                 placement="top-start"
               >
                 <Tab
-                  label="CONSULTAR PEDIDOS"
+                  label="CONSULTAR ORÇAMENTO"
                   {...a11yProps(0)}
                   icon={<FaSearchDollar size={29} color="#244448" />}
                 />
               </BootstrapTooltip>
               <BootstrapTooltip
-                title="Informções Inciais do Pedido"
+                title="Informções Inciais do Orçamento"
                 placement="top-end"
               >
                 <Tab
                   disabled={false}
-                  label="CAPA PEDIDO"
+                  label="ORÇAMENTO"
                   {...a11yProps(1)}
                   icon={<FaThList size={26} color="#244448" />}
-                />
-              </BootstrapTooltip>
-              <BootstrapTooltip title="Itens do pedido" placement="top-end">
-                <Tab
-                  disabled={false}
-                  label="ITENS PEDIDO"
-                  {...a11yProps(2)}
-                  icon={<FaClipboardList size={29} color="#244448" />}
                 />
               </BootstrapTooltip>
             </Tabs>
@@ -1770,7 +1871,7 @@ export default function FAT6() {
             <Panel lefth1="left" bckgnd="#dae2e5">
               <Form id="frmPesquisa" ref={frmPesquisa}>
                 <h1>PARÂMETROS DE PESQUISA</h1>
-                <BoxItemCad fr="2fr 0.8fr 0.8fr 0.8fr 1fr 1.2fr">
+                <BoxItemCad fr="3fr 1fr 1fr 1fr 1fr">
                   <AreaComp wd="100">
                     <AsyncSelectForm
                       name="pesq_cli_id"
@@ -1783,7 +1884,7 @@ export default function FAT6() {
                     />
                   </AreaComp>
                   <AreaComp wd="100">
-                    <label>Num. Pedido</label>
+                    <label>Num. Orçamento</label>
                     <input
                       type="number"
                       name="pesq_cp_id"
@@ -1815,20 +1916,6 @@ export default function FAT6() {
                         />
                       </span>
                     </div>
-                  </AreaComp>
-
-                  <AreaComp wd="100" ptop="25px">
-                    <CCheck>
-                      <input
-                        type="checkbox"
-                        id="chbNaoValidado"
-                        name="chbNaoValidado"
-                        value="S"
-                      />
-                      <label htmlFor="chbNaoValidado">
-                        Pedidos não validado
-                      </label>
-                    </CCheck>
                   </AreaComp>
                 </BoxItemCad>
                 <BoxItemCadNoQuery fr="1fr">
@@ -1867,12 +1954,11 @@ export default function FAT6() {
             </Panel>
           </TabPanel>
 
-          {/* ABA CAPA DO PEDIDO */}
+          {/* ABA ORÇAMENTO */}
           <TabPanel value={valueTab} index={1}>
             <Panel lefth1="left" bckgnd="#dae2e5">
               <Form id="frmCapa" ref={frmCapa}>
-                <h1>IDENTIFICAÇÃO DO PEDIDO</h1>
-                <BoxItemCad fr="1fr 1fr 1fr 3fr">
+                <BoxItemCad fr="1fr 1fr 3fr 2fr 2fr 2fr">
                   <AreaComp wd="100">
                     <label>Código</label>
                     <Input
@@ -1910,8 +1996,16 @@ export default function FAT6() {
                       zindex="154"
                     />
                   </AreaComp>
-                </BoxItemCad>
-                <BoxItemCad fr="1fr 1fr">
+                  <AreaComp wd="100">
+                    <FormSelect
+                      label="Operação de Faturamento"
+                      name="cp_oper_id"
+                      optionsList={optOperFat}
+                      isClearable
+                      placeholder="INFORME"
+                      zindex="153"
+                    />
+                  </AreaComp>
                   <AreaComp wd="100">
                     <FormSelect
                       name="cp_cvto_id"
@@ -1922,8 +2016,6 @@ export default function FAT6() {
                       zindex="153"
                     />
                   </AreaComp>
-                </BoxItemCad>
-                <BoxItemCad fr="1fr 1fr">
                   <AreaComp wd="100">
                     <FormSelect
                       name="cp_fpgto_id"
@@ -1931,273 +2023,202 @@ export default function FAT6() {
                       optionsList={optFpgto}
                       isClearable
                       placeholder="INFORME"
-                    />
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <AsyncSelectForm
-                      name="cp_representante"
-                      label="REPRESENTANTE/VENDEDOR"
-                      placeholder="NÃO INFORMADO"
-                      defaultOptions
-                      cacheOptions
-                      value={representante}
-                      onChange={(c) => setRepresentante(c || [])}
-                      loadOptions={loadOptionsRepresentante}
-                      isClearable
+                      zindex="153"
                     />
                   </AreaComp>
                 </BoxItemCad>
-                <BoxItemCadNoQuery>
+
+                <h1>ITENS DO ORÇAMENTO</h1>
+
+                <BoxItemCad fr="1fr 2fr">
                   <AreaComp wd="100">
-                    <label>Observações do pedido</label>
-                    <TextArea type="text" name="cp_observacao" rows="4" />
-                  </AreaComp>
-                </BoxItemCadNoQuery>
-                <h1>TOTAIS DO PEDIDO</h1>
-                <BoxItemCad fr="1fr 1fr 1fr 1fr 1fr 1fr">
-                  <AreaComp wd="100">
-                    <label>Valor do Produtos</label>
-                    <Input
-                      type="number"
-                      name="cp_vlr_total"
-                      readOnly
-                      className="input_cad"
-                    />
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <label>Valor Despesas</label>
-                    <Input
+                    <label>Observações do orçamento</label>
+                    <TextArea
                       type="text"
-                      name="cp_vlr_outros"
-                      className="input_cad"
-                      readOnly
-                      onChange={maskDecimal}
-                    />
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <label>Crédito Cliente</label>
-                    <Input
-                      type="number"
-                      name="cp_credito_cli"
-                      readOnly
-                      className="input_cad"
-                    />
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <label>Valor Bonificação</label>
-                    <Input
-                      type="number"
-                      name="vlr_bonificacao"
-                      readOnly
-                      className="input_cad"
-                    />
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <label>Valor Desconto</label>
-                    <Input
-                      type="number"
-                      name="cp_vlr_desc"
-                      readOnly
-                      className="input_cad"
-                    />
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <label>Valor do Pedido</label>
-                    <Input
-                      type="number"
-                      name="cp_vlr_nf"
-                      readOnly
-                      className="input_cad"
-                    />
-                  </AreaComp>
-                </BoxItemCad>
-              </Form>
-            </Panel>
-          </TabPanel>
-
-          {/* ABA ITENS DO PEDIDO */}
-          <TabPanel value={valueTab} index={2}>
-            <Panel lefth1="left" bckgnd="#dae2e5">
-              <h1>{`ITENS DO PEDIDO - ${labelSaldo} `}</h1>
-              <Form id="frmItens" ref={frmItens}>
-                <BoxItemCad fr="1fr 1fr 2fr 1fr">
-                  <AreaComp wd="100">
-                    <CCheck>
-                      <input
-                        type="checkbox"
-                        id="chbBonificar"
-                        name="chbBonificar"
-                        value="S"
-                      />
-                      <label htmlFor="chbBonificar">
-                        Lançar item como brinde
-                      </label>
-                    </CCheck>
-                    <CCheck>
-                      <input
-                        type="checkbox"
-                        id="chbDetalhar"
-                        name="chbDetalhar"
-                        value="S"
-                        onClick={handleDetalhar}
-                      />
-                      <label htmlFor="chbDetalhar">Detalhar Lançamentos</label>
-                    </CCheck>
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <FormSelect
-                      name="item_tab_preco_id"
-                      label="Tabela de Preços"
-                      optionsList={optTabPreco}
-                      isClearable={false}
-                      onChange={handleChangeTabPreo}
-                      placeholder="INFORME A TABELA"
-                    />
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <AsyncSelectForm
-                      name="item_prod_id"
-                      label="Produto"
-                      value={selectedProduto}
-                      placeholder="INFORME O PRODUTO"
-                      onChange={(p) => handleChangeSelectProduto(p || [])}
-                      loadOptions={loadOptions}
-                      isClearable
+                      resize="none"
+                      name="cp_observacao"
+                      rows="4"
                     />
                   </AreaComp>
 
                   <AreaComp wd="100">
-                    <label>Código de Barras</label>
+                    <BoxItemCad fr="0.8fr 2fr 3.2fr 2fr">
+                      <AreaComp wd="100" ptop="20px">
+                        <CCheck>
+                          <input
+                            type="checkbox"
+                            id="chbBonificar"
+                            name="chbBonificar"
+                            value="S"
+                          />
+                          <label htmlFor="chbBonificar">brinde</label>
+                        </CCheck>
+                      </AreaComp>
+                      <AreaComp wd="100">
+                        <FormSelect
+                          name="item_tab_preco_id"
+                          label="Tabela de Preços"
+                          optionsList={optTabPreco}
+                          isClearable={false}
+                          onChange={handleChangeTabPreo}
+                          placeholder="INFORME A TABELA"
+                        />
+                      </AreaComp>
+                      <AreaComp wd="100">
+                        <AsyncSelectForm
+                          name="item_prod_id"
+                          label="Produto"
+                          value={selectedProduto}
+                          placeholder="INFORME O PRODUTO"
+                          onChange={(p) => handleChangeSelectProduto(p || [])}
+                          loadOptions={loadOptions}
+                          isClearable
+                        />
+                      </AreaComp>
 
-                    <KeyboardEventHandler
-                      handleKeys={['enter', 'tab']}
-                      onKeyEvent={() => exitBarcode()}
-                    >
-                      <Input
-                        type="number"
-                        name="barcode"
-                        className="input_cad"
-                        placeholder="LOCALIZAR POR CODIGO DE BARRAS"
-                        disabled={inputDesable}
-                      />
-                    </KeyboardEventHandler>
+                      <AreaComp wd="100">
+                        <label>Código de Barras</label>
+                        <KeyboardEventHandler
+                          handleKeys={['enter', 'tab']}
+                          onKeyEvent={() => exitBarcode()}
+                        >
+                          <Input
+                            type="number"
+                            name="barcode"
+                            className="input_cad"
+                            placeholder="CODIGO DE BARRAS"
+                            disabled={inputDesable}
+                          />
+                        </KeyboardEventHandler>
+                      </AreaComp>
+                    </BoxItemCad>
+
+                    <BoxItemCad fr="1fr 1fr 1fr 1fr 1fr">
+                      <AreaComp wd="100">
+                        <label>Quantidade</label>
+                        <KeyboardEventHandler
+                          handleKeys={['enter']}
+                          onKeyEvent={async () => {
+                            if (paramSistema[0].par_digitacao_pausada === 'S') {
+                              await totalItem();
+                              if (!frmCapa.current.getData().cp_id)
+                                await handleSubmitCapa();
+                              await handleSubmitItens(gridGradeSelected);
+                              const ref = frmCapa.current.getFieldRef(
+                                'item_prod_id'
+                              );
+                              ref.focus();
+                            }
+                          }}
+                        >
+                          <Input
+                            type="text"
+                            name="item_quantidade"
+                            onBlur={() => totalItem()}
+                            placeholder="0,00"
+                            className="input_cad"
+                            disabled={inputDesable}
+                          />
+                        </KeyboardEventHandler>
+                      </AreaComp>
+                      <AreaComp wd="100">
+                        <KeyboardEventHandler
+                          handleKeys={['enter']}
+                          onKeyEvent={async () => {
+                            if (paramSistema[0].par_digitacao_pausada === 'S') {
+                              await totalItem();
+                              if (!frmCapa.current.getData().cp_id)
+                                await handleSubmitCapa();
+                              await handleSubmitItens(gridGradeSelected);
+                              const ref = frmCapa.current.getFieldRef(
+                                'item_prod_id'
+                              );
+                              ref.focus();
+                            }
+                          }}
+                        >
+                          <label>Valor Unitário</label>
+                          <Input
+                            type="text"
+                            name="item_vlr_unit"
+                            onBlur={() => totalItem()}
+                            placeholder="0,00"
+                            onChange={maskDecimal}
+                            className="input_cad"
+                            disabled={inputDesable}
+                          />
+                        </KeyboardEventHandler>
+                      </AreaComp>
+                      <AreaComp wd="100">
+                        <label>Valor Desconto</label>
+                        <KeyboardEventHandler
+                          handleKeys={['enter']}
+                          onKeyEvent={async () => {
+                            if (paramSistema[0].par_digitacao_pausada === 'S') {
+                              await totalItem();
+                              if (!frmCapa.current.getData().cp_id)
+                                await handleSubmitCapa();
+                              await handleSubmitItens(gridGradeSelected);
+                              const ref = frmCapa.current.getFieldRef(
+                                'item_prod_id'
+                              );
+                              ref.focus();
+                            }
+                          }}
+                        >
+                          <Input
+                            type="text"
+                            name="item_vlr_desc"
+                            onBlur={() => totalItem()}
+                            placeholder="0,00"
+                            onChange={maskDecimal}
+                            className="input_cad"
+                            disabled={inputDesable}
+                          />
+                        </KeyboardEventHandler>
+                      </AreaComp>
+                      <AreaComp wd="100">
+                        <label>Desconto em (%)</label>
+                        <KeyboardEventHandler
+                          handleKeys={['enter']}
+                          onKeyEvent={async () => {
+                            if (paramSistema[0].par_digitacao_pausada === 'S') {
+                              await totalItem();
+                              if (!frmCapa.current.getData().cp_id)
+                                await handleSubmitCapa();
+                              await handleSubmitItens(gridGradeSelected);
+                              const ref = frmCapa.current.getFieldRef(
+                                'item_prod_id'
+                              );
+                              ref.focus();
+                            }
+                          }}
+                        >
+                          <Input
+                            type="text"
+                            name="item_perc_desc"
+                            placeholder="0,00"
+                            onBlur={() => totalItem()}
+                            onChange={maskDecimal}
+                            className="input_cad"
+                            disabled={inputDesable}
+                          />
+                        </KeyboardEventHandler>
+                      </AreaComp>
+                      <AreaComp wd="100">
+                        <label>Valor Total</label>
+                        <Input
+                          type="text"
+                          name="item_valor_total"
+                          readOnly
+                          placeholder="0,00"
+                          className="input_cad"
+                        />
+                      </AreaComp>
+                    </BoxItemCad>
                   </AreaComp>
                 </BoxItemCad>
-                <BoxItemCad fr="1fr 1fr 1fr 1fr 1fr">
-                  <AreaComp wd="100">
-                    <label>Quantidade</label>
-                    <KeyboardEventHandler
-                      handleKeys={['enter']}
-                      onKeyEvent={async () => {
-                        if (paramSistema[0].par_digitacao_pausada === 'S') {
-                          await totalItem();
-                          await handleSubmitItens(gridGradeSelected);
-                          const ref = frmItens.current.getFieldRef(
-                            'item_prod_id'
-                          );
-                          ref.focus();
-                        }
-                      }}
-                    >
-                      <Input
-                        type="text"
-                        name="item_quantidade"
-                        onBlur={() => totalItem()}
-                        placeholder="0,00"
-                        className="input_cad"
-                        disabled={inputDesable}
-                      />
-                    </KeyboardEventHandler>
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <KeyboardEventHandler
-                      handleKeys={['enter']}
-                      onKeyEvent={async () => {
-                        if (paramSistema[0].par_digitacao_pausada === 'S') {
-                          await totalItem();
-                          await handleSubmitItens(gridGradeSelected);
-                          const ref = frmItens.current.getFieldRef(
-                            'item_prod_id'
-                          );
-                          ref.focus();
-                        }
-                      }}
-                    >
-                      <label>Valor Unitário</label>
-                      <Input
-                        type="text"
-                        name="item_vlr_unit"
-                        onBlur={() => totalItem()}
-                        placeholder="0,00"
-                        onChange={maskDecimal}
-                        className="input_cad"
-                        disabled={inputDesable}
-                      />
-                    </KeyboardEventHandler>
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <label>Valor Desconto</label>
-                    <KeyboardEventHandler
-                      handleKeys={['enter']}
-                      onKeyEvent={async () => {
-                        if (paramSistema[0].par_digitacao_pausada === 'S') {
-                          await totalItem();
-                          await handleSubmitItens(gridGradeSelected);
-                          const ref = frmItens.current.getFieldRef(
-                            'item_prod_id'
-                          );
-                          ref.focus();
-                        }
-                      }}
-                    >
-                      <Input
-                        type="text"
-                        name="item_vlr_desc"
-                        onBlur={() => totalItem()}
-                        placeholder="0,00"
-                        onChange={maskDecimal}
-                        className="input_cad"
-                        disabled={inputDesable}
-                      />
-                    </KeyboardEventHandler>
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <label>Desconto em percentual (%)</label>
-                    <KeyboardEventHandler
-                      handleKeys={['enter']}
-                      onKeyEvent={async () => {
-                        if (paramSistema[0].par_digitacao_pausada === 'S') {
-                          await totalItem();
-                          await handleSubmitItens(gridGradeSelected);
-                          const ref = frmItens.current.getFieldRef(
-                            'item_prod_id'
-                          );
-                          ref.focus();
-                        }
-                      }}
-                    >
-                      <Input
-                        type="text"
-                        name="item_perc_desc"
-                        placeholder="0,00"
-                        onBlur={() => totalItem()}
-                        onChange={maskDecimal}
-                        className="input_cad"
-                        disabled={inputDesable}
-                      />
-                    </KeyboardEventHandler>
-                  </AreaComp>
-                  <AreaComp wd="100">
-                    <label>Valor Total</label>
-                    <Input
-                      type="text"
-                      name="item_valor_total"
-                      readOnly
-                      placeholder="0,00"
-                      className="input_cad"
-                    />
-                  </AreaComp>
-                </BoxItemCad>
+
                 <BoxItemCadNoQuery fr="1fr">
                   <GridContainerItens className="ag-theme-balham">
                     <AgGridReact
@@ -2209,16 +2230,67 @@ export default function FAT6() {
                     />
                   </GridContainerItens>
                 </BoxItemCadNoQuery>
-                <BoxItemCadNoQuery fr="1fr">
-                  <AreaComp
-                    wd="100"
-                    h3talign="center"
-                    bckgndh3="#fff"
-                    ptop="7px"
-                  >
-                    <h3>{remumoItens}</h3>
+
+                <BoxItemCad fr="1fr 1fr 1fr 1fr 1fr 1fr">
+                  <AreaComp wd="100">
+                    <label>QTD. produtos</label>
+                    <Input
+                      type="number"
+                      name="qtd_itens"
+                      value={remumoItens.quantidade}
+                      readOnly
+                      className="input_destaque_plus"
+                    />
                   </AreaComp>
-                </BoxItemCadNoQuery>
+                  <AreaComp wd="100">
+                    <label>Valor do Produtos</label>
+                    <Input
+                      type="text"
+                      name="valor_itens"
+                      value={remumoItens.valor}
+                      readOnly
+                      className="input_destaque_plus"
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <label>Valor Despesas</label>
+                    <Input
+                      type="text"
+                      name="cp_vlr_outros"
+                      className="input_destaque_plus"
+                      readOnly
+                      onChange={maskDecimal}
+                    />
+                  </AreaComp>
+
+                  <AreaComp wd="100">
+                    <label>Valor Bonificação</label>
+                    <Input
+                      type="number"
+                      name="vlr_bonificacao"
+                      readOnly
+                      className="input_destaque_plus"
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <label>Valor Desconto</label>
+                    <Input
+                      type="number"
+                      name="cp_vlr_desc"
+                      readOnly
+                      className="input_destaque_plus"
+                    />
+                  </AreaComp>
+                  <AreaComp wd="100">
+                    <label>Valor do Orçamento</label>
+                    <Input
+                      type="number"
+                      name="cp_vlr_nf"
+                      readOnly
+                      className="input_destaque"
+                    />
+                  </AreaComp>
+                </BoxItemCad>
               </Form>
             </Panel>
           </TabPanel>
@@ -2401,6 +2473,100 @@ export default function FAT6() {
         size="lg"
       >
         <CONSULTA_PRODUTO />
+      </Popup>
+
+      {/* popup para despesas adicionais... */}
+      <Popup
+        isOpen={dlgDespesa}
+        closeDialogFn={() => setDlgDespesa(false)}
+        title="DESPESAS ADICIONAIS"
+        size="sm"
+      >
+        <Panel
+          lefth1="left"
+          bckgnd="#dae2e5"
+          mtop="1px"
+          pdding="5px 7px 7px 10px"
+        >
+          <Form id="frmDespesa" ref={frmDespesa}>
+            <BoxItemCadNoQuery fr="1fr">
+              <AreaComp wd="100">
+                <label>valor (outras despesas)</label>
+                <Input
+                  type="text"
+                  name="vlrDespesa"
+                  onChange={maskDecimal}
+                  className="input_cad"
+                />
+              </AreaComp>
+            </BoxItemCadNoQuery>
+
+            <BoxItemCadNoQuery fr="1fr" ptop="35px">
+              <AreaComp wd="100" ptop="10px">
+                <button
+                  type="button"
+                  className="btnGeral"
+                  onClick={handleDespesa}
+                >
+                  {loading ? 'Aguarde Processando...' : 'Confirmar'}
+                </button>
+              </AreaComp>
+            </BoxItemCadNoQuery>
+          </Form>
+        </Panel>
+      </Popup>
+
+      {/* popup para orçamento... */}
+      <Popup
+        isOpen={dlgOrcamento}
+        closeDialogFn={() => setDlgOrcamento(false)}
+        title="CONVERTER ORÇAMENTO EM PEDIDO"
+        size="sm"
+      >
+        <Panel
+          lefth1="left"
+          bckgnd="#dae2e5"
+          mtop="1px"
+          pdding="5px 7px 7px 10px"
+        >
+          <Form id="frmOrcamento" ref={frmOrcamento}>
+            <BoxItemCadNoQuery fr="1fr">
+              <AreaComp wd="100">
+                <CCheck>
+                  <input
+                    type="radio"
+                    id="rbPrevenda"
+                    name="radioorca"
+                    value="S"
+                  />
+                  <label htmlFor="rbPrevenda">
+                    Gerar Pedido de Venda (Prevenda)
+                  </label>
+
+                  <input
+                    type="radio"
+                    id="rbConsignado"
+                    name="radioorca"
+                    value="S"
+                  />
+                  <label htmlFor="rbConsignado">Gerar Pedido Consignado</label>
+                </CCheck>
+              </AreaComp>
+            </BoxItemCadNoQuery>
+
+            <BoxItemCadNoQuery fr="1fr" ptop="35px">
+              <AreaComp wd="100" ptop="10px">
+                <button
+                  type="button"
+                  className="btnGeral"
+                  onClick={handleOrcamento}
+                >
+                  {loading ? 'Aguarde Processando...' : 'Confirmar'}
+                </button>
+              </AreaComp>
+            </BoxItemCadNoQuery>
+          </Form>
+        </Panel>
       </Popup>
 
       {/* popup para aguarde... */}

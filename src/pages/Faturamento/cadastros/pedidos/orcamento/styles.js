@@ -138,23 +138,23 @@ export const GridContainerItens = styled.div`
   }
 
   @media (min-height: 300px) {
-    height: 32vh;
+    height: 25vh;
   }
 
   @media (min-height: 600px) {
-    height: 34vh;
+    height: 28vh;
   }
 
   @media (min-height: 680px) {
-    height: 38vh;
+    height: 30vh;
   }
 
   @media (min-height: 780px) {
-    height: 44vh;
+    height: 36vh;
   }
 
   @media (min-height: 880px) {
-    height: 49vh;
+    height: 40vh;
   }
 `;
 

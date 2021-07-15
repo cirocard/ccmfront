@@ -2546,34 +2546,40 @@ export default function FAT2() {
 
   const handleChangeTabPreo = async (tab) => {
     try {
-      if (gridItens.length > 0) {
-        if (gridItens[0].item_tab_preco_id.toString() === tab.value.toString())
-          return;
+      if (tab) {
+        if (gridItens.length > 0) {
+          if (!gridItens[0].item_tab_preco_id) return;
+          if (
+            gridItens[0].item_tab_preco_id.toString() === tab.value.toString()
+          )
+            return;
 
-        const confirmation = await Confirmation.show(
-          'Ao trocar a tabela de preços,  todo o pedido será recalculado de acordo com a tabela informada.  Deseja Continuar???'
-        );
-
-        if (confirmation) {
-          setLoading(true);
-          const formCapa = frmCapa.current.getData();
-          const response = await api.put(
-            `v1/fat/trocar_tabela?cp_id=${formCapa.cp_id}&tab_id=${tab.value}`
+          const confirmation = await Confirmation.show(
+            'Ao trocar a tabela de preços,  todo o pedido será recalculado de acordo com a tabela informada.  Deseja Continuar???'
           );
 
-          if (response.data.success) {
-            await listaItens();
-            toast.info('PEDIDO RECALCULADO COM SUCESSO!!!', toastOptions);
+          if (confirmation) {
+            setLoading(true);
+            const formCapa = frmCapa.current.getData();
+            const response = await api.put(
+              `v1/fat/trocar_tabela?cp_id=${formCapa.cp_id}&tab_id=${tab.value}`
+            );
+
+            if (response.data.success) {
+              await listaItens();
+              toast.info('PEDIDO RECALCULADO COM SUCESSO!!!', toastOptions);
+            } else {
+              toast.error(response.data.errors, toastOptions);
+            }
+            setLoading(false);
           } else {
-            toast.error(response.data.errors, toastOptions);
+            const x = optTabPreco.find(
+              (op) =>
+                op.value.toString() ===
+                gridItens[0].item_tab_preco_id.toString()
+            );
+            frmItens.current.setFieldValue('item_tab_preco_id', x);
           }
-          setLoading(false);
-        } else {
-          const x = optTabPreco.find(
-            (op) =>
-              op.value.toString() === gridItens[0].item_tab_preco_id.toString()
-          );
-          frmItens.current.setFieldValue('item_tab_preco_id', x);
         }
       }
     } catch (error) {

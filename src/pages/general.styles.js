@@ -147,6 +147,10 @@ export const AreaComp = styled.div`
     font-size: 14px;
   }
 
+  textarea {
+    resize: none;
+  }
+
   label {
     color: ${(props) => props.lblColor || '#2A404A'};
     font-size: ${(props) => props.lblFontSize || '11px'};
